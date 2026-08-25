@@ -138,6 +138,8 @@
   --animate-focused: focused 1s ease;
   --animate-target-bob: targetBob 1.1s ease-in-out infinite;
   --animate-target-ring: targetRing 1.1s ease-in-out infinite;
+  --animate-multi-angle-name-orbit: multiAngleNameOrbit 12s linear infinite;
+  --animate-multi-angle-piece-spin: multiAnglePieceSpin 60s linear infinite;
   /* mini-jukebox のトラック名横スクロール。--scroll-dist は MiniJukeboxComponent が
      対象 element に直接 setProperty で注入する。 */
   --animate-title-scroll: title-scroll 7s ease-in-out infinite;
@@ -1546,6 +1548,31 @@ input[type='range']::-moz-range-thumb {
   }
   50% {
     opacity: 0.35;
+  }
+}
+
+/* CSS の正方向は画面上で時計回り。下を 0deg として、名前をコマの周囲に公転させる。 */
+@keyframes multiAngleNameOrbit {
+  from {
+    transform: rotateZ(0deg);
+  }
+  to {
+    transform: rotateZ(360deg);
+  }
+}
+
+@property --multi-angle-piece-angle {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@keyframes multiAnglePieceSpin {
+  from {
+    --multi-angle-piece-angle: 0deg;
+  }
+  to {
+    --multi-angle-piece-angle: 360deg;
   }
 }
 

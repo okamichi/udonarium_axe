@@ -9,16 +9,20 @@ import {
   ViewContainerRef,
 } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { observeTap, TapGestureHandle } from '@axe/core/input/tap-gesture';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { multiAngleDegreesFromPoint } from '@axe/domain/tabletop/multi-angle';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export interface TooltipPanelInstance {
   tabletopObject: TabletopObject | null;
   left: number;
   top: number;
+  rotationDegrees: number;
 }
 
 @Directive({ selector: '[appTooltip]' })
@@ -26,6 +30,7 @@ export class TooltipDirective {
   private readonly viewContainerRef = inject(ViewContainerRef);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly tabletopService = inject(TabletopService);
   private readonly viewport = inject(ViewportService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -43,6 +48,7 @@ export class TooltipDirective {
   private closeTooltipTimer: ReturnType<typeof setTimeout> | null = null;
 
   private tooltipComponentRef: ComponentRef<TooltipPanelInstance> | null = null;
+  private tooltipRotationDegrees = 0;
   private deleteOff?: () => void;
   private tapGesture: TapGestureHandle | null = null;
 
@@ -72,8 +78,9 @@ export class TooltipDirective {
     this.open();
   }
 
-  private onMouseEnter(_e: MouseEvent) {
+  private onMouseEnter(e: MouseEvent) {
     this.clearTimer();
+    this.tooltipRotationDegrees = this.rotationDegreesAt(e.clientX, e.clientY);
     if (!this.tooltipComponentRef) this.startOpenTimer();
   }
 
@@ -145,6 +152,7 @@ export class TooltipDirective {
     this.tooltipComponentRef.instance.tabletopObject = this.tabletopObject();
     this.tooltipComponentRef.instance.left = this.pointerDeviceService.pointerX;
     this.tooltipComponentRef.instance.top = this.pointerDeviceService.pointerY;
+    this.tooltipComponentRef.instance.rotationDegrees = this.tooltipRotationDegrees;
 
     if (this.viewport.isTouch()) {
       (this.tooltipComponentRef.location.nativeElement as HTMLElement).classList.add('tooltip-passthrough');
@@ -169,6 +177,17 @@ export class TooltipDirective {
       this.deleteOff = undefined;
     });
     TooltipDirective.activeTooltips.push(this.tooltipComponentRef);
+  }
+
+  private rotationDegreesAt(pointerX: number, pointerY: number): number {
+    const object = this.tabletopObject();
+    const table = this.tabletopService.currentTable;
+    if (!(object instanceof GameCharacter) || !table.mode2d || !table.multiAngleEnabled) return 0;
+
+    const host = this.viewContainerRef.element.nativeElement as Element;
+    const piece = host.querySelector('[data-testid="piece-body"]') ?? host;
+    const rect = piece.getBoundingClientRect();
+    return multiAngleDegreesFromPoint(pointerX, pointerY, rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
   private close() {

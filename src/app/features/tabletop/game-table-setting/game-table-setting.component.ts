@@ -27,6 +27,12 @@ import {
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
+import {
+  DEFAULT_MULTI_ANGLE_PAUSE_SECONDS,
+  DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS,
+  DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS,
+  MultiAngleMotionMode,
+} from '@axe/domain/tabletop/multi-angle';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
   MapImageGridAdjusterComponent,
@@ -165,6 +171,60 @@ export class GameTableSettingComponent {
   set tableMode2d(value: boolean) {
     if (!this.selectedTable) return;
     this.selectedTable.mode2d = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableMultiAngleEnabled(): boolean {
+    return this.selectedTable?.multiAngleEnabled ?? false;
+  }
+  set tableMultiAngleEnabled(value: boolean) {
+    if (!this.selectedTable) return;
+    this.selectedTable.multiAngleEnabled = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableMultiAngleMotionMode(): MultiAngleMotionMode {
+    return this.selectedTable?.multiAngleMotionMode === 'quarter-turn' ? 'quarter-turn' : 'continuous';
+  }
+  set tableMultiAngleMotionMode(value: MultiAngleMotionMode) {
+    if (!this.selectedTable) return;
+    this.selectedTable.multiAngleMotionMode = value === 'quarter-turn' ? 'quarter-turn' : 'continuous';
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableMultiAngleRevolutionSeconds(): number {
+    return this.selectedTable?.multiAngleRevolutionSeconds ?? DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS;
+  }
+  set tableMultiAngleRevolutionSeconds(value: number) {
+    if (!this.selectedTable) return;
+    const number = Number(value);
+    this.selectedTable.multiAngleRevolutionSeconds = Number.isFinite(number)
+      ? Math.min(120, Math.max(1, number))
+      : DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableMultiAnglePauseSeconds(): number {
+    return this.selectedTable?.multiAnglePauseSeconds ?? DEFAULT_MULTI_ANGLE_PAUSE_SECONDS;
+  }
+  set tableMultiAnglePauseSeconds(value: number) {
+    if (!this.selectedTable) return;
+    const number = Number(value);
+    this.selectedTable.multiAnglePauseSeconds = Number.isFinite(number)
+      ? Math.min(30, Math.max(0, number))
+      : DEFAULT_MULTI_ANGLE_PAUSE_SECONDS;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableMultiAnglePieceRevolutionSeconds(): number {
+    return this.selectedTable?.multiAnglePieceRevolutionSeconds ?? DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
+  }
+  set tableMultiAnglePieceRevolutionSeconds(value: number) {
+    if (!this.selectedTable) return;
+    const number = Number(value);
+    this.selectedTable.multiAnglePieceRevolutionSeconds = Number.isFinite(number)
+      ? Math.min(300, Math.max(5, number))
+      : DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

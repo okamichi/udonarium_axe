@@ -10,3 +10,7 @@ export const DEFAULT_CHAT_COLOR_CODES: readonly string[] = ['#000000', '#FF0000'
 export const SYSTEM_CHAT_TAB_IDENTIFIER = 'SystemTab';
 
 export const SYSTEM_CHAT_TAB_NAME = 'システム';
+
+/** The room tab whose ordinary public messages are drawn around the screen perimeter. */
+export const TICKER_CHAT_TAB_IDENTIFIER = 'TickerTab';
+export const TICKER_CHAT_TAB_NAME = 'ティッカー';

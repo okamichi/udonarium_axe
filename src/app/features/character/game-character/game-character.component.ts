@@ -58,6 +58,11 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import {
+  DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS,
+  multiAngleOrbitAnimation,
+  multiAngleRotationPhase,
+} from '@axe/domain/tabletop/multi-angle';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -75,6 +80,7 @@ import {
   makeScreenLiftTransform,
 } from '@axe/ui/tabletop/billboard-transform';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
+import { makeMultiAngleCurvedName } from '@axe/ui/tabletop/multi-angle-curved-name';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -437,12 +443,27 @@ export class GameCharacterComponent {
     supersampleTransform({ factor: this.imageSupersample(), anchor: 'center' })
   );
 
+  readonly multiAnglePiecePedestalRotation = computed(() =>
+    this.multiAngleNameOrbitEnabled() ? 'rotateZ(var(--multi-angle-piece-angle, 0deg))' : ''
+  );
+
+  readonly multiAnglePieceImageRotation = computed(() =>
+    this.multiAngleNameOrbitEnabled() ? 'rotateZ(var(--multi-angle-piece-angle, 0deg))' : ''
+  );
+
+  private readonly pieceImageBillboardTransform = computed(() =>
+    [this.imageBillboardEnabled() ? this.billboardTransformImage() : '', this.multiAnglePieceImageRotation()]
+      .filter((part) => part.length > 0)
+      .join(' ')
+  );
+
   readonly komaImageTransform = computed(() =>
     supersampleTransform({
       factor: this.imageSupersample(),
       anchor: 'bottom',
       outer: `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`,
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
+      // 3D の親変換を打ち消した後で回す。先に回すとローカルの3D軸で画像が手前・奥へ倒れる。
+      inner: this.pieceImageBillboardTransform(),
     })
   );
 
@@ -450,7 +471,7 @@ export class GameCharacterComponent {
     supersampleTransform({
       factor: this.imageSupersample(),
       anchor: 'bottom',
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
+      inner: this.pieceImageBillboardTransform(),
     })
   );
 
@@ -587,6 +608,70 @@ export class GameCharacterComponent {
     if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5)}px)`;
     return this.labelOrbitTransform(30, 60);
   });
+
+  readonly multiAngleNameOrbitEnabled = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return !this.isPoster() && table.mode2d && table.multiAngleEnabled;
+  });
+
+  readonly multiAngleCurvedNameLayout = computed(() =>
+    makeMultiAngleCurvedName(this.multiAngleLabelText(), this.size() * this.gridSize)
+  );
+
+  readonly multiAngleLabelText = computed(() => {
+    if (this.hideBuff()) return this.name();
+    const buffNames = this.buffBadges()
+      .map((buff) => buff.name.trim())
+      .filter((name) => name.length > 0)
+      .join('・');
+    if (buffNames.length < 1) return this.name();
+    const leadingBuff = Array.from(buffNames).slice(0, 5).join('');
+    return `${this.name()}/${leadingBuff}`;
+  });
+
+  readonly multiAngleCurvedNamePathId = computed(
+    () => `multi-angle-curved-name-${this.gameCharacter()?.identifier ?? 'unknown'}`
+  );
+
+  readonly multiAngleNameOrbitAnimation = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return multiAngleOrbitAnimation(
+      table.multiAngleMotionMode,
+      table.multiAngleRevolutionSeconds,
+      table.multiAnglePauseSeconds
+    );
+  });
+
+  private readonly multiAngleNamePhase = computed(() =>
+    multiAngleRotationPhase(`${this.gameCharacter()?.identifier ?? 'unknown'}:name`)
+  );
+
+  private readonly multiAnglePiecePhase = computed(() =>
+    multiAngleRotationPhase(`${this.gameCharacter()?.identifier ?? 'unknown'}:piece`)
+  );
+
+  readonly multiAngleNameOrbitDelaySeconds = computed(
+    () => -this.multiAngleNamePhase() * this.multiAngleNameOrbitAnimation().durationSeconds
+  );
+
+  readonly multiAnglePieceRevolutionSeconds = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    const seconds = table.multiAnglePieceRevolutionSeconds;
+    return Number.isFinite(seconds)
+      ? Math.min(300, Math.max(5, seconds))
+      : DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
+  });
+
+  readonly multiAnglePieceRotationDelaySeconds = computed(
+    () => -this.multiAnglePiecePhase() * this.multiAnglePieceRevolutionSeconds()
+  );
+
   readonly buffLabelOrbit = computed(() => {
     if (this.isPoster())
       return `translateY(${-(this.size() * this.gridSize + 12 + this.gaugePanelHeightEstimate())}px)`;

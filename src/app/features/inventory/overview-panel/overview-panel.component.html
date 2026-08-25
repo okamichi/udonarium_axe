@@ -3,6 +3,9 @@
   appDraggable
   #draggablePanel
   [attr.data-v]="objectVersion()"
+  [attr.data-tooltip-rotation]="rotationDegrees"
+  [style.transform]="'rotateZ(' + rotationDegrees + 'deg)'"
+  style="transform-origin: top left"
 >
   @if (tabletopObject && canViewObject()) {
     @switch (tabletopObject.aliasName) {

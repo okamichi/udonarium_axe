@@ -33,6 +33,15 @@ describe('OverviewPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('rotates the detail toward the hover area supplied by the tooltip', () => {
+    component.rotationDegrees = 90;
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('[data-tooltip-rotation]') as HTMLElement;
+    expect(panel.dataset['tooltipRotation']).toBe('90');
+    expect(panel.style.transform).toBe('rotateZ(90deg)');
+  });
+
   describe('filtering the empty elements out', () => {
     it('returns nothing for the list with nothing to read', () => {
       component.tabletopObject = null!;

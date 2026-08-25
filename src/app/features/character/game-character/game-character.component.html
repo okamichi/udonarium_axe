@@ -34,6 +34,7 @@
       ></div>
     }
     <div
+      data-testid="piece-entry-bounce"
       class="size-full [-webkit-transform-style:preserve-3d] transform-3d"
       [class.animate-bounce-in]="entryBounce()"
       (animationend)="onEntryBounceEnd($event)"
@@ -47,7 +48,11 @@
         [class.animate-defeat-flinch]="defeatReaction() === 'flinch'"
       >
         <div
+          data-testid="multi-angle-piece-motion-source"
           class="pointer-events-auto size-full [-webkit-transform-style:preserve-3d] transform-3d"
+          [class.animate-multi-angle-piece-spin]="multiAngleNameOrbitEnabled()"
+          [style.animation-duration.s]="multiAnglePieceRevolutionSeconds()"
+          [style.animation-delay.s]="multiAnglePieceRotationDelaySeconds()"
           appRotable
           [rotable.option]="rotableOption()"
           [rotable.disable]="mode2dEnabled()"
@@ -58,17 +63,21 @@
             <div
               class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ffcc80] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
               [ngStyle]="pedestalStyle('#FFCC80')"
+              [style.transform]="multiAnglePiecePedestalRotation()"
             ></div>
           }
           @if (this.gameCharacter()!.hideInventory) {
             <div
               class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#A0E0FF] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
               [ngStyle]="pedestalStyle('#A0E0FF')"
+              [style.transform]="multiAnglePiecePedestalRotation()"
             ></div>
           }
           <div
+            data-testid="multi-angle-rotating-pedestal"
             class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
             [ngStyle]="pedestalOuterStyle()"
+            [style.transform]="multiAnglePiecePedestalRotation()"
           ></div>
           @if (isTargeted()) {
             <div
@@ -109,7 +118,12 @@
                 height: komaImageHeightSignal() + 'px',
                 width: 'auto',
                 maxWidth: 'none',
-                transform: 'translateX(-50%) scaleY(0.5) translateY(-150%) translateY(' + size() * gridSize + 'px)',
+                transform:
+                  'translateX(-50%) ' +
+                  multiAnglePiecePedestalRotation() +
+                  ' scaleY(0.5) translateY(-150%) translateY(' +
+                  size() * gridSize +
+                  'px)',
               }"
               [src]="imageFile().url | safe: 'resourceUrl'"
             />
@@ -122,7 +136,9 @@
                 transform:
                   'translateX(-50%) translateX(' +
                   (size() * gridSize) / 2 +
-                  'px) scaleY(0.5) translateY(-150%) translateY(' +
+                  'px) ' +
+                  multiAnglePiecePedestalRotation() +
+                  ' scaleY(0.5) translateY(-150%) translateY(' +
                   size() * gridSize +
                   'px)',
               }"
@@ -313,7 +329,7 @@
                     </div>
                   </div>
                 }
-                @if (name() && !hideName()) {
+                @if (name() && !hideName() && !multiAngleNameOrbitEnabled()) {
                   <div
                     class="absolute [-webkit-transform-style:preserve-3d] transform-3d"
                     [style.font-size.px]="nameFontSizePx"
@@ -455,6 +471,70 @@
             </div>
           </div>
         </div>
+        @if (name() && !hideName() && multiAngleNameOrbitEnabled()) {
+          <div
+            class="pointer-events-none absolute inset-0 z-20 [-webkit-transform-style:preserve-3d] transform-3d"
+            [style.transform]="'translateZ(4px)'"
+          >
+            <div
+              data-testid="multi-angle-name-orbit"
+              data-orbit-direction="clockwise"
+              class="animate-multi-angle-name-orbit absolute inset-0 origin-center"
+              [style.animation-duration.s]="multiAngleNameOrbitAnimation().durationSeconds"
+              [style.animation-timing-function]="multiAngleNameOrbitAnimation().timingFunction"
+              [style.animation-delay.s]="multiAngleNameOrbitDelaySeconds()"
+            >
+              @let curvedName = multiAngleCurvedNameLayout();
+              <svg
+                data-testid="piece-name"
+                class="absolute overflow-visible"
+                [style.top.px]="curvedName.offset"
+                [style.left.px]="curvedName.offset"
+                [style.width.px]="curvedName.svgSize"
+                [style.height.px]="curvedName.svgSize"
+                [attr.viewBox]="'0 0 ' + curvedName.svgSize + ' ' + curvedName.svgSize"
+                aria-hidden="true"
+              >
+                <defs>
+                  <path [attr.id]="multiAngleCurvedNamePathId()" [attr.d]="curvedName.path"></path>
+                </defs>
+                <text
+                  class="font-sans font-bold"
+                  [attr.fill]="this.gameCharacter()!.nonTalkFlag ? '#333' : '#fff'"
+                  [attr.stroke]="this.gameCharacter()!.nonTalkFlag ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.88)'"
+                  [attr.stroke-width]="curvedName.strokeWidth"
+                  [attr.font-size]="curvedName.fontSize"
+                  [attr.letter-spacing]="curvedName.letterSpacing"
+                  stroke-linejoin="round"
+                  paint-order="stroke fill"
+                >
+                  @for (startOffset of curvedName.startOffsets; track startOffset) {
+                    <textPath
+                      data-testid="multi-angle-name-text-path"
+                      [attr.data-label-copy]="$index + 1"
+                      [attr.href]="'#' + multiAngleCurvedNamePathId()"
+                      [attr.startOffset]="startOffset"
+                      text-anchor="middle"
+                    >
+                      {{ curvedName.paddedText }}{{ isLock ? ' 🔒' : '' }}
+                    </textPath>
+                  }
+                  @for (separatorOffset of curvedName.separatorOffsets; track separatorOffset) {
+                    <textPath
+                      data-testid="multi-angle-name-separator"
+                      [attr.href]="'#' + multiAngleCurvedNamePathId()"
+                      [attr.startOffset]="separatorOffset"
+                      text-anchor="middle"
+                      opacity="0.82"
+                    >
+                      ◆
+                    </textPath>
+                  }
+                </text>
+              </svg>
+            </div>
+          </div>
+        }
         @if (isAltitudeIndicate && (altitude() <= -0.5 || 0.5 <= altitude())) {
           <div
             class="flex origin-top-left flex-col justify-between border-l-2 border-dashed border-l-black [-webkit-transform-style:preserve-3d] transform-3d"

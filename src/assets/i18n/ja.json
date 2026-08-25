@@ -1399,6 +1399,14 @@
         "sectionDisplay": "表示モード",
         "imageBillboard": "画像をカメラに追従",
         "mode2d": "2Dモード（俯瞰固定）",
+        "multiAngle": "コマ名を円周に沿って周回",
+        "multiAngleMotionMode": "回転方法",
+        "multiAngleContinuous": "時計回りに連続回転",
+        "multiAngleQuarterTurn": "90°回転して静止",
+        "multiAngleRevolutionSeconds": "回転時間（一周）",
+        "multiAnglePieceRevolutionSeconds": "コマ本体の一周時間",
+        "multiAnglePauseSeconds": "90°後の静止時間",
+        "seconds": "秒",
         "sectionDarkness": "暗闇（視界・照明）",
         "darknessEnabled": "暗闇を有効化",
         "lightSnapToGrid": "照明をマス目に沿わせる",
@@ -1565,6 +1573,9 @@
         "voteMenuTitle": "点呼/投票設定",
         "alarmMenuTitle": "アラームタイマ",
         "tabSettingTitle": "チャットタブ設定",
+        "tickerEnabled": "外周ティッカーを表示",
+        "tickerSpeed": "速度",
+        "tickerSpeedUnit": "px/秒",
         "noTarget": "対象が未選択です",
         "writingOthers": "他 {{count}} 人 入力中"
       },
@@ -2683,7 +2694,8 @@
       "altitudeLabel": "高度"
     },
     "panel": {
-      "menuTitle": "メニュー"
+      "menuTitle": "メニュー",
+      "rotate90": "時計回りに90度回転"
     }
   },
   "error": {}

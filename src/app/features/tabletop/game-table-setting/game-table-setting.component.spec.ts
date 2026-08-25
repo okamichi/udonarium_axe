@@ -102,6 +102,33 @@ describe('GameTableSettingComponent', () => {
     });
   });
 
+  it('stores and bounds the multi-angle motion settings', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      component.tableMultiAngleMotionMode = 'quarter-turn';
+      component.tableMultiAngleRevolutionSeconds = 24;
+      component.tableMultiAnglePauseSeconds = 3.5;
+      component.tableMultiAnglePieceRevolutionSeconds = 90;
+
+      expect(table.multiAngleMotionMode).toBe('quarter-turn');
+      expect(table.multiAngleRevolutionSeconds).toBe(24);
+      expect(table.multiAnglePauseSeconds).toBe(3.5);
+      expect(table.multiAnglePieceRevolutionSeconds).toBe(90);
+
+      component.tableMultiAngleRevolutionSeconds = 0;
+      component.tableMultiAnglePauseSeconds = 99;
+      component.tableMultiAnglePieceRevolutionSeconds = 1;
+      expect(table.multiAngleRevolutionSeconds).toBe(1);
+      expect(table.multiAnglePauseSeconds).toBe(30);
+      expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
+    } finally {
+      table.destroy();
+    }
+  });
+
   it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(GameTableSettingComponent);
   });

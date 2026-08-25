@@ -46,6 +46,27 @@ describe('ChatWindowComponent', () => {
     await expectPanelDragRecovery(ChatWindowComponent);
   });
 
+  it('shows the on/off switch and speed slider only on the ticker tab', () => {
+    const ticker = ChatTabList.instance.ensureTickerTab();
+    const ordinary = ChatTabList.instance.addChatTab('通常');
+    try {
+      component.chatTabidentifier = ticker.identifier;
+      fixture.detectChanges();
+
+      expect(component.isTickerTab()).toBe(true);
+      expect(fixture.nativeElement.querySelector('[data-testid="ticker-controls"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('[data-testid="ticker-enabled"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('[data-testid="ticker-speed"]')).toBeTruthy();
+
+      component.chatTabidentifier = ordinary.identifier;
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="ticker-controls"]')).toBeNull();
+    } finally {
+      ticker.destroy();
+      ordinary.destroy();
+    }
+  });
+
   describe('noticing a change of chat tab', () => {
     it('moves off a tab that is no longer there when the list changes', () => {
       fixture.detectChanges();

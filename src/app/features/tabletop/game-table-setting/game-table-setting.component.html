@@ -388,6 +388,95 @@
             />
             {{ 'feature.tabletop.tableSetting.mode2d' | transloco }}
           </label>
+
+          @if (tableMode2d) {
+            <label class="text-ui-text ml-5 flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+              <input
+                type="checkbox"
+                class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                [(ngModel)]="tableMultiAngleEnabled"
+                name="tableMultiAngleEnabled"
+              />
+              {{ 'feature.tabletop.tableSetting.multiAngle' | transloco }}
+            </label>
+            @if (tableMultiAngleEnabled) {
+              <div
+                class="border-ui-border-panel bg-ui-input/35 ml-5 grid grid-cols-[8.5rem_1fr] items-center gap-2 rounded-md border border-solid p-2"
+              >
+                <label class="text-ui-muted text-[11px]" for="tableMultiAngleMotionMode">{{
+                  'feature.tabletop.tableSetting.multiAngleMotionMode' | transloco
+                }}</label>
+                <select
+                  id="tableMultiAngleMotionMode"
+                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border min-w-0 border border-solid px-2 py-1 text-[12px] outline-none"
+                  [(ngModel)]="tableMultiAngleMotionMode"
+                  name="tableMultiAngleMotionMode"
+                >
+                  <option value="continuous">
+                    {{ 'feature.tabletop.tableSetting.multiAngleContinuous' | transloco }}
+                  </option>
+                  <option value="quarter-turn">
+                    {{ 'feature.tabletop.tableSetting.multiAngleQuarterTurn' | transloco }}
+                  </option>
+                </select>
+
+                <label class="text-ui-muted text-[11px]" for="tableMultiAngleRevolutionSeconds">{{
+                  'feature.tabletop.tableSetting.multiAngleRevolutionSeconds' | transloco
+                }}</label>
+                <div class="flex items-center gap-1.5">
+                  <input
+                    id="tableMultiAngleRevolutionSeconds"
+                    type="number"
+                    class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-20 border border-solid px-1.5 py-1 text-right text-[12px] outline-none"
+                    [(ngModel)]="tableMultiAngleRevolutionSeconds"
+                    name="tableMultiAngleRevolutionSeconds"
+                    min="1"
+                    max="120"
+                    step="1"
+                  />
+                  <span class="text-ui-dim text-[11px]">{{ 'feature.tabletop.tableSetting.seconds' | transloco }}</span>
+                </div>
+
+                <label class="text-ui-muted text-[11px]" for="tableMultiAnglePieceRevolutionSeconds">{{
+                  'feature.tabletop.tableSetting.multiAnglePieceRevolutionSeconds' | transloco
+                }}</label>
+                <div class="flex items-center gap-1.5">
+                  <input
+                    id="tableMultiAnglePieceRevolutionSeconds"
+                    type="number"
+                    class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-20 border border-solid px-1.5 py-1 text-right text-[12px] outline-none"
+                    [(ngModel)]="tableMultiAnglePieceRevolutionSeconds"
+                    name="tableMultiAnglePieceRevolutionSeconds"
+                    min="5"
+                    max="300"
+                    step="5"
+                  />
+                  <span class="text-ui-dim text-[11px]">{{ 'feature.tabletop.tableSetting.seconds' | transloco }}</span>
+                </div>
+
+                @if (tableMultiAngleMotionMode === 'quarter-turn') {
+                  <label class="text-ui-muted text-[11px]" for="tableMultiAnglePauseSeconds">{{
+                    'feature.tabletop.tableSetting.multiAnglePauseSeconds' | transloco
+                  }}</label>
+                  <div class="flex items-center gap-1.5">
+                    <input
+                      id="tableMultiAnglePauseSeconds"
+                      type="number"
+                      class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-20 border border-solid px-1.5 py-1 text-right text-[12px] outline-none"
+                      [(ngModel)]="tableMultiAnglePauseSeconds"
+                      name="tableMultiAnglePauseSeconds"
+                      min="0"
+                      max="30"
+                      step="0.5"
+                    />
+                    <span class="text-ui-dim text-[11px]">{{
+                      'feature.tabletop.tableSetting.seconds' | transloco
+                    }}</span>
+                  </div>
+                }
+              </div>
+            }
+          }
         </div>
       </div>
 

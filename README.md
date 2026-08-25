@@ -1,4 +1,4 @@
-# Udonarium Axe
+# Udonarium Axe with Table-Top Display
 
 [![Latest release](https://img.shields.io/github/v/release/Xelltis/udonarium_axe?logo=github)](https://github.com/Xelltis/udonarium_axe/releases/latest)
 [![Release](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml/badge.svg)](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml)
@@ -109,6 +109,12 @@ Secret をブラウザに置くわけにはいきません。そのため、**�
   エフェクト集だけを書き出して別の部屋へ持ち込めます
 - 視界外のコマや、OS の「視差効果を減らす」設定では絵を出さず効果音だけ鳴らします
 
+### 卓上ディプレイ機能追加
+
+- ウィンドウの90度回転機能
+- 2Dモードでのコマや名前の回転機能
+- 2Dモードでの画面の端を回るティッカーチャット
+
 **→ 追加・拡張機能の一覧は [docs/features.md](docs/features.md) を参照してください。**
 
 ## 名前について
@@ -142,6 +148,10 @@ npm run lint       # ESLint
 npm run e2e        # Playwright E2E
 ```
 
+盤面やUIだけをローカルで確認するときは、開発サーバーの起動後に
+`http://localhost:4200/?local=1` を開いてください。ローカル確認モードではSkyWayへ接続しないため、
+バックエンドを用意しなくても単独ブラウザ内で操作できます。通常どおり通信するときは `?local=1` を外します。
+
 開発サーバーは既定で SkyWay バックエンドの URL を `assets/config.json`（`http://localhost:3000`）から読み込みます。
 ローカルで動かす場合はバックエンドをローカル起動するか、`assets/config.json` を公開済みバックエンドに向けてください。
 
@@ -151,6 +161,7 @@ npm run e2e        # Playwright E2E
 | ------------------------------------------------------ | ---------------------------------- |
 | [CLAUDE.md](CLAUDE.md)                                 | 開発規範の最小セット（まずはここ） |
 | [docs/features.md](docs/features.md)                   | Axe で追加・拡張した機能の一覧     |
+| [docs/multi-angle.md](docs/multi-angle.md)             | 2D 多方向閲覧と外周ティッカー      |
 | [docs/architecture.md](docs/architecture.md)           | 7 層アーキテクチャと設計思想       |
 | [docs/coding-guidelines.md](docs/coding-guidelines.md) | コーディング規範・コードスタイル   |
 | [docs/contribution.md](docs/contribution.md)           | コミット規約・lefthook フック      |

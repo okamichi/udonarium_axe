@@ -4,6 +4,13 @@ import { ObjectNode } from '@axe/core/sync/object-node';
 import { DEFAULT_AMBIENCE_DENSITY } from '@axe/domain/effect/ambience/ambience-kind';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import {
+  DEFAULT_MULTI_ANGLE_PAUSE_SECONDS,
+  DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS,
+  DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS,
+  DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
+  MultiAngleMotionMode,
+} from '@axe/domain/tabletop/multi-angle';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { DEFAULT_AMBIENT_COLOR } from '@axe/domain/tabletop/vision-types';
@@ -47,6 +54,13 @@ export class GameTable extends ObjectNode {
   @SyncVar() gridSnapStyle: GridSnapStyle = GridSnapStyle.CENTER;
   @SyncVar() imageBillboard: boolean = false;
   @SyncVar() mode2d: boolean = false;
+  @SyncVar() multiAngleEnabled: boolean = false;
+  @SyncVar() multiAngleMotionMode: MultiAngleMotionMode = 'continuous';
+  @SyncVar() multiAngleRevolutionSeconds: number = DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS;
+  @SyncVar() multiAnglePauseSeconds: number = DEFAULT_MULTI_ANGLE_PAUSE_SECONDS;
+  @SyncVar() multiAnglePieceRevolutionSeconds: number = DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
+  @SyncVar() multiAngleTickerEnabled: boolean = false;
+  @SyncVar() multiAngleTickerPixelsPerSecond: number = DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND;
   @SyncVar() wallHeight: number = 10;
   @SyncVar() northWallImageIdentifier: string = 'imageIdentifier';
   @SyncVar() eastWallImageIdentifier: string = 'imageIdentifier';

@@ -40,6 +40,7 @@ import { GameCharacterSheetComponent } from '@axe/features/character/game-charac
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
+import { ChatTickerComponent } from '@axe/features/chat/chat-ticker/chat-ticker.component';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { DiceChatEventHandlerService } from '@axe/features/dice/dice-chat-event-handler.service';
 import { EffectChatEventHandlerService } from '@axe/features/effect/effect-chat-event-handler.service';
@@ -109,6 +110,7 @@ import { version as APP_VERSION } from '@pkg';
     ReplayBoardBannerComponent,
     InviteJoinComponent,
     StreamingOverlayComponent,
+    ChatTickerComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,
     TranslocoModule,

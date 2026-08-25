@@ -17,8 +17,10 @@ import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { triggerUpdateGameObject } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -29,6 +31,11 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleSpeakTab, canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import {
+  DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
+  MAX_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
+  MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
+} from '@axe/domain/tabletop/multi-angle';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
 import { editsTextInPlace } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
@@ -85,6 +92,7 @@ export class ChatWindowComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly chatPrefs = inject(ChatPreferencesService);
   private readonly activeChatTab = inject(ActiveChatTabService);
+  private readonly tabletopService = inject(TabletopService);
   private readonly t = inject(TRANSLATE_FN);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
@@ -259,6 +267,36 @@ export class ChatWindowComponent {
     this.objectChange.versionOf(tab.identifier)();
     return canRoleSpeakTab(tab, PeerCursor.myRole);
   });
+
+  readonly isTickerTab = computed(() => this.chatTab()?.isTickerTab ?? false);
+
+  get tickerEnabled(): boolean {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    return table.multiAngleTickerEnabled;
+  }
+  set tickerEnabled(value: boolean) {
+    const table = this.tabletopService.currentTable;
+    table.multiAngleTickerEnabled = value;
+    triggerUpdateGameObject(table.toContext());
+  }
+
+  get tickerPixelsPerSecond(): number {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    const value = Number(table.multiAngleTickerPixelsPerSecond);
+    return Number.isFinite(value)
+      ? Math.min(MAX_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, Math.max(MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, value))
+      : DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND;
+  }
+  set tickerPixelsPerSecond(value: number) {
+    const numeric = Number(value);
+    const table = this.tabletopService.currentTable;
+    table.multiAngleTickerPixelsPerSecond = Number.isFinite(numeric)
+      ? Math.min(MAX_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, Math.max(MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, numeric))
+      : DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND;
+    triggerUpdateGameObject(table.toContext());
+  }
 
   private isAutoScroll = true;
   readonly hasNewMessage = signal(false);

@@ -32,6 +32,11 @@ describe('GameCharacterComponent', () => {
     const table = TestBed.inject(TabletopService).currentTable;
     table.mode2d = false;
     table.imageBillboard = false;
+    table.multiAngleEnabled = false;
+    table.multiAngleMotionMode = 'continuous';
+    table.multiAngleRevolutionSeconds = 12;
+    table.multiAnglePauseSeconds = 2;
+    table.multiAnglePieceRevolutionSeconds = 60;
   };
 
   beforeEach(useFlatTable);
@@ -640,6 +645,123 @@ describe('GameCharacterComponent', () => {
       expect(component.billboardTransform()).toContain('translateZ(0.00px)');
       expect(component.billboardTransformBuff()).toContain('translateZ(0.00px)');
     });
+
+    it('keeps the stationary name while the clockwise orbit is disabled', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      tabletopService.currentTable.multiAngleEnabled = false;
+      const character = GameCharacter.create('停止名', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+
+        expect(component.multiAngleNameOrbitEnabled()).toBe(false);
+        expect(root.querySelector('[data-testid="multi-angle-name-orbit"]')).toBeNull();
+        expect(root.querySelectorAll('[data-testid="piece-name"]')).toHaveLength(1);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('curves a short label four times around the clockwise orbit', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      tabletopService.currentTable.multiAngleEnabled = true;
+      const character = GameCharacter.create('周回名', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+        const orbit = root.querySelector<HTMLElement>('[data-testid="multi-angle-name-orbit"]');
+
+        expect(component.multiAngleNameOrbitEnabled()).toBe(true);
+        expect(orbit?.dataset['orbitDirection']).toBe('clockwise');
+        expect(orbit?.classList.contains('animate-multi-angle-name-orbit')).toBe(true);
+        expect(root.querySelectorAll('[data-testid="piece-name"]')).toHaveLength(1);
+        expect(root.querySelectorAll('[data-testid="multi-angle-name-text-path"]')).toHaveLength(4);
+        expect(root.querySelectorAll('[data-testid="multi-angle-name-separator"]')).toHaveLength(4);
+        expect(root.querySelector('[data-testid="multi-angle-name-separator"]')?.textContent?.trim()).toBe('◆');
+        expect(root.querySelector('textPath')?.getAttribute('startOffset')).toBe('75%');
+        expect(root.querySelector('textPath')?.textContent?.trim()).toBe('周回名');
+        expect(root.querySelector('[data-multi-angle-seat]')).toBeNull();
+        expect(component.multiAngleCurvedNameLayout().path.match(/ A /g)).toHaveLength(2);
+        expect(component.multiAngleCurvedNameLayout().startOffsets).toEqual(['75%', '0%', '25%', '50%']);
+        expect(component.multiAngleNameOrbitAnimation()).toEqual({
+          durationSeconds: 12,
+          timingFunction: 'linear',
+        });
+
+        const pieceRotation = root.querySelector<HTMLElement>('[data-testid="multi-angle-piece-motion-source"]');
+        expect(pieceRotation?.classList.contains('animate-multi-angle-piece-spin')).toBe(true);
+        expect(pieceRotation?.style.animationDuration).toBe('60s');
+        expect(component.multiAnglePieceRotationDelaySeconds()).toBeLessThanOrEqual(0);
+        expect(root.querySelector<HTMLElement>('[data-testid="multi-angle-rotating-pedestal"]')?.style.transform).toBe(
+          'rotateZ(var(--multi-angle-piece-angle, 0deg))'
+        );
+        expect(component.multiAnglePieceImageRotation()).toBe('rotateZ(var(--multi-angle-piece-angle, 0deg))');
+        expect(component.pieceImageTransform()).toMatch(
+          /rotateY\(90deg\).*rotateZ\(var\(--multi-angle-piece-angle, 0deg\)\)$/
+        );
+        expect(component.pieceImageTransform()).not.toContain('rotateX(var(--multi-angle-piece-angle');
+        expect(component.pieceImageTransform()).not.toContain('rotateY(var(--multi-angle-piece-angle');
+        expect(root.querySelector<HTMLElement>('[data-testid="piece-gauge"]')?.style.transform ?? '').not.toContain(
+          '--multi-angle-piece-angle'
+        );
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('uses smooth quarter turns separated by the configured pause', () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = true;
+      table.multiAngleEnabled = true;
+      table.multiAngleMotionMode = 'quarter-turn';
+      table.multiAngleRevolutionSeconds = 8;
+      table.multiAnglePauseSeconds = 2;
+      table.multiAnglePieceRevolutionSeconds = 90;
+      const character = GameCharacter.create('間欠回転', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+        const orbit = root.querySelector<HTMLElement>('[data-testid="multi-angle-name-orbit"]');
+        const pieceRotation = root.querySelector<HTMLElement>('[data-testid="multi-angle-piece-motion-source"]');
+
+        expect(component.multiAngleNameOrbitAnimation().durationSeconds).toBe(16);
+        expect(component.multiAngleNameOrbitAnimation().timingFunction).toContain('0.25 12.5%');
+        expect(orbit?.style.animationDuration).toBe('16s');
+        expect(orbit?.style.animationTimingFunction).toContain('linear(');
+        expect(pieceRotation?.style.animationDuration).toBe('90s');
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('adds only the leading buff characters to the repeated label', () => {
+      const character = GameCharacter.create('勇者', 1, '');
+      character.addExtendData();
+      const buff = DataElement.create('攻撃強化状態', 3, {
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: '+2',
+      });
+      character.buffDataElement!.appendChild(buff);
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.multiAngleLabelText()).toBe('勇者/攻撃強化状');
+
+        character.hideBuff = true;
+        TestBed.inject(ObjectChangeService).notifyChanged(character.identifier);
+        expect(component.multiAngleLabelText()).toBe('勇者');
+      } finally {
+        character.destroy();
+      }
+    });
   });
 
   describe('targeting with a modified click', () => {
@@ -691,8 +813,7 @@ describe('GameCharacterComponent', () => {
   });
 
   describe('the hop a piece makes when it arrives', () => {
-    const bodyWrapper = () =>
-      (fixture.nativeElement.querySelector('[data-testid="piece-body"]') as HTMLElement).parentElement!;
+    const bodyWrapper = () => fixture.nativeElement.querySelector('[data-testid="piece-entry-bounce"]') as HTMLElement;
 
     it('hops once and then stays put, so re-ordering the table does not set it off again', () => {
       const character = GameCharacter.create('bounce', 1, '');

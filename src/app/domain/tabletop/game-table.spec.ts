@@ -127,6 +127,18 @@ describe('GameTable', () => {
       expect(table.gridShow).toBe(false);
     });
 
+    it('starts with multi-angle labels disabled', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.multiAngleEnabled).toBe(false);
+      expect(table.multiAngleMotionMode).toBe('continuous');
+      expect(table.multiAngleRevolutionSeconds).toBe(12);
+      expect(table.multiAnglePauseSeconds).toBe(2);
+      expect(table.multiAnglePieceRevolutionSeconds).toBe(60);
+      expect(table.multiAngleTickerEnabled).toBe(false);
+      expect(table.multiAngleTickerPixelsPerSecond).toBe(55);
+    });
+
     it('starts snapping to it', () => {
       const table = new GameTable();
       table.initialize();

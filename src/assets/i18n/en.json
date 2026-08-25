@@ -1399,6 +1399,14 @@
         "sectionDisplay": "Display mode",
         "imageBillboard": "Billboard piece images",
         "mode2d": "2D mode (top-down)",
+        "multiAngle": "Curve and orbit piece names",
+        "multiAngleMotionMode": "Motion",
+        "multiAngleContinuous": "Continuous clockwise",
+        "multiAngleQuarterTurn": "Turn 90° then pause",
+        "multiAngleRevolutionSeconds": "Rotation time (one lap)",
+        "multiAnglePieceRevolutionSeconds": "Piece rotation (one lap)",
+        "multiAnglePauseSeconds": "Pause after each 90°",
+        "seconds": "sec",
         "sectionDarkness": "Darkness (vision & lighting)",
         "darknessEnabled": "Enable darkness",
         "lightSnapToGrid": "Snap light to the grid",
@@ -1565,6 +1573,9 @@
         "voteMenuTitle": "Vote / Roll call",
         "alarmMenuTitle": "Alarm timer",
         "tabSettingTitle": "Chat tab settings",
+        "tickerEnabled": "Show edge ticker",
+        "tickerSpeed": "Speed",
+        "tickerSpeedUnit": "px/s",
         "noTarget": "No target selected",
         "writingOthers": "{{count}} more typing"
       },
@@ -2683,7 +2694,8 @@
       "altitudeLabel": "Altitude"
     },
     "panel": {
-      "menuTitle": "Menu"
+      "menuTitle": "Menu",
+      "rotate90": "Rotate 90° clockwise"
     }
   },
   "error": {}

@@ -110,6 +110,7 @@ export class OverviewPanelComponent {
 
   left: number = 0;
   top: number = 0;
+  rotationDegrees: number = 0;
 
   readonly imageUrl = computed(() => {
     this.objectChange.fileVersion();
