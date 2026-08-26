@@ -1,0 +1,1 @@
+import{Ar as dU,H as F,Rr as fU,fi as ke}from"./chunk-BSK0By0v.js";var d=(()=>{class e{get myRole(){return ke.myRole}get canEditTabletop(){return dU(ke.myRole)}get canSeeHidden(){return fU(ke.myRole)}static{this.ɵfac=function(i){return new(i||e)}}static{this.ɵprov=F({token:e,factory:e.ɵfac,providedIn:`root`})}}return e})();export{d as t};

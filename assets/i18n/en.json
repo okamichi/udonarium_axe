@@ -1167,7 +1167,14 @@
         "moveGraveyard": "Move to graveyard",
         "buffView": "Buff display",
         "invokeEffect": "Play an effect",
-        "deployDice": "Lay out {{count}} dice"
+        "deployDice": "Lay out {{count}} dice",
+        "radialBasic": "Basics",
+        "radialChat": "Chat",
+        "radialBuffEffect": "Buffs & effects",
+        "radialDisplay": "Display",
+        "radialMove": "Move",
+        "radialDisclosure": "Access & owner",
+        "radialObject": "Piece actions"
       },
       "panel": {
         "sheet": "Character sheet",
@@ -1580,6 +1587,8 @@
         "sectionDisplay": "Display mode",
         "imageBillboard": "Billboard piece images",
         "mode2d": "2D mode (top-down)",
+        "radialMenu": "Show rotating menus",
+        "radialMenuSpeed": "Rotation speed",
         "multiAngle": "Curve and orbit piece names",
         "multiAngleMotionMode": "Motion",
         "multiAngleContinuous": "Continuous clockwise",
@@ -2884,7 +2893,19 @@
       "index": "Index",
       "altitudeHigh": "Hi",
       "altitudeLow": "Lo",
-      "altitudeLabel": "Altitude"
+      "altitudeLabel": "Altitude",
+      "radial": {
+        "menuTitle": "Character menu",
+        "chooseDirection": "Choose your viewing side",
+        "seatNorth": "Use from the north side",
+        "seatEast": "Use from the east side",
+        "seatSouth": "Use from the south side",
+        "seatWest": "Use from the west side",
+        "back": "Back one level",
+        "fullMenu": "Show the full list",
+        "previousPage": "Previous page",
+        "nextPage": "Next page"
+      }
     },
     "panel": {
       "menuTitle": "Menu",

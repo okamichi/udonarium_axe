@@ -1167,7 +1167,14 @@
         "moveGraveyard": "무덤으로 이동",
         "buffView": "버프 표시",
         "invokeEffect": "연출 발동",
-        "deployDice": "주사위 펼치기({{count}}개)"
+        "deployDice": "주사위 펼치기({{count}}개)",
+        "radialBasic": "기본 정보",
+        "radialChat": "채팅",
+        "radialBuffEffect": "버프·연출",
+        "radialDisplay": "표시",
+        "radialMove": "이동",
+        "radialDisclosure": "공개·소유자",
+        "radialObject": "말 조작"
       },
       "panel": {
         "sheet": "캐릭터 시트",
@@ -1580,6 +1587,8 @@
         "sectionDisplay": "표시 모드",
         "imageBillboard": "이미지를 카메라를 향하게",
         "mode2d": "2D 모드(부감 고정)",
+        "radialMenu": "회전 메뉴 표시",
+        "radialMenuSpeed": "회전 속도",
         "multiAngle": "말 이름을 원주를 따라 회전",
         "multiAngleMotionMode": "회전 방식",
         "multiAngleContinuous": "시계 방향으로 연속 회전",
@@ -2886,7 +2895,19 @@
       "index": "인덱스",
       "altitudeHigh": "고",
       "altitudeLow": "저",
-      "altitudeLabel": "고도"
+      "altitudeLabel": "고도",
+      "radial": {
+        "menuTitle": "캐릭터 메뉴",
+        "chooseDirection": "조작할 방향 선택",
+        "seatNorth": "북쪽에서 조작",
+        "seatEast": "동쪽에서 조작",
+        "seatSouth": "남쪽에서 조작",
+        "seatWest": "서쪽에서 조작",
+        "back": "이전 단계로 돌아가기",
+        "fullMenu": "전체 목록 표시",
+        "previousPage": "이전 페이지",
+        "nextPage": "다음 페이지"
+      }
     },
     "panel": {
       "menuTitle": "메뉴",
