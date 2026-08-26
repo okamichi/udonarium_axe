@@ -1,0 +1,1 @@
+function n(r,t){let e=r.imageDataElement?.children??[];return t>=0&&t<e.length?e[t]:null}function a(r){let t=r?.currentValue;return t==null?``:String(t)}function l(r,t){r.currentValue=t.trim()}export{l as n,n as r,a as t};
