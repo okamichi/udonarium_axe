@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CutInService } from '@axe/application/media/cut-in.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { CutIn } from '@axe/domain/media/cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
@@ -127,6 +129,83 @@ describe('GameTableSettingComponent', () => {
     } finally {
       table.destroy();
     }
+  });
+
+  describe('choosing a table from the list', () => {
+    let table: GameTable;
+
+    function watchLaunch() {
+      return vi.spyOn(TestBed.inject(CutInService), 'launchForTable').mockReturnValue(true);
+    }
+
+    beforeEach(() => {
+      table = new GameTable();
+      table.initialize();
+    });
+
+    it('plays what the table asks for', () => {
+      const launchForTable = watchLaunch();
+
+      component.chooseGameTable(table.identifier);
+
+      expect(launchForTable).toHaveBeenCalledWith(table);
+    });
+
+    it('stays quiet on the table already showing', () => {
+      const launchForTable = watchLaunch();
+      component.chooseGameTable(table.identifier);
+      launchForTable.mockClear();
+
+      component.chooseGameTable(table.identifier);
+
+      expect(launchForTable).not.toHaveBeenCalled();
+    });
+
+    it('stays quiet when a table is only created', () => {
+      const launchForTable = watchLaunch();
+
+      component.selectGameTable(table.identifier);
+
+      expect(launchForTable).not.toHaveBeenCalled();
+    });
+
+    it('reads and writes the cut-ins the table names', () => {
+      component.selectedTable = table;
+      component.tableCutIns = ['cut-1', 'cut-2'];
+
+      expect(table.cutInIdentifiers).toBe('cut-1,cut-2');
+      expect(component.tableCutIns).toEqual(['cut-1', 'cut-2']);
+    });
+
+    it('names the cut-ins it shows as chips', async () => {
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = 'オープニング';
+      table.cutInIdentifiers = cutIn.identifier;
+      component.selectedTable = table;
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const labels = [...fixture.nativeElement.querySelectorAll('.ng-value-label')].map(
+        (node: Element) => node.textContent
+      );
+      expect(labels).toContain('オープニング');
+    });
+
+    it('hands back the same list until the table names other cut-ins', () => {
+      component.selectedTable = table;
+      component.tableCutIns = ['cut-1', 'cut-2'];
+      const list = component.tableCutIns;
+
+      expect(component.tableCutIns).toBe(list);
+
+      component.tableCutIns = ['cut-1'];
+
+      expect(component.tableCutIns).not.toBe(list);
+      expect(component.tableCutIns).toEqual(['cut-1']);
+    });
   });
 
   it('lets the panel take the pointer again once the drag ends', async () => {

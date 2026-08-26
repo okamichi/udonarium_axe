@@ -51,9 +51,7 @@ export class ChatTickerComponent {
   private readonly canvas = viewChild<ElementRef<HTMLCanvasElement>>('canvas');
 
   private readonly currentText = signal('');
-  private readonly queuedTexts: string[] = [];
   private readonly seenMessageIdentifiers = new Set<string>();
-  private isRepeatingLast = true;
   private cycleStartedAt: number | null = null;
   private animationFrame: number | null = null;
 
@@ -95,7 +93,6 @@ export class ChatTickerComponent {
     }
     if (latest) {
       this.currentText.set(latest);
-      this.isRepeatingLast = true;
     }
   }
 
@@ -105,14 +102,12 @@ export class ChatTickerComponent {
     const text = formatChatTickerMessage(message);
     if (!text) return;
 
-    if (!this.currentText() || this.isRepeatingLast) {
-      this.currentText.set(text);
-      this.isRepeatingLast = false;
-      this.cycleStartedAt = null;
-      if (this.isVisible()) this.startAnimation();
-      return;
-    }
-    this.queuedTexts.push(text);
+    // A full perimeter takes one to two minutes at the default speed on a desktop screen.
+    // Waiting for that lap made every message after the first look lost, so a new public
+    // message becomes the ticker text on the next animation frame.
+    this.currentText.set(text);
+    this.cycleStartedAt = null;
+    if (this.isVisible()) this.startAnimation();
   }
 
   private startAnimation(): void {
@@ -159,13 +154,6 @@ export class ChatTickerComponent {
     if (this.cycleStartedAt == null) this.cycleStartedAt = timestamp;
     if ((timestamp - this.cycleStartedAt) * (speed / 1000) >= path.perimeter) {
       this.cycleStartedAt = timestamp;
-      const next = this.queuedTexts.shift();
-      if (next) {
-        this.currentText.set(next);
-        this.isRepeatingLast = false;
-      } else {
-        this.isRepeatingLast = true;
-      }
     }
 
     const travelled = (timestamp - this.cycleStartedAt) * (speed / 1000);
