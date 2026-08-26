@@ -2,7 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -31,6 +34,7 @@ describe('GameCharacterComponent', () => {
   const useFlatTable = () => {
     const table = TestBed.inject(TabletopService).currentTable;
     table.mode2d = false;
+    table.radialMenuEnabled = false;
     table.imageBillboard = false;
     table.multiAngleEnabled = false;
     table.multiAngleMotionMode = 'continuous';
@@ -61,6 +65,56 @@ describe('GameCharacterComponent', () => {
 
   it('registers its effect in the constructor, so nothing is set up outside an injection context', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
+  });
+
+  describe('character context menu display', () => {
+    function openMenu(tableMode2d: boolean, radialMenuEnabled: boolean) {
+      const character = GameCharacter.create('menu-piece', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      fixture.detectChanges();
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = tableMode2d;
+      table.radialMenuEnabled = radialMenuEnabled;
+      table.radialMenuRotationSpeed = 7;
+      TestBed.inject(PointerDeviceService).primeForContextMenu(120, 160);
+      vi.spyOn(TestBed.inject(TabletopOverlapService), 'findAt').mockReturnValue([]);
+
+      component.onContextMenu(new Event('contextmenu', { cancelable: true }));
+      return character;
+    }
+
+    it('uses the ordinary downward menu outside 2D mode', () => {
+      const menus = TestBed.inject(ContextMenuService);
+      const open = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
+      const openRadial = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const character = openMenu(false, true);
+
+      try {
+        expect(open).toHaveBeenCalled();
+        expect(openRadial).not.toHaveBeenCalled();
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it.each([true, false])('opens the 2D menu interface with rotating display %s', (enabled) => {
+      const menus = TestBed.inject(ContextMenuService);
+      const openRadial = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const character = openMenu(true, enabled);
+
+      try {
+        expect(openRadial).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Array),
+          expect.any(Array),
+          'menu-piece',
+          enabled,
+          7
+        );
+      } finally {
+        character.destroy();
+      }
+    });
   });
 
   describe('what shows above a piece', () => {

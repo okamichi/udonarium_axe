@@ -1167,7 +1167,14 @@
         "moveGraveyard": "墓場に移動",
         "buffView": "バフの表示",
         "invokeEffect": "演出を発動",
-        "deployDice": "ダイスを展開する（{{count}}個）"
+        "deployDice": "ダイスを展開する（{{count}}個）",
+        "radialBasic": "基本情報",
+        "radialChat": "チャット",
+        "radialBuffEffect": "バフ・演出",
+        "radialDisplay": "表示",
+        "radialMove": "移動",
+        "radialDisclosure": "公開・所有",
+        "radialObject": "コマ操作"
       },
       "panel": {
         "sheet": "キャラクターシート",
@@ -1580,6 +1587,8 @@
         "sectionDisplay": "表示モード",
         "imageBillboard": "画像をカメラに追従",
         "mode2d": "2Dモード（俯瞰固定）",
+        "radialMenu": "回転メニュー表示",
+        "radialMenuSpeed": "回転速度",
         "multiAngle": "コマ名を円周に沿って周回",
         "multiAngleMotionMode": "回転方法",
         "multiAngleContinuous": "時計回りに連続回転",
@@ -2884,7 +2893,19 @@
       "index": "インデックス",
       "altitudeHigh": "高",
       "altitudeLow": "低",
-      "altitudeLabel": "高度"
+      "altitudeLabel": "高度",
+      "radial": {
+        "menuTitle": "キャラクターメニュー",
+        "chooseDirection": "操作する向きを選択",
+        "seatNorth": "北側から操作",
+        "seatEast": "東側から操作",
+        "seatSouth": "南側から操作",
+        "seatWest": "西側から操作",
+        "back": "前の階層へ戻る",
+        "fullMenu": "すべての項目を一覧表示",
+        "previousPage": "前のページ",
+        "nextPage": "次のページ"
+      }
     },
     "panel": {
       "menuTitle": "メニュー",

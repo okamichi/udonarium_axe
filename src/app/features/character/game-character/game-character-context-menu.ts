@@ -1,6 +1,10 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
-import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
+import {
+  ContextMenuAction,
+  ContextMenuRadialGroup,
+  ContextMenuSeparator,
+} from '@axe/application/ui/context-menu.service';
 import {
   buildAltitudeAction,
   buildCopyAction,
@@ -19,6 +23,23 @@ import { buildDisclosureContextMenu } from '@axe/features/disclosure/disclosure-
 export interface RegisteredRangeShape {
   label: string;
   value: RangeShapeFieldValue;
+}
+
+export interface GameCharacterContextMenuCallbacks {
+  onShowDetail: () => void;
+  onShowChatPalette: () => void;
+  onShowRemoteController: () => void;
+  onShowBuffEdit: () => void;
+  onSelectBuffView?: (mode: string) => void;
+  onShowLightSettings: () => void;
+  onInvokeRangeShape?: (value: RangeShapeFieldValue) => void;
+  onInvokeEffect?: (name: string) => void;
+  onDeployDice?: () => void;
+}
+
+export interface GameCharacterContextMenuModel {
+  actions: ContextMenuAction[];
+  radialGroups: ContextMenuRadialGroup[];
 }
 
 export function collectRegisteredRangeShapes(char: GameCharacter): RegisteredRangeShape[] {
@@ -65,33 +86,46 @@ export function buildGameCharacterContextMenu(
   char: GameCharacter,
   gridSize: number,
   inventoryService: GameObjectInventoryService,
-  callbacks: {
-    onShowDetail: () => void;
-    onShowChatPalette: () => void;
-    onShowRemoteController: () => void;
-    onShowBuffEdit: () => void;
-    onSelectBuffView?: (mode: string) => void;
-    onShowLightSettings: () => void;
-    onInvokeRangeShape?: (value: RangeShapeFieldValue) => void;
-    onInvokeEffect?: (name: string) => void;
-    /** Lays the dice the character keeps onto the table. Left out where nothing can lay them out. */
-    onDeployDice?: () => void;
-  },
+  callbacks: GameCharacterContextMenuCallbacks,
   t: TranslateFn,
   overlapEntries: ContextMenuAction[] = [],
-  buffViewMode = 'icon'
+  buffViewMode = 'icon',
+  surfaceEntries: ContextMenuAction[] = []
 ): ContextMenuAction[] {
+  return buildGameCharacterContextMenuModel(
+    char,
+    gridSize,
+    inventoryService,
+    callbacks,
+    t,
+    overlapEntries,
+    buffViewMode,
+    surfaceEntries
+  ).actions;
+}
+
+export function buildGameCharacterContextMenuModel(
+  char: GameCharacter,
+  gridSize: number,
+  inventoryService: GameObjectInventoryService,
+  callbacks: GameCharacterContextMenuCallbacks,
+  t: TranslateFn,
+  overlapEntries: ContextMenuAction[] = [],
+  buffViewMode = 'icon',
+  surfaceEntries: ContextMenuAction[] = []
+): GameCharacterContextMenuModel {
   const registeredShapes = callbacks.onInvokeRangeShape ? collectRegisteredRangeShapes(char) : [];
   const registeredEffects = callbacks.onInvokeEffect ? collectRegisteredEffects(char) : [];
   const heldDice = callbacks.onDeployDice ? heldDiceOf(char) : [];
   const heldDiceCount = heldDice.reduce((total, die) => total + die.count, 0);
 
-  // opening and checking
-  const openActions: ContextMenuAction[] = [
+  const basicActions: ContextMenuAction[] = [
     {
       name: t('feature.character.contextMenu.showDetail'),
       action: () => callbacks.onShowDetail(),
     },
+  ];
+  const chatActions: ContextMenuAction[] = [
     {
       name: t('feature.character.contextMenu.showChatPalette'),
       action: () => callbacks.onShowChatPalette(),
@@ -100,6 +134,8 @@ export function buildGameCharacterContextMenu(
       name: t('feature.character.contextMenu.showRemoteController'),
       action: () => callbacks.onShowRemoteController(),
     },
+  ];
+  const buffEffectActions: ContextMenuAction[] = [
     {
       name: t('feature.character.contextMenu.editBuff'),
       action: () => callbacks.onShowBuffEdit(),
@@ -116,10 +152,6 @@ export function buildGameCharacterContextMenu(
           },
         ]
       : []),
-    {
-      name: t('feature.character.contextMenu.lightSettings'),
-      action: () => callbacks.onShowLightSettings(),
-    },
     ...(registeredShapes.length > 0 && callbacks.onInvokeRangeShape
       ? [
           {
@@ -157,6 +189,13 @@ export function buildGameCharacterContextMenu(
         ]
       : []),
   ];
+  const lightActions: ContextMenuAction[] = [
+    {
+      name: t('feature.character.contextMenu.lightSettings'),
+      action: () => callbacks.onShowLightSettings(),
+    },
+  ];
+  const openActions = [...basicActions, ...chatActions, ...buffEffectActions, ...lightActions];
 
   // display settings
   const displayActions: ContextMenuAction[] = [
@@ -290,17 +329,63 @@ export function buildGameCharacterContextMenu(
     },
   ];
 
-  return [
+  const disclosureActions = buildDisclosureContextMenu(char, t);
+  const objectActions: ContextMenuAction[] = [
+    ...overlapEntries,
+    buildLockToggleAction(char.isLock, (next) => (char.isLock = next), t),
+    buildCopyAction(char, gridSize, t),
+  ];
+
+  const actions: ContextMenuAction[] = [
     ...(overlapEntries.length > 0 ? [...overlapEntries, ContextMenuSeparator] : []),
     ...openActions,
     ContextMenuSeparator,
     ...displayActions,
     // who may see it and who owns it, with permission, after a separator
-    ...buildDisclosureContextMenu(char, t),
+    ...disclosureActions,
     ContextMenuSeparator,
     ...moveActions,
     ContextMenuSeparator,
-    buildLockToggleAction(char.isLock, (next) => (char.isLock = next), t),
-    buildCopyAction(char, gridSize, t),
+    ...objectActions.slice(overlapEntries.length),
+    ...(surfaceEntries.length > 0 ? [ContextMenuSeparator, ...surfaceEntries] : []),
   ];
+  const radialGroups: ContextMenuRadialGroup[] = [
+    {
+      name: t('feature.character.contextMenu.radialBasic'),
+      icon: 'badge',
+      actions: basicActions,
+    },
+    {
+      name: t('feature.character.contextMenu.radialChat'),
+      icon: 'chat',
+      actions: chatActions,
+    },
+    {
+      name: t('feature.character.contextMenu.radialBuffEffect'),
+      icon: 'auto_awesome',
+      actions: buffEffectActions,
+    },
+    {
+      name: t('feature.character.contextMenu.radialDisplay'),
+      icon: 'visibility',
+      actions: [...lightActions, ...displayActions],
+    },
+    {
+      name: t('feature.character.contextMenu.radialMove'),
+      icon: 'open_with',
+      actions: [...moveActions, ...surfaceEntries],
+    },
+    {
+      name: t('feature.character.contextMenu.radialDisclosure'),
+      icon: 'group',
+      actions: disclosureActions,
+    },
+    {
+      name: t('feature.character.contextMenu.radialObject'),
+      icon: 'settings',
+      actions: objectActions,
+    },
+  ];
+
+  return { actions, radialGroups };
 }

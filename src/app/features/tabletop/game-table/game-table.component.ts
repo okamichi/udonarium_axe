@@ -20,7 +20,12 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
+import {
+  ContextMenuAction,
+  ContextMenuRadialGroup,
+  ContextMenuSeparator,
+  ContextMenuService,
+} from '@axe/application/ui/context-menu.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -676,17 +681,22 @@ export class GameTableComponent {
   }
 
   buildContextMenuActions(objectPosition: PointerCoordinate): ContextMenuAction[] {
-    const menuActions: ContextMenuAction[] = [];
+    return this.buildContextMenuModel(objectPosition).actions;
+  }
 
-    Array.prototype.push.apply(menuActions, this.tabletopActionService.makeDefaultContextMenuActions(objectPosition));
-    menuActions.push({
+  buildContextMenuModel(objectPosition: PointerCoordinate): {
+    actions: ContextMenuAction[];
+    rotatingGroups: ContextMenuRadialGroup[];
+  } {
+    const createActions = [...this.tabletopActionService.makeDefaultContextMenuActions(objectPosition)];
+    createActions.push({
       name: this.t('feature.tabletop.action.createDeck'),
       action: () => {
         void this.openDeckBuilder(objectPosition);
       },
     });
     if (this.mobileLayout.isActive()) {
-      menuActions.push({
+      createActions.push({
         name: this.t('feature.tabletop.contextMenu.createWithOptions'),
         action: () => {
           this.panelService.open(GameCharacterGeneratorComponent, {
@@ -697,14 +707,27 @@ export class GameTableComponent {
         },
       });
     }
-    menuActions.push(ContextMenuSeparator);
-    menuActions.push({
+    const tableSettingAction: ContextMenuAction = {
       name: this.t('feature.tabletop.tableSetting.title'),
       action: () => {
         this.modalService.open(GameTableSettingComponent);
       },
-    });
-    return menuActions;
+    };
+    return {
+      actions: [...createActions, ContextMenuSeparator, tableSettingAction],
+      rotatingGroups: [
+        {
+          name: this.t('feature.tabletop.contextMenu.createObject'),
+          icon: 'add_circle',
+          actions: createActions,
+        },
+        {
+          name: this.t('feature.tabletop.tableSetting.title'),
+          icon: 'tune',
+          actions: [tableSettingAction],
+        },
+      ],
+    };
   }
 
   onContextMenu(e: MouseEvent) {
@@ -715,7 +738,24 @@ export class GameTableComponent {
 
     const menuPosition = this.pointerDeviceService.pointers[0];
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
-    this.contextMenuService.open(menuPosition, this.buildContextMenuActions(objectPosition), this.currentTable.name);
+    this.openTableContextMenu(menuPosition, objectPosition);
+  }
+
+  openTableContextMenu(menuPosition: PointerCoordinate, objectPosition: PointerCoordinate): void {
+    const menu = this.buildContextMenuModel(objectPosition);
+    const table = this.currentTable;
+    if (table.mode2d && table.radialMenuEnabled) {
+      this.contextMenuService.openRadial(
+        menuPosition,
+        menu.actions,
+        menu.rotatingGroups,
+        table.name,
+        true,
+        table.radialMenuRotationSpeed
+      );
+      return;
+    }
+    this.contextMenuService.open(menuPosition, menu.actions, table.name);
   }
   onDocumentMouseDown(_e: MouseEvent) {
     this.gestureService.isTableTransformed = false;

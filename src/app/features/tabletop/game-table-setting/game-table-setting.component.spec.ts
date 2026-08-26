@@ -131,6 +131,51 @@ describe('GameTableSettingComponent', () => {
     }
   });
 
+  it('stores the radial menu setting on the table', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      expect(component.tableRadialMenuEnabled).toBe(false);
+      expect(component.tableRadialMenuRotationSpeed).toBe(5);
+      component.tableRadialMenuEnabled = true;
+      component.tableRadialMenuRotationSpeed = 9;
+      expect(table.radialMenuEnabled).toBe(true);
+      expect(table.radialMenuRotationSpeed).toBe(9);
+
+      component.tableRadialMenuRotationSpeed = 99;
+      expect(table.radialMenuRotationSpeed).toBe(12);
+    } finally {
+      table.destroy();
+    }
+  });
+
+  it('shows the rotating menu checkbox inside 2D mode settings', async () => {
+    const table = new GameTable();
+    table.initialize();
+    table.mode2d = true;
+    component.selectedTable = table;
+
+    try {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const checkbox = fixture.nativeElement.querySelector('input[name="tableRadialMenuEnabled"]') as HTMLInputElement;
+      expect(checkbox).toBeTruthy();
+      expect(checkbox.checked).toBe(false);
+      expect(checkbox.closest('label')?.textContent).toContain('回転メニュー表示');
+      const speed = fixture.nativeElement.querySelector(
+        'input[name="tableRadialMenuRotationSpeed"]'
+      ) as HTMLInputElement;
+      expect(speed).toBeTruthy();
+      expect(speed.value).toBe('5');
+      expect(speed.disabled).toBe(true);
+    } finally {
+      table.destroy();
+    }
+  });
+
   describe('choosing a table from the list', () => {
     let table: GameTable;
 

@@ -128,6 +128,14 @@ describe('UIPanelComponent', () => {
       }
     });
 
+    it('starts in the direction supplied by the opening menu', () => {
+      component.setInitialRotation(180);
+      fixture.detectChanges();
+
+      expect(component.rotationDegrees()).toBe(180);
+      expect(panel().style.rotate).toBe('180deg');
+    });
+
     it('swaps the fullscreen box dimensions while the panel is sideways', () => {
       fixture.detectChanges();
       component.rotatePanelClockwise();

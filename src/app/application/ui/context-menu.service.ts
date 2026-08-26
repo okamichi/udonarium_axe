@@ -1,5 +1,7 @@
 import { ComponentRef, inject, Injectable, ViewContainerRef } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { PanelRotationDegrees } from '@axe/application/ui/panel.service';
+import { DEFAULT_RADIAL_MENU_ROTATION_SPEED } from '@axe/domain/tabletop/game-table';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 interface ContextMenuPoint {
@@ -27,15 +29,28 @@ export interface ContextMenuAction {
   subActions?: ContextMenuAction[];
 }
 
+export interface ContextMenuRadialGroup {
+  name: string;
+  icon: string;
+  actions: ContextMenuAction[];
+}
+
+type ContextMenuComponentClass = { new (...args: unknown[]): unknown };
+
 @Injectable()
 export class ContextMenuService {
   static defaultParentViewContainerRef: ViewContainerRef;
-  static ContextMenuComponentClass: { new (...args: unknown[]): unknown } = null!;
+  static ContextMenuComponentClass: ContextMenuComponentClass = null!;
+  static FourWayRadialMenuComponentClass: ContextMenuComponentClass = null!;
   private readonly rolePermission = inject(RolePermissionService);
   private panelComponentRef: ComponentRef<unknown> | null = null;
 
   title: string = '';
   actions: ContextMenuAction[] = [];
+  radialGroups: ContextMenuRadialGroup[] = [];
+  radialMenuEnabled: boolean = false;
+  radialMenuRotationSpeed: number = DEFAULT_RADIAL_MENU_ROTATION_SPEED;
+  rotationDegrees: PanelRotationDegrees = 0;
   position: ContextMenuPoint = { x: 0, y: 0 };
 
   get isShow(): boolean {
@@ -48,6 +63,72 @@ export class ContextMenuService {
     title?: string,
     parentViewContainerRef?: ViewContainerRef
   ) {
+    this.openComponent(
+      ContextMenuService.ContextMenuComponentClass,
+      position,
+      actions,
+      [],
+      0,
+      true,
+      DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+      title,
+      parentViewContainerRef
+    );
+  }
+
+  openDirectional(
+    position: ContextMenuPoint,
+    actions: ContextMenuAction[],
+    rotationDegrees: PanelRotationDegrees,
+    title?: string,
+    parentViewContainerRef?: ViewContainerRef
+  ) {
+    this.openComponent(
+      ContextMenuService.ContextMenuComponentClass,
+      position,
+      actions,
+      [],
+      rotationDegrees,
+      true,
+      DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+      title,
+      parentViewContainerRef
+    );
+  }
+
+  openRadial(
+    position: ContextMenuPoint,
+    actions: ContextMenuAction[],
+    radialGroups: ContextMenuRadialGroup[],
+    title?: string,
+    radialMenuEnabled = false,
+    radialMenuRotationSpeed = DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+    parentViewContainerRef?: ViewContainerRef
+  ) {
+    this.openComponent(
+      ContextMenuService.FourWayRadialMenuComponentClass,
+      position,
+      actions,
+      radialGroups,
+      0,
+      radialMenuEnabled,
+      radialMenuRotationSpeed,
+      title,
+      parentViewContainerRef
+    );
+  }
+
+  private openComponent(
+    componentClass: ContextMenuComponentClass,
+    position: ContextMenuPoint,
+    actions: ContextMenuAction[],
+    radialGroups: ContextMenuRadialGroup[],
+    rotationDegrees: PanelRotationDegrees,
+    radialMenuEnabled: boolean,
+    radialMenuRotationSpeed: number,
+    title?: string,
+    parentViewContainerRef?: ViewContainerRef
+  ) {
     this.close();
     if (!this.rolePermission.canEditTabletop) return;
     if (!parentViewContainerRef) {
@@ -55,7 +136,7 @@ export class ContextMenuService {
     }
     const injector = parentViewContainerRef.injector;
 
-    const panelComponentRef = parentViewContainerRef.createComponent(ContextMenuService.ContextMenuComponentClass, {
+    const panelComponentRef = parentViewContainerRef.createComponent(componentClass, {
       index: parentViewContainerRef.length,
       injector,
     });
@@ -66,6 +147,10 @@ export class ContextMenuService {
     if (actions) {
       childPanelService.actions = actions;
     }
+    childPanelService.radialGroups = radialGroups;
+    childPanelService.radialMenuEnabled = radialMenuEnabled;
+    childPanelService.radialMenuRotationSpeed = radialMenuRotationSpeed;
+    childPanelService.rotationDegrees = rotationDegrees;
     if (position) {
       childPanelService.position.x = position.x;
       childPanelService.position.y = position.y;

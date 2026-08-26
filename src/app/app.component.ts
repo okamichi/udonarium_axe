@@ -81,6 +81,7 @@ import { VoteWidgetComponent } from '@axe/features/vote/vote-widget/vote-widget.
 import { ConnectionQualityComponent } from '@axe/features/widgets/connection-quality/connection-quality.component';
 import { DigitalClockComponent } from '@axe/features/widgets/digital-clock/digital-clock.component';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
+import { FourWayRadialMenuComponent } from '@axe/ui/components/four-way-radial-menu/four-way-radial-menu.component';
 import { ModalComponent } from '@axe/ui/components/modal/modal.component';
 import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
@@ -338,5 +339,6 @@ PanelService.UIPanelComponentClass = UIPanelComponent;
 PanelService.chatPortraitComponentClass = ChatPortraitImageComponent;
 PanelService.cardStackListComponentClass = CardStackListImageComponent;
 ContextMenuService.ContextMenuComponentClass = ContextMenuComponent;
+ContextMenuService.FourWayRadialMenuComponentClass = FourWayRadialMenuComponent;
 ModalService.ModalComponentClass = ModalComponent;
 TooltipDirective.TooltipPanelComponentClass = OverviewPanelComponent;

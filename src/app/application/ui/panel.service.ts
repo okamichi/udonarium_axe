@@ -8,6 +8,8 @@ interface Type<T> {
   new (...args: unknown[]): T;
 }
 
+export type PanelRotationDegrees = 0 | 90 | 180 | 270;
+
 export interface PanelOption {
   title?: string;
   left?: number;
@@ -16,6 +18,7 @@ export interface PanelOption {
   height?: number;
   minWidth?: number;
   minHeight?: number;
+  rotationDegrees?: PanelRotationDegrees;
 
   isCutIn?: boolean;
   cutInIdentifier?: string;
@@ -26,6 +29,7 @@ export interface PanelOption {
 
 interface UIPanelInstance {
   content: () => ViewContainerRef;
+  setInitialRotation: (degrees: PanelRotationDegrees) => void;
 }
 
 type PanelServiceAssignableKey =
@@ -49,6 +53,7 @@ export class PanelService {
   static chatPortraitComponentClass: Type<unknown> | null = null;
   static cardStackListComponentClass: Type<unknown> | null = null;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
+  private actionRotationDegrees: PanelRotationDegrees = 0;
   title: string = '';
   titleTooltip: string = '';
   left: number = 0;
@@ -97,7 +102,8 @@ export class PanelService {
     const childPanelService: PanelService = panelComponentRef.injector.get(PanelService);
 
     childPanelService.panelComponentRef = panelComponentRef;
-    if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
+    const inheritedOption = this.withInheritedRotation(option, this.actionRotationDegrees);
+    if (inheritedOption) this.applyPanelOption(panelComponentRef, childPanelService, inheritedOption);
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null;
     });
@@ -111,10 +117,21 @@ export class PanelService {
     setup?: (instance: T) => void,
     parentViewContainerRef?: ViewContainerRef
   ): void {
+    const inheritedOption = this.withInheritedRotation(option, this.actionRotationDegrees);
     factory().then((childComponent) => {
-      const instance = this.open(childComponent, option, parentViewContainerRef);
+      const instance = this.open(childComponent, inheritedOption, parentViewContainerRef);
       setup?.(instance);
     });
+  }
+
+  runWithInitialRotation<T>(rotationDegrees: PanelRotationDegrees, action: () => T): T {
+    const previous = this.actionRotationDegrees;
+    this.actionRotationDegrees = rotationDegrees;
+    try {
+      return action();
+    } finally {
+      this.actionRotationDegrees = previous;
+    }
   }
 
   private applyPanelOption(
@@ -137,6 +154,17 @@ export class PanelService {
       if (value === undefined) continue;
       this.setPanelServiceValue(childPanelService, key, value);
     }
+    if (adjusted.rotationDegrees !== undefined) {
+      panelComponentRef.instance.setInitialRotation(adjusted.rotationDegrees);
+    }
+  }
+
+  private withInheritedRotation(
+    option: PanelOption | undefined,
+    rotationDegrees: PanelRotationDegrees
+  ): PanelOption | undefined {
+    if (option?.rotationDegrees !== undefined || rotationDegrees === 0) return option;
+    return { ...option, rotationDegrees };
   }
 
   static clampPanelOptionToViewport(option: PanelOption, fallback: PanelService): PanelOption {

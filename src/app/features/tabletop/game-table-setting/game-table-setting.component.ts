@@ -29,7 +29,15 @@ import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInIdentifiers, parseCutInIdentifiers } from '@axe/domain/media/table-cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
+import {
+  DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+  FilterType,
+  GameTable,
+  GridSnapStyle,
+  GridType,
+  MAX_RADIAL_MENU_ROTATION_SPEED,
+  MIN_RADIAL_MENU_ROTATION_SPEED,
+} from '@axe/domain/tabletop/game-table';
 import {
   DEFAULT_MULTI_ANGLE_PAUSE_SECONDS,
   DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS,
@@ -175,6 +183,29 @@ export class GameTableSettingComponent {
   set tableMode2d(value: boolean) {
     if (!this.selectedTable) return;
     this.selectedTable.mode2d = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableRadialMenuEnabled(): boolean {
+    return this.selectedTable?.radialMenuEnabled ?? false;
+  }
+  set tableRadialMenuEnabled(value: boolean) {
+    if (!this.selectedTable) return;
+    this.selectedTable.radialMenuEnabled = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableRadialMenuRotationSpeed(): number {
+    const configured = Number(this.selectedTable?.radialMenuRotationSpeed);
+    if (!Number.isFinite(configured)) return DEFAULT_RADIAL_MENU_ROTATION_SPEED;
+    return Math.max(MIN_RADIAL_MENU_ROTATION_SPEED, Math.min(Math.round(configured), MAX_RADIAL_MENU_ROTATION_SPEED));
+  }
+  set tableRadialMenuRotationSpeed(value: number) {
+    if (!this.selectedTable) return;
+    const configured = Number(value);
+    this.selectedTable.radialMenuRotationSpeed = Number.isFinite(configured)
+      ? Math.max(MIN_RADIAL_MENU_ROTATION_SPEED, Math.min(Math.round(configured), MAX_RADIAL_MENU_ROTATION_SPEED))
+      : DEFAULT_RADIAL_MENU_ROTATION_SPEED;
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

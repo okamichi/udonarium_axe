@@ -408,6 +408,35 @@
           </label>
 
           @if (tableMode2d) {
+            <div class="ml-5 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+                <input
+                  type="checkbox"
+                  class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                  [(ngModel)]="tableRadialMenuEnabled"
+                  name="tableRadialMenuEnabled"
+                />
+                {{ 'feature.tabletop.tableSetting.radialMenu' | transloco }}
+              </label>
+              <label
+                class="text-ui-muted flex items-center gap-1 text-[11px]"
+                [class.opacity-45]="!tableRadialMenuEnabled"
+              >
+                <span>{{ 'feature.tabletop.tableSetting.radialMenuSpeed' | transloco }}</span>
+                <input
+                  type="range"
+                  class="h-1 w-24 cursor-pointer p-0 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed"
+                  min="1"
+                  max="12"
+                  step="1"
+                  [(ngModel)]="tableRadialMenuRotationSpeed"
+                  name="tableRadialMenuRotationSpeed"
+                  [disabled]="!tableRadialMenuEnabled"
+                />
+                <span class="min-w-9 text-right">{{ tableRadialMenuRotationSpeed }}°/s</span>
+              </label>
+            </div>
+
             <label class="text-ui-text ml-5 flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
               <input
                 type="checkbox"

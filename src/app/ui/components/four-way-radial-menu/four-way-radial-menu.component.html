@@ -1,0 +1,191 @@
+<div
+  class="fixed inset-0 z-9900 bg-black/15 select-none"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="title || ('ui.contextMenu.radial.menuTitle' | transloco)"
+  (pointerdown)="onBackdropPointerDown($event)"
+  (contextmenu)="onContextMenu($event)"
+  (keydown)="onKeyDown($event)"
+>
+  @if (connectorVisible()) {
+    <svg class="pointer-events-none fixed inset-0 size-full" aria-hidden="true">
+      <line
+        class="stroke-ui-accent"
+        [attr.x1]="anchor.x"
+        [attr.y1]="anchor.y"
+        [attr.x2]="center().x"
+        [attr.y2]="center().y"
+        stroke-width="2"
+        stroke-dasharray="4 5"
+      ></line>
+    </svg>
+  }
+
+  @if (!contextMenuService.radialMenuEnabled && !selectedSeat()) {
+    <button
+      type="button"
+      data-radial-control
+      class="border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg hover:bg-ui-menu-hover pointer-events-auto fixed flex size-13 items-center justify-center rounded-full border border-solid transition-[background-color,transform] hover:scale-110"
+      [style.left.px]="center().x"
+      [style.top.px]="center().y"
+      [style.transform]="'translate(-50%, -50%)'"
+      [attr.aria-label]="'common.button.close' | transloco"
+      [title]="'common.button.close' | transloco"
+      (pointerdown)="$event.stopPropagation()"
+      (click)="close()"
+    >
+      <i class="material-icons" aria-hidden="true">close</i>
+    </button>
+
+    @for (seat of seatOptions; track seat) {
+      <button
+        type="button"
+        data-radial-control
+        class="border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg hover:bg-ui-menu-hover hover:text-ui-accent pointer-events-auto fixed flex size-14 items-center justify-center rounded-full border border-solid transition-[background-color,color,transform]"
+        [style.left.px]="center().x + launcherPoint(seat).x"
+        [style.top.px]="center().y + launcherPoint(seat).y"
+        [style.transform]="launcherTransform(seat)"
+        [attr.aria-label]="seatLabel(seat)"
+        [title]="seatLabel(seat)"
+        (pointerdown)="$event.stopPropagation()"
+        (click)="chooseSeat(seat)"
+      >
+        <i class="material-icons text-[28px]!" aria-hidden="true">menu</i>
+      </button>
+    }
+  } @else {
+    <div
+      data-radial-ring
+      class="animate-radial-orbit pointer-events-none fixed motion-reduce:animate-none"
+      [style.left.px]="center().x"
+      [style.top.px]="center().y"
+      [style.animation-duration]="ringDurationSeconds() + 's'"
+      [style.animation-play-state]="ringTransitioning() ? 'paused' : 'running'"
+      [style.rotate]="manualRotationDegrees() + 'deg'"
+      aria-live="polite"
+    >
+      <div
+        data-radial-center
+        class="border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute flex min-h-22 w-32 flex-col items-center justify-center gap-1 rounded-full border border-solid px-3 py-2 text-center"
+        [style.left.px]="0"
+        [style.top.px]="0"
+        [style.transform]="facingTransform()"
+        (pointerdown)="$event.stopPropagation()"
+      >
+        <div class="text-ui-muted max-w-26 truncate text-[11px] font-semibold" [title]="currentLevel()?.title || title">
+          {{ currentLevel()?.title || title || ('ui.contextMenu.radial.menuTitle' | transloco) }}
+        </div>
+
+        <div class="flex items-center justify-center gap-0.5">
+          @if (currentLevel()) {
+            <button
+              type="button"
+              data-radial-control
+              class="hover:bg-ui-menu-hover flex size-6 items-center justify-center rounded-full"
+              [attr.aria-label]="'ui.contextMenu.radial.back' | transloco"
+              [title]="'ui.contextMenu.radial.back' | transloco"
+              (click)="back()"
+            >
+              <i class="material-icons text-[18px]!" aria-hidden="true">arrow_back</i>
+            </button>
+          }
+          <button
+            type="button"
+            data-radial-control
+            class="hover:bg-ui-menu-hover flex size-6 items-center justify-center rounded-full"
+            [attr.aria-label]="'ui.panel.rotate90' | transloco"
+            [title]="'ui.panel.rotate90' | transloco"
+            (click)="rotateMenuQuarterTurn()"
+          >
+            <i class="material-icons text-[18px]!" aria-hidden="true">rotate_right</i>
+          </button>
+          <button
+            type="button"
+            data-radial-control
+            class="hover:bg-ui-menu-hover flex size-6 items-center justify-center rounded-full"
+            [attr.aria-label]="'ui.contextMenu.radial.fullMenu' | transloco"
+            [title]="'ui.contextMenu.radial.fullMenu' | transloco"
+            (click)="openFullMenu()"
+          >
+            <i class="material-icons text-[18px]!" aria-hidden="true">list</i>
+          </button>
+          <button
+            type="button"
+            data-radial-control
+            class="hover:bg-ui-menu-hover flex size-6 items-center justify-center rounded-full"
+            [attr.aria-label]="'common.button.close' | transloco"
+            [title]="'common.button.close' | transloco"
+            (click)="close()"
+          >
+            <i class="material-icons text-[18px]!" aria-hidden="true">close</i>
+          </button>
+        </div>
+
+        @if (currentLevel() && pageCount() > 1) {
+          <div class="flex items-center gap-1 text-[10px]">
+            <button
+              type="button"
+              data-radial-control
+              class="hover:bg-ui-menu-hover flex size-6 items-center justify-center rounded-full"
+              [disabled]="page() === 0"
+              [attr.aria-label]="'ui.contextMenu.radial.previousPage' | transloco"
+              (click)="previousPage()"
+            >
+              <i class="material-icons text-[16px]!" aria-hidden="true">chevron_left</i>
+            </button>
+            <span>{{ page() + 1 }} / {{ pageCount() }}</span>
+            <button
+              type="button"
+              data-radial-control
+              class="hover:bg-ui-menu-hover flex size-6 items-center justify-center rounded-full"
+              [disabled]="page() + 1 >= pageCount()"
+              [attr.aria-label]="'ui.contextMenu.radial.nextPage' | transloco"
+              (click)="nextPage()"
+            >
+              <i class="material-icons text-[16px]!" aria-hidden="true">chevron_right</i>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (!currentLevel()) {
+        @for (group of radialGroups(); track group.name; let index = $index) {
+          <button
+            type="button"
+            data-radial-control
+            class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform]"
+            [style.left.px]="groupPoint(index).x"
+            [style.top.px]="groupPoint(index).y"
+            [style.transform]="itemTransform(index, radialGroups().length)"
+            [title]="group.name"
+            (pointerdown)="$event.stopPropagation()"
+            (click)="chooseGroup(group, index)"
+          >
+            <i class="material-icons shrink-0 text-[20px]!" aria-hidden="true">{{ group.icon }}</i>
+            <span class="max-w-18 truncate">{{ group.name }}</span>
+          </button>
+        }
+      } @else {
+        @for (action of visibleActions(); track $index; let index = $index) {
+          <button
+            type="button"
+            data-radial-control
+            class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform] disabled:cursor-not-allowed disabled:opacity-40"
+            [style.left.px]="actionPoint(index).x"
+            [style.top.px]="actionPoint(index).y"
+            [style.transform]="itemTransform(index, visibleActions().length)"
+            [disabled]="!actionEnabled(action)"
+            [title]="actionName(action)"
+            (pointerdown)="$event.stopPropagation()"
+            (click)="chooseAction(action, index)"
+          >
+            @if (action.subActions?.length) {
+              <i class="material-icons shrink-0 text-[18px]!" aria-hidden="true">folder_open</i>
+            }
+            <span class="max-w-22 truncate">{{ actionName(action) }}</span>
+          </button>
+        }
+      }
+    </div>
+  }
+</div>

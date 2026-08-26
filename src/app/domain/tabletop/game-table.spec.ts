@@ -130,6 +130,8 @@ describe('GameTable', () => {
     it('starts with multi-angle labels disabled', () => {
       const table = new GameTable();
       table.initialize();
+      expect(table.radialMenuEnabled).toBe(false);
+      expect(table.radialMenuRotationSpeed).toBe(5);
       expect(table.multiAngleEnabled).toBe(false);
       expect(table.multiAngleMotionMode).toBe('continuous');
       expect(table.multiAngleRevolutionSeconds).toBe(12);

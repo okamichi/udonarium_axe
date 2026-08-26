@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -94,6 +95,59 @@ describe('GameTableComponent', () => {
       Object.defineProperty(mobileLayout, 'isActive', { value: () => true, configurable: true });
 
       expect(names()).toContain('コマを作る…');
+    });
+
+    it('groups table actions for the rotating menu without dropping legacy actions', () => {
+      const model = component.buildContextMenuModel(position);
+      const groupedActions = model.rotatingGroups.flatMap((group) => group.actions);
+      const legacyActions = model.actions.filter((action) => action.name.length > 0);
+
+      expect(model.rotatingGroups.map((group) => group.name)).toEqual(['オブジェクト作成', 'テーブル設定']);
+      expect(groupedActions).toEqual(expect.arrayContaining(legacyActions));
+      expect(groupedActions).toHaveLength(legacyActions.length);
+    });
+  });
+
+  describe('table context menu display', () => {
+    const menuPosition = { x: 320, y: 240, z: 0 };
+    const objectPosition = { x: 10, y: 20, z: 0 };
+
+    it('opens the rotating interface directly on an empty 2D table when enabled', () => {
+      component.currentTable.mode2d = true;
+      component.currentTable.radialMenuEnabled = true;
+      component.currentTable.radialMenuRotationSpeed = 8;
+      const menus = TestBed.inject(ContextMenuService);
+      const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const openLegacy = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
+
+      component.openTableContextMenu(menuPosition, objectPosition);
+
+      expect(openRotating).toHaveBeenCalledWith(
+        expect.objectContaining({ x: 320, y: 240 }),
+        expect.any(Array),
+        expect.any(Array),
+        component.currentTable.name,
+        true,
+        8
+      );
+      expect(openLegacy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the existing vertical table menu when rotating display is disabled', () => {
+      component.currentTable.mode2d = true;
+      component.currentTable.radialMenuEnabled = false;
+      const menus = TestBed.inject(ContextMenuService);
+      const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const openLegacy = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
+
+      component.openTableContextMenu(menuPosition, objectPosition);
+
+      expect(openLegacy).toHaveBeenCalledWith(
+        expect.objectContaining({ x: 320, y: 240 }),
+        expect.any(Array),
+        component.currentTable.name
+      );
+      expect(openRotating).not.toHaveBeenCalled();
     });
   });
 

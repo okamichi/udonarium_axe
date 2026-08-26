@@ -26,7 +26,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
-import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
@@ -63,7 +63,7 @@ import {
   multiAngleOrbitAnimation,
   multiAngleRotationPhase,
 } from '@axe/domain/tabletop/multi-angle';
-import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
+import { buildGameCharacterContextMenuModel } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
@@ -855,8 +855,9 @@ export class GameCharacterComponent {
       position.y,
       this.translateFn
     );
-    const surfaceEntries = buildSurfaceSwitchContextMenu(char, this.tabletopService.currentTable, this.translateFn);
-    const baseMenu = buildGameCharacterContextMenu(
+    const table = this.tabletopService.currentTable;
+    const surfaceEntries = buildSurfaceSwitchContextMenu(char, table, this.translateFn);
+    const menu = buildGameCharacterContextMenuModel(
       char,
       this.gridSize,
       this.inventoryService,
@@ -873,12 +874,25 @@ export class GameCharacterComponent {
       },
       this.translateFn,
       overlapEntries,
-      this.buffViewMode()
+      this.buffViewMode(),
+      surfaceEntries
     );
-    this.contextMenuService.open(
-      position,
-      surfaceEntries.length > 0 ? [...baseMenu, ContextMenuSeparator, ...surfaceEntries] : baseMenu,
-      this.name()
+    if (!table.mode2d) {
+      this.contextMenuService.open(position, menu.actions, this.name());
+      return;
+    }
+
+    const rootBounds = this.rootElementRef()?.nativeElement.getBoundingClientRect();
+    const menuCenter = rootBounds
+      ? { x: rootBounds.left + rootBounds.width / 2, y: rootBounds.top + rootBounds.height / 2 }
+      : position;
+    this.contextMenuService.openRadial(
+      menuCenter,
+      menu.actions,
+      menu.radialGroups,
+      this.name(),
+      table.radialMenuEnabled,
+      table.radialMenuRotationSpeed
     );
   }
 

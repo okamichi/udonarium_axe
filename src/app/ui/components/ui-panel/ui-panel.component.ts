@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
-import { PanelService } from '@axe/application/ui/panel.service';
+import { PanelRotationDegrees, PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -22,8 +22,6 @@ import { CutIn } from '@axe/domain/media/cut-in';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { ResizableDirective } from '@axe/ui/directives/resizable.directive';
 import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
-
-type PanelRotationDegrees = 0 | 90 | 180 | 270;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,6 +74,7 @@ export class UIPanelComponent {
     afterNextRender({
       write: () => {
         this.panelService.setDefaultScrollablePanel(this.scrollablePanel().nativeElement);
+        this.clampPanelToViewport(this.draggablePanel().nativeElement);
         this.timerCheckWindowSize = setInterval(() => {
           this.chkeWindowMinSize();
         }, 500);
@@ -140,6 +139,10 @@ export class UIPanelComponent {
   readonly isFullScreen = signal(false);
   readonly isMinimized = signal(false);
   readonly rotationDegrees = signal<PanelRotationDegrees>(0);
+
+  setInitialRotation(degrees: PanelRotationDegrees): void {
+    this.rotationDegrees.set(degrees);
+  }
 
   get rotate90Title(): string {
     return this.t('ui.panel.rotate90');
