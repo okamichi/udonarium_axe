@@ -228,11 +228,13 @@ export class GameTableSettingComponent {
   }
 
   get tableMultiAngleMotionMode(): MultiAngleMotionMode {
-    return this.selectedTable?.multiAngleMotionMode === 'quarter-turn' ? 'quarter-turn' : 'continuous';
+    const mode = this.selectedTable?.multiAngleMotionMode;
+    return mode === 'quarter-turn' || mode === 'piece-quarter-turn' ? mode : 'continuous';
   }
   set tableMultiAngleMotionMode(value: MultiAngleMotionMode) {
     if (!this.selectedTable) return;
-    this.selectedTable.multiAngleMotionMode = value === 'quarter-turn' ? 'quarter-turn' : 'continuous';
+    this.selectedTable.multiAngleMotionMode =
+      value === 'quarter-turn' || value === 'piece-quarter-turn' ? value : 'continuous';
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

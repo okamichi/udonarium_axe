@@ -120,12 +120,39 @@ describe('GameTableSettingComponent', () => {
       expect(table.multiAnglePauseSeconds).toBe(3.5);
       expect(table.multiAnglePieceRevolutionSeconds).toBe(90);
 
+      component.tableMultiAngleMotionMode = 'piece-quarter-turn';
+      expect(component.tableMultiAngleMotionMode).toBe('piece-quarter-turn');
+      expect(table.multiAngleMotionMode).toBe('piece-quarter-turn');
+
       component.tableMultiAngleRevolutionSeconds = 0;
       component.tableMultiAnglePauseSeconds = 99;
       component.tableMultiAnglePieceRevolutionSeconds = 1;
       expect(table.multiAngleRevolutionSeconds).toBe(1);
       expect(table.multiAnglePauseSeconds).toBe(30);
       expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
+    } finally {
+      table.destroy();
+    }
+  });
+
+  it('offers piece-only quarter turns and their pause setting', async () => {
+    const table = new GameTable();
+    table.initialize();
+    table.mode2d = true;
+    table.multiAngleEnabled = true;
+    table.multiAngleMotionMode = 'piece-quarter-turn';
+    component.selectedTable = table;
+
+    try {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const option = fixture.nativeElement.querySelector(
+        'option[value="piece-quarter-turn"]'
+      ) as HTMLOptionElement | null;
+      expect(option?.textContent).toContain('コマだけ90°回転して停止');
+      expect(fixture.nativeElement.querySelector('input[name="tableMultiAnglePauseSeconds"]')).toBeTruthy();
     } finally {
       table.destroy();
     }

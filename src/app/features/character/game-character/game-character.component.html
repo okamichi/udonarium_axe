@@ -51,7 +51,8 @@
           data-testid="multi-angle-piece-motion-source"
           class="pointer-events-auto size-full [-webkit-transform-style:preserve-3d] transform-3d"
           [class.animate-multi-angle-piece-spin]="multiAngleNameOrbitEnabled()"
-          [style.animation-duration.s]="multiAnglePieceRevolutionSeconds()"
+          [style.animation-duration.s]="multiAnglePieceRotationAnimation().durationSeconds"
+          [style.animation-timing-function]="multiAnglePieceRotationAnimation().timingFunction"
           [style.animation-delay.s]="multiAnglePieceRotationDelaySeconds()"
           appRotable
           [rotable.option]="rotableOption()"
@@ -518,6 +519,17 @@
                     >
                       {{ curvedName.paddedText }}{{ isLock ? ' 🔒' : '' }}
                     </textPath>
+                    @if (startOffset === '0%') {
+                      <textPath
+                        data-testid="multi-angle-name-seam-continuation"
+                        [attr.data-label-copy]="$index + 1"
+                        [attr.href]="'#' + multiAngleCurvedNamePathId()"
+                        startOffset="100%"
+                        text-anchor="middle"
+                      >
+                        {{ curvedName.paddedText }}{{ isLock ? ' 🔒' : '' }}
+                      </textPath>
+                    }
                   }
                   @for (separatorOffset of curvedName.separatorOffsets; track separatorOffset) {
                     <textPath

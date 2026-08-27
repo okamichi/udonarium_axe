@@ -1594,6 +1594,7 @@
         "multiAngleMotionMode": "Motion",
         "multiAngleContinuous": "Continuous clockwise",
         "multiAngleQuarterTurn": "Turn 90° then pause",
+        "multiAnglePieceQuarterTurn": "Piece only: turn 90° then pause",
         "multiAngleRevolutionSeconds": "Rotation time (one lap)",
         "multiAnglePieceRevolutionSeconds": "Piece rotation (one lap)",
         "multiAnglePauseSeconds": "Pause after each 90°",

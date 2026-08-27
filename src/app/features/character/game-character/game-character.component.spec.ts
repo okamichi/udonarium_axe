@@ -774,6 +774,11 @@ describe('GameCharacterComponent', () => {
         expect(orbit?.classList.contains('animate-multi-angle-name-orbit')).toBe(true);
         expect(root.querySelectorAll('[data-testid="piece-name"]')).toHaveLength(1);
         expect(root.querySelectorAll('[data-testid="multi-angle-name-text-path"]')).toHaveLength(4);
+        const seamContinuation = root.querySelector<SVGTextPathElement>(
+          '[data-testid="multi-angle-name-seam-continuation"]'
+        );
+        expect(seamContinuation?.getAttribute('startOffset')).toBe('100%');
+        expect(seamContinuation?.textContent?.trim()).toBe('周回名');
         expect(root.querySelectorAll('[data-testid="multi-angle-name-separator"]')).toHaveLength(4);
         expect(root.querySelector('[data-testid="multi-angle-name-separator"]')?.textContent?.trim()).toBe('◆');
         expect(root.querySelector('textPath')?.getAttribute('startOffset')).toBe('75%');
@@ -789,6 +794,11 @@ describe('GameCharacterComponent', () => {
         const pieceRotation = root.querySelector<HTMLElement>('[data-testid="multi-angle-piece-motion-source"]');
         expect(pieceRotation?.classList.contains('animate-multi-angle-piece-spin')).toBe(true);
         expect(pieceRotation?.style.animationDuration).toBe('60s');
+        expect(pieceRotation?.style.animationTimingFunction).toBe('linear');
+        expect(component.multiAnglePieceRotationAnimation()).toEqual({
+          durationSeconds: 60,
+          timingFunction: 'linear',
+        });
         expect(component.multiAnglePieceRotationDelaySeconds()).toBeLessThanOrEqual(0);
         expect(root.querySelector<HTMLElement>('[data-testid="multi-angle-rotating-pedestal"]')?.style.transform).toBe(
           'rotateZ(var(--multi-angle-piece-angle, 0deg))'
@@ -828,7 +838,44 @@ describe('GameCharacterComponent', () => {
         expect(component.multiAngleNameOrbitAnimation().timingFunction).toContain('0.25 12.5%');
         expect(orbit?.style.animationDuration).toBe('16s');
         expect(orbit?.style.animationTimingFunction).toContain('linear(');
-        expect(pieceRotation?.style.animationDuration).toBe('90s');
+        expect(component.multiAnglePieceRotationAnimation().durationSeconds).toBe(98);
+        expect(component.multiAnglePieceRotationAnimation().timingFunction).toContain('0.25 22.9592%');
+        expect(component.multiAnglePieceRotationAnimation().timingFunction).toContain('0.25 25%');
+        expect(pieceRotation?.style.animationDuration).toBe('98s');
+        expect(pieceRotation?.style.animationTimingFunction).toContain('linear(');
+        expect(pieceRotation?.style.animationDelay).toBe(`${component.multiAnglePieceRotationDelaySeconds()}s`);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('keeps the name continuous while only the piece pauses after quarter turns', () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = true;
+      table.multiAngleEnabled = true;
+      table.multiAngleMotionMode = 'piece-quarter-turn';
+      table.multiAngleRevolutionSeconds = 8;
+      table.multiAnglePauseSeconds = 2;
+      table.multiAnglePieceRevolutionSeconds = 90;
+      const character = GameCharacter.create('コマだけ間欠回転', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+        const orbit = root.querySelector<HTMLElement>('[data-testid="multi-angle-name-orbit"]');
+        const pieceRotation = root.querySelector<HTMLElement>('[data-testid="multi-angle-piece-motion-source"]');
+
+        expect(component.multiAngleNameOrbitAnimation()).toEqual({
+          durationSeconds: 8,
+          timingFunction: 'linear',
+        });
+        expect(orbit?.style.animationDuration).toBe('8s');
+        expect(orbit?.style.animationTimingFunction).toBe('linear');
+        expect(component.multiAnglePieceRotationAnimation().durationSeconds).toBe(98);
+        expect(component.multiAnglePieceRotationAnimation().timingFunction).toContain('0.25 22.9592%');
+        expect(pieceRotation?.style.animationDuration).toBe('98s');
+        expect(pieceRotation?.style.animationTimingFunction).toContain('linear(');
       } finally {
         character.destroy();
       }

@@ -1,5 +1,6 @@
 export type MultiAngleSeatKey = 'down' | 'left' | 'up' | 'right';
-export type MultiAngleMotionMode = 'continuous' | 'quarter-turn';
+export type MultiAngleMotionMode = 'continuous' | 'quarter-turn' | 'piece-quarter-turn';
+export type MultiAngleOrbitMode = Exclude<MultiAngleMotionMode, 'piece-quarter-turn'>;
 
 export const DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS = 12;
 export const DEFAULT_MULTI_ANGLE_PAUSE_SECONDS = 2;
@@ -50,6 +51,14 @@ export function multiAngleDegreesFromPoint(pointX: number, pointY: number, cente
   return normalizeDegrees(Math.round(degrees / 90) * 90);
 }
 
+export function multiAngleNameMotionMode(mode: MultiAngleMotionMode): MultiAngleOrbitMode {
+  return mode === 'quarter-turn' ? 'quarter-turn' : 'continuous';
+}
+
+export function multiAnglePieceMotionMode(mode: MultiAngleMotionMode): MultiAngleOrbitMode {
+  return mode === 'continuous' ? 'continuous' : 'quarter-turn';
+}
+
 function finiteInRange(value: number, fallback: number, min: number, max: number): number {
   return Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : fallback;
 }
@@ -60,7 +69,7 @@ function percentage(value: number, total: number): string {
 
 /** Creates one shared CSS orbit, including smooth 90-degree turns followed by configurable holds. */
 export function multiAngleOrbitAnimation(
-  mode: MultiAngleMotionMode,
+  mode: MultiAngleOrbitMode,
   revolutionSeconds: number,
   pauseSeconds: number
 ): MultiAngleOrbitAnimation {

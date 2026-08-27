@@ -2,7 +2,9 @@ import {
   compensateMultiAngleDegrees,
   MULTI_ANGLE_SEATS,
   multiAngleDegreesFromPoint,
+  multiAngleNameMotionMode,
   multiAngleOrbitAnimation,
+  multiAnglePieceMotionMode,
   multiAngleRotationPhase,
   multiAngleSeatVector,
   normalizeDegrees,
@@ -51,6 +53,15 @@ describe('multi-angle geometry', () => {
   it('uses diagonal boundaries to make four equal 90-degree areas', () => {
     expect(multiAngleDegreesFromPoint(70, 71, 50, 50)).toBe(0);
     expect(multiAngleDegreesFromPoint(71, 70, 50, 50)).toBe(270);
+  });
+
+  it.each([
+    { mode: 'continuous' as const, name: 'continuous', piece: 'continuous' },
+    { mode: 'quarter-turn' as const, name: 'quarter-turn', piece: 'quarter-turn' },
+    { mode: 'piece-quarter-turn' as const, name: 'continuous', piece: 'quarter-turn' },
+  ])('maps $mode to $name name motion and $piece piece motion', ({ mode, name, piece }) => {
+    expect(multiAngleNameMotionMode(mode)).toBe(name);
+    expect(multiAnglePieceMotionMode(mode)).toBe(piece);
   });
 
   it('runs a continuous revolution in the configured number of seconds', () => {

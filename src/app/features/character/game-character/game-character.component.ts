@@ -60,7 +60,9 @@ import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import {
   DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS,
+  multiAngleNameMotionMode,
   multiAngleOrbitAnimation,
+  multiAnglePieceMotionMode,
   multiAngleRotationPhase,
 } from '@axe/domain/tabletop/multi-angle';
 import { buildGameCharacterContextMenuModel } from '@axe/features/character/game-character/game-character-context-menu';
@@ -640,7 +642,7 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     return multiAngleOrbitAnimation(
-      table.multiAngleMotionMode,
+      multiAngleNameMotionMode(table.multiAngleMotionMode),
       table.multiAngleRevolutionSeconds,
       table.multiAnglePauseSeconds
     );
@@ -668,8 +670,19 @@ export class GameCharacterComponent {
       : DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
   });
 
+  readonly multiAnglePieceRotationAnimation = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return multiAngleOrbitAnimation(
+      multiAnglePieceMotionMode(table.multiAngleMotionMode),
+      this.multiAnglePieceRevolutionSeconds(),
+      table.multiAnglePauseSeconds
+    );
+  });
+
   readonly multiAnglePieceRotationDelaySeconds = computed(
-    () => -this.multiAnglePiecePhase() * this.multiAnglePieceRevolutionSeconds()
+    () => -this.multiAnglePiecePhase() * this.multiAnglePieceRotationAnimation().durationSeconds
   );
 
   readonly buffLabelOrbit = computed(() => {

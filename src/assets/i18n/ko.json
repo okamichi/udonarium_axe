@@ -1594,6 +1594,7 @@
         "multiAngleMotionMode": "회전 방식",
         "multiAngleContinuous": "시계 방향으로 연속 회전",
         "multiAngleQuarterTurn": "90° 회전 후 정지",
+        "multiAnglePieceQuarterTurn": "말만 90° 회전 후 정지",
         "multiAngleRevolutionSeconds": "회전 시간(한 바퀴)",
         "multiAnglePieceRevolutionSeconds": "말 본체의 한 바퀴 회전 시간",
         "multiAnglePauseSeconds": "90° 회전 후 정지 시간",

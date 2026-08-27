@@ -476,6 +476,9 @@
                   <option value="quarter-turn">
                     {{ 'feature.tabletop.tableSetting.multiAngleQuarterTurn' | transloco }}
                   </option>
+                  <option value="piece-quarter-turn">
+                    {{ 'feature.tabletop.tableSetting.multiAnglePieceQuarterTurn' | transloco }}
+                  </option>
                 </select>
 
                 <label class="text-ui-muted text-[11px]" for="tableMultiAngleRevolutionSeconds">{{
@@ -512,7 +515,7 @@
                   <span class="text-ui-dim text-[11px]">{{ 'feature.tabletop.tableSetting.seconds' | transloco }}</span>
                 </div>
 
-                @if (tableMultiAngleMotionMode === 'quarter-turn') {
+                @if (tableMultiAngleMotionMode !== 'continuous') {
                   <label class="text-ui-muted text-[11px]" for="tableMultiAnglePauseSeconds">{{
                     'feature.tabletop.tableSetting.multiAnglePauseSeconds' | transloco
                   }}</label>
