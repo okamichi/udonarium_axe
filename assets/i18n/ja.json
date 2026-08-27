@@ -2903,6 +2903,7 @@
         "seatSouth": "南側から操作",
         "seatWest": "西側から操作",
         "back": "前の階層へ戻る",
+        "return": "戻る",
         "fullMenu": "すべての項目を一覧表示",
         "previousPage": "前のページ",
         "nextPage": "次のページ"
