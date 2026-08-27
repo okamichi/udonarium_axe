@@ -59,6 +59,7 @@ export class TabletopService {
   );
 
   readonly mode2d: Signal<boolean> = computed(() => this.currentTableVersion().mode2d);
+  readonly orthographicProjection: Signal<boolean> = computed(() => this.currentTableVersion().orthographicProjection);
   readonly imageBillboard: Signal<boolean> = computed(() => this.currentTableVersion().imageBillboard);
   readonly gridSize: Signal<number> = computed(() => this.currentTableVersion().gridSize);
 

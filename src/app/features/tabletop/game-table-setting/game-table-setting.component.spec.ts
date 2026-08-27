@@ -145,13 +145,27 @@ describe('GameTableSettingComponent', () => {
       expect(table.radialMenuRotationSpeed).toBe(9);
 
       component.tableRadialMenuRotationSpeed = 99;
-      expect(table.radialMenuRotationSpeed).toBe(12);
+      expect(table.radialMenuRotationSpeed).toBe(24);
     } finally {
       table.destroy();
     }
   });
 
-  it('shows the rotating menu checkbox inside 2D mode settings', async () => {
+  it('stores the orthographic projection setting on the table', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      expect(component.tableOrthographicProjection).toBe(false);
+      component.tableOrthographicProjection = true;
+      expect(table.orthographicProjection).toBe(true);
+    } finally {
+      table.destroy();
+    }
+  });
+
+  it('shows projection and rotating menu checkboxes inside 2D mode settings', async () => {
     const table = new GameTable();
     table.initialize();
     table.mode2d = true;
@@ -161,6 +175,12 @@ describe('GameTableSettingComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
+      const projection = fixture.nativeElement.querySelector(
+        'input[name="tableOrthographicProjection"]'
+      ) as HTMLInputElement;
+      expect(projection).toBeTruthy();
+      expect(projection.checked).toBe(false);
+      expect(projection.closest('label')?.textContent).toContain('平行投影');
       const checkbox = fixture.nativeElement.querySelector('input[name="tableRadialMenuEnabled"]') as HTMLInputElement;
       expect(checkbox).toBeTruthy();
       expect(checkbox.checked).toBe(false);
@@ -170,6 +190,7 @@ describe('GameTableSettingComponent', () => {
       ) as HTMLInputElement;
       expect(speed).toBeTruthy();
       expect(speed.value).toBe('5');
+      expect(speed.max).toBe('24');
       expect(speed.disabled).toBe(true);
     } finally {
       table.destroy();

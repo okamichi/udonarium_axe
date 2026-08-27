@@ -43,7 +43,9 @@ interface RadialMenuLevel {
 
 const SEATS: RadialMenuSeat[] = ['north', 'east', 'south', 'west'];
 const LAUNCHER_RADIUS_PX = 70;
+const LAUNCHER_HALF_EXTENT_PX = 28;
 const ITEM_HALF_EXTENT_PX = 60;
+const RING_CLEARANCE_GAP_PX = 8;
 const RING_LEVEL_TRANSITION_MS = 180;
 
 @Component({
@@ -80,9 +82,17 @@ export class FourWayRadialMenuComponent {
   protected readonly currentActions = computed(() => this.actionItems(this.currentLevel()?.actions ?? []));
   protected readonly pageCount = computed(() => radialPageCount(this.currentActions().length));
   protected readonly visibleActions = computed(() => radialPage(this.currentActions(), this.page()));
+  protected readonly clearanceRadius = computed(() => {
+    const radius = Number(this.contextMenuService.radialMenuClearanceRadius);
+    return Number.isFinite(radius) ? Math.max(0, radius) : 0;
+  });
+  protected readonly launcherRadius = computed(() =>
+    Math.max(LAUNCHER_RADIUS_PX, this.clearanceRadius() + LAUNCHER_HALF_EXTENT_PX)
+  );
   protected readonly ringRadius = computed(() => {
     const shortestSide = Math.min(this.viewport().width, this.viewport().height);
-    return Math.max(82, Math.min(138, shortestSide / 2 - ITEM_HALF_EXTENT_PX - 12));
+    const baseRadius = Math.max(82, Math.min(138, shortestSide / 2 - ITEM_HALF_EXTENT_PX - 12));
+    return Math.max(baseRadius, this.clearanceRadius() + ITEM_HALF_EXTENT_PX + RING_CLEARANCE_GAP_PX);
   });
   protected readonly center = computed(() =>
     clampRadialCenter(this.contextMenuService.position, this.viewport(), this.ringRadius() + ITEM_HALF_EXTENT_PX)
@@ -158,7 +168,7 @@ export class FourWayRadialMenuComponent {
   protected chooseGroup(group: ContextMenuRadialGroup, index: number): void {
     const actions = this.actionItems(group.actions);
     if (actions.length === 1 && actions[0]?.action && !actions[0].subActions?.length) {
-      this.rememberCenterDirection();
+      this.rememberItemDirection(index, this.radialGroups().length);
       this.runAction(actions[0]);
       return;
     }
@@ -181,7 +191,7 @@ export class FourWayRadialMenuComponent {
       return;
     }
     if (action.action) {
-      this.rememberCenterDirection();
+      this.rememberItemDirection(index, this.visibleActions().length);
       this.runAction(action);
     }
   }
@@ -222,7 +232,7 @@ export class FourWayRadialMenuComponent {
   }
 
   protected launcherPoint(seat: RadialMenuSeat): RadialPoint {
-    return pointAtAngle(seatAngle(seat), LAUNCHER_RADIUS_PX);
+    return pointAtAngle(seatAngle(seat), this.launcherRadius());
   }
 
   protected groupPoint(index: number): RadialPoint {
@@ -276,6 +286,13 @@ export class FourWayRadialMenuComponent {
     const centerRotation = this.selectedSeat() ? seatTextRotation(this.selectedSeat()!) : 0;
     this.actionRotationDegrees.set(
       nearestCardinalRotation(centerRotation + this.currentRingRotationDegrees() + this.manualRotationDegrees())
+    );
+  }
+
+  private rememberItemDirection(index: number, count: number): void {
+    const itemRotation = outwardRotationOnRing(index, count, this.ringStartAngle());
+    this.actionRotationDegrees.set(
+      nearestCardinalRotation(itemRotation + this.currentRingRotationDegrees() + this.manualRotationDegrees())
     );
   }
 

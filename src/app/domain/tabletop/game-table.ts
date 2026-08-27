@@ -37,7 +37,7 @@ export enum FilterType {
 
 export const DEFAULT_RADIAL_MENU_ROTATION_SPEED = 5;
 export const MIN_RADIAL_MENU_ROTATION_SPEED = 1;
-export const MAX_RADIAL_MENU_ROTATION_SPEED = 12;
+export const MAX_RADIAL_MENU_ROTATION_SPEED = 24;
 
 @SyncObject('game-table')
 export class GameTable extends ObjectNode {
@@ -58,6 +58,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() gridSnapStyle: GridSnapStyle = GridSnapStyle.CENTER;
   @SyncVar() imageBillboard: boolean = false;
   @SyncVar() mode2d: boolean = false;
+  @SyncVar() orthographicProjection: boolean = false;
   @SyncVar() radialMenuEnabled: boolean = false;
   @SyncVar() radialMenuRotationSpeed: number = DEFAULT_RADIAL_MENU_ROTATION_SPEED;
   @SyncVar() multiAngleEnabled: boolean = false;

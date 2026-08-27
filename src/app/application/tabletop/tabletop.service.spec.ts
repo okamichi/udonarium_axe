@@ -37,13 +37,16 @@ describe('TabletopService', () => {
       const service = TestBed.inject(TabletopService);
       expect(service.gridSize()).toBe(table.gridSize);
       expect(service.mode2d()).toBe(false);
+      expect(service.orthographicProjection()).toBe(false);
 
       table.gridSize = 77;
       table.mode2d = true;
+      table.orthographicProjection = true;
       await new Promise((resolve) => setTimeout(resolve, 20));
 
       expect(service.gridSize()).toBe(77);
       expect(service.mode2d()).toBe(true);
+      expect(service.orthographicProjection()).toBe(true);
     });
   });
 });

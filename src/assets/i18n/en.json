@@ -1587,6 +1587,7 @@
         "sectionDisplay": "Display mode",
         "imageBillboard": "Billboard piece images",
         "mode2d": "2D mode (top-down)",
+        "orthographicProjection": "Orthographic projection",
         "radialMenu": "Show rotating menus",
         "radialMenuSpeed": "Rotation speed",
         "multiAngle": "Curve and orbit piece names",

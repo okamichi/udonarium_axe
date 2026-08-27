@@ -50,4 +50,23 @@ describe('GameTableGestureService', () => {
       expect(service.viewRotateZ).toBe(40);
     });
   });
+
+  describe('orthographicProjection', () => {
+    it('keeps the perspective transform unchanged by default', () => {
+      service.viewPositionZ = -3000;
+      callSetTransform(0, 0, 0);
+
+      expect(gameTableEl.style.transform).not.toContain('scale(');
+      expect(gameTableEl.style.transform).toContain('translateZ(-3000.0000px)');
+    });
+
+    it('replaces perspective zoom with an equivalent scale', () => {
+      service.viewPositionZ = -3000;
+      service.orthographicProjection = true;
+      callSetTransform(0, 0, 0);
+
+      expect(gameTableEl.style.transform).toContain('scale(0.500000)');
+      expect(gameTableEl.style.transform).toContain('translateZ(-3000.0000px)');
+    });
+  });
 });

@@ -68,14 +68,26 @@ describe('GameCharacterComponent', () => {
   });
 
   describe('character context menu display', () => {
-    function openMenu(tableMode2d: boolean, radialMenuEnabled: boolean) {
-      const character = GameCharacter.create('menu-piece', 1, '');
+    function openMenu(tableMode2d: boolean, radialMenuEnabled: boolean, size = 1, showRotatingName = false) {
+      const character = GameCharacter.create('menu-piece', size, '');
       fixture.componentRef.setInput('gameCharacter', character);
-      fixture.detectChanges();
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = tableMode2d;
       table.radialMenuEnabled = radialMenuEnabled;
       table.radialMenuRotationSpeed = 7;
+      table.multiAngleEnabled = showRotatingName;
+      fixture.detectChanges();
+      const diameter = size * 50;
+      vi.spyOn(component.rootElementRef()!.nativeElement, 'getBoundingClientRect').mockReturnValue({
+        top: 100,
+        right: 100 + diameter,
+        bottom: 100 + diameter,
+        left: 100,
+        width: diameter,
+        height: diameter,
+        x: 100,
+        y: 100,
+      } as DOMRect);
       TestBed.inject(PointerDeviceService).primeForContextMenu(120, 160);
       vi.spyOn(TestBed.inject(TabletopOverlapService), 'findAt').mockReturnValue([]);
 
@@ -109,8 +121,34 @@ describe('GameCharacterComponent', () => {
           expect.any(Array),
           'menu-piece',
           enabled,
-          7
+          7,
+          0
         );
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it.each([true, false])('keeps the same large-piece clearance with rotating names %s', (showRotatingName) => {
+      const menus = TestBed.inject(ContextMenuService);
+      const openRadial = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const character = openMenu(true, true, 3, showRotatingName);
+
+      try {
+        const clearanceRadius = openRadial.mock.calls[0]?.[6];
+        expect(clearanceRadius).toBeCloseTo(100.05);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('keeps the original 1x1 distance when rotating names are enabled', () => {
+      const menus = TestBed.inject(ContextMenuService);
+      const openRadial = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const character = openMenu(true, true, 1, true);
+
+      try {
+        expect(openRadial.mock.calls[0]?.[6]).toBe(0);
       } finally {
         character.destroy();
       }

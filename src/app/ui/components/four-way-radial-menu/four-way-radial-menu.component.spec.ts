@@ -24,6 +24,7 @@ describe('FourWayRadialMenuComponent', () => {
     service.radialGroups = [];
     service.radialMenuEnabled = true;
     service.radialMenuRotationSpeed = 5;
+    service.radialMenuClearanceRadius = 0;
     service.rotationDegrees = 0;
   });
 
@@ -67,7 +68,23 @@ describe('FourWayRadialMenuComponent', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-ring]')).toBeNull();
   });
 
-  it('executes a single action directly from its category', () => {
+  it('moves direction launchers away from a large piece', () => {
+    service.radialMenuEnabled = false;
+    service.radialMenuClearanceRadius = 100;
+    createWithGroups([]);
+
+    const north = buttons().find((button) => button.getAttribute('aria-label') === '北側から操作');
+    expect(north?.style.top).toBe('172px');
+  });
+
+  it('increases the rotating ring radius by the large-piece clearance', () => {
+    service.radialMenuClearanceRadius = 100;
+    createWithGroups([{ name: 'North', icon: 'north', actions: [{ name: 'Action', action: vi.fn() }] }]);
+
+    expect(buttonContaining('North').style.top).toBe('-168px');
+  });
+
+  it('executes a single action using the clicked category direction', () => {
     const action = vi.fn();
     const close = vi.spyOn(service, 'close').mockImplementation(() => undefined);
     const runWithRotation = vi
@@ -78,11 +95,29 @@ describe('FourWayRadialMenuComponent', () => {
     buttonContaining('基本情報').click();
 
     expect(action).toHaveBeenCalledOnce();
-    expect(runWithRotation).toHaveBeenCalledWith(0, action);
+    expect(runWithRotation).toHaveBeenCalledWith(180, action);
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('passes the rotating center direction to an opened panel', () => {
+  it('uses the direction of the specific category that was clicked', () => {
+    const eastAction = vi.fn();
+    vi.spyOn(service, 'close').mockImplementation(() => undefined);
+    const runWithRotation = vi
+      .spyOn(TestBed.inject(PanelService), 'runWithInitialRotation')
+      .mockImplementation((_degrees, callback) => callback());
+    createWithGroups([
+      { name: 'North', icon: 'north', actions: [{ name: 'North action', action: vi.fn() }] },
+      { name: 'East', icon: 'east', actions: [{ name: 'East action', action: eastAction }] },
+      { name: 'South', icon: 'south', actions: [{ name: 'South action', action: vi.fn() }] },
+      { name: 'West', icon: 'west', actions: [{ name: 'West action', action: vi.fn() }] },
+    ]);
+
+    buttonContaining('East').click();
+
+    expect(runWithRotation).toHaveBeenCalledWith(270, eastAction);
+  });
+
+  it('combines the clicked item direction with the rotating ring direction', () => {
     const action = vi.fn();
     vi.spyOn(service, 'close').mockImplementation(() => undefined);
     const runWithRotation = vi
@@ -94,7 +129,7 @@ describe('FourWayRadialMenuComponent', () => {
 
     buttonContaining('基本情報').click();
 
-    expect(runWithRotation).toHaveBeenCalledWith(90, action);
+    expect(runWithRotation).toHaveBeenCalledWith(270, action);
   });
 
   it('rotates the ring slowly with each item facing outward', () => {
@@ -120,6 +155,14 @@ describe('FourWayRadialMenuComponent', () => {
 
     const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]')!;
     expect(ring.style.animationDuration).toBe('36s');
+  });
+
+  it('allows rotation speeds up to twenty-four degrees per second', () => {
+    service.radialMenuRotationSpeed = 99;
+    createWithGroups([{ name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] }]);
+
+    const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]')!;
+    expect(ring.style.animationDuration).toBe('15s');
   });
 
   it('rotates the title and center controls with the outer items', () => {
@@ -164,7 +207,7 @@ describe('FourWayRadialMenuComponent', () => {
     fixture.detectChanges();
     buttonContaining('基本情報').click();
 
-    expect(runWithRotation).toHaveBeenCalledWith(90, action);
+    expect(runWithRotation).toHaveBeenCalledWith(270, action);
   });
 
   it('pauses while opening a submenu, inherits its direction, then resumes', () => {

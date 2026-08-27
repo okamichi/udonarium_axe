@@ -186,6 +186,15 @@ export class GameTableSettingComponent {
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
+  get tableOrthographicProjection(): boolean {
+    return this.selectedTable?.orthographicProjection ?? false;
+  }
+  set tableOrthographicProjection(value: boolean) {
+    if (!this.selectedTable) return;
+    this.selectedTable.orthographicProjection = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
   get tableRadialMenuEnabled(): boolean {
     return this.selectedTable?.radialMenuEnabled ?? false;
   }

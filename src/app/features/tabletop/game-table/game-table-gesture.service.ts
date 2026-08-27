@@ -16,6 +16,8 @@ import {
 import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
 import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
 
+const TABLE_PERSPECTIVE_PX = 3000;
+
 @Injectable()
 export class GameTableGestureService {
   private readonly contextMenuService = inject(ContextMenuService);
@@ -36,6 +38,7 @@ export class GameTableGestureService {
   viewRotateZ = 10;
 
   tiltLocked = false;
+  orthographicProjection = false;
 
   private mouseGesture: TableMouseGesture | null = null;
   private touchGesture: TableTouchGesture | null = null;
@@ -112,7 +115,10 @@ export class GameTableGestureService {
     const rx = this.viewRotateX.toFixed(4);
     const ry = this.viewRotateY.toFixed(4);
     const rz = this.viewRotateZ.toFixed(4);
-    this.gameTableEl.style.transform = `translateZ(${tz}px) translateY(${ty}px) translateX(${tx}px) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
+    const projectionScale = this.orthographicProjection
+      ? `scale(${(TABLE_PERSPECTIVE_PX / (TABLE_PERSPECTIVE_PX - this.viewPositionZ)).toFixed(6)}) `
+      : '';
+    this.gameTableEl.style.transform = `${projectionScale}translateZ(${tz}px) translateY(${ty}px) translateX(${tx}px) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
   }
 
   private onTableTouchStart(): void {
@@ -146,7 +152,7 @@ export class GameTableGestureService {
 
     if (srcEvent.cancelable) srcEvent.preventDefault();
 
-    const scale = (3000 + Math.abs(this.viewPositionZ)) / 3000;
+    const scale = (TABLE_PERSPECTIVE_PX + Math.abs(this.viewPositionZ)) / TABLE_PERSPECTIVE_PX;
     transformX *= scale;
     transformY *= scale;
     transformZ *= 3;
@@ -224,7 +230,7 @@ export class GameTableGestureService {
 
     if ((srcEvent as Event).cancelable) (srcEvent as Event).preventDefault();
 
-    const scale = (3000 + Math.abs(this.viewPositionZ)) / 3000;
+    const scale = (TABLE_PERSPECTIVE_PX + Math.abs(this.viewPositionZ)) / TABLE_PERSPECTIVE_PX;
     transformX *= scale;
     transformY *= scale;
     transformZ *= 3;

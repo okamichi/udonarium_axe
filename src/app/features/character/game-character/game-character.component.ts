@@ -886,14 +886,28 @@ export class GameCharacterComponent {
     const menuCenter = rootBounds
       ? { x: rootBounds.left + rootBounds.width / 2, y: rootBounds.top + rootBounds.height / 2 }
       : position;
+    const menuClearanceRadius = rootBounds ? this.contextMenuClearanceRadius(rootBounds) : 0;
     this.contextMenuService.openRadial(
       menuCenter,
       menu.actions,
       menu.radialGroups,
       this.name(),
       table.radialMenuEnabled,
-      table.radialMenuRotationSpeed
+      table.radialMenuRotationSpeed,
+      menuClearanceRadius
     );
+  }
+
+  private contextMenuClearanceRadius(rootBounds: DOMRect): number {
+    if (this.size() <= 1) return 0;
+
+    const pieceDiameter = this.size() * this.gridSize;
+    const renderedDiameter = Math.max(rootBounds.width, rootBounds.height);
+    if (pieceDiameter <= 0 || renderedDiameter <= 0) return 0;
+
+    const renderedScale = renderedDiameter / pieceDiameter;
+    const curvedName = this.multiAngleCurvedNameLayout();
+    return (curvedName.radius + curvedName.fontSize / 2 + curvedName.strokeWidth / 2) * renderedScale;
   }
 
   /** How it goes down, set only while an effect is aimed at it. */

@@ -36,6 +36,64 @@ describe('GameTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('2D camera', () => {
+    const syncMode2d = (target: GameTableComponent): void => {
+      (target as unknown as { syncMode2d(): void }).syncMode2d();
+    };
+
+    beforeEach(() => {
+      (component.gestureService as unknown as { gameTableEl: HTMLElement }).gameTableEl = document.createElement('div');
+    });
+
+    it('straightens the table when entering 2D mode without locking later rotation', () => {
+      component.gestureService.viewRotateX = 35;
+      component.gestureService.viewRotateY = 12;
+      component.gestureService.viewRotateZ = 27;
+      component.currentTable.mode2d = true;
+
+      syncMode2d(component);
+
+      expect(component.gestureService.viewRotateX).toBe(0);
+      expect(component.gestureService.viewRotateY).toBe(0);
+      expect(component.gestureService.viewRotateZ).toBe(0);
+
+      component.gestureService.setTransform(0, 0, 0, 0, 0, 15);
+      syncMode2d(component);
+      expect(component.gestureService.viewRotateZ).toBe(15);
+    });
+
+    it('uses scale-based zoom only while orthographic projection is enabled in 2D mode', () => {
+      component.gestureService.viewPositionZ = -3000;
+      component.currentTable.mode2d = true;
+      component.currentTable.orthographicProjection = true;
+
+      syncMode2d(component);
+      expect(component.gestureService.orthographicProjection).toBe(true);
+      expect(
+        (component.gestureService as unknown as { gameTableEl: HTMLElement }).gameTableEl.style.transform
+      ).toContain('scale(0.500000)');
+
+      component.currentTable.orthographicProjection = false;
+      syncMode2d(component);
+      expect(component.gestureService.orthographicProjection).toBe(false);
+      expect(
+        (component.gestureService as unknown as { gameTableEl: HTMLElement }).gameTableEl.style.transform
+      ).not.toContain('scale(');
+    });
+
+    it('removes the perspective from the tabletop viewport', async () => {
+      component.currentTable.gridType = GridType.NONE;
+      component.currentTable.mode2d = true;
+      component.currentTable.orthographicProjection = true;
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(component.rootElementRef().nativeElement.style.perspective).toBe('none');
+    });
+  });
+
   describe('characters', () => {
     const MINE = ['いち', 'に'];
 

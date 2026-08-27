@@ -50,6 +50,7 @@ export class ContextMenuService {
   radialGroups: ContextMenuRadialGroup[] = [];
   radialMenuEnabled: boolean = false;
   radialMenuRotationSpeed: number = DEFAULT_RADIAL_MENU_ROTATION_SPEED;
+  radialMenuClearanceRadius: number = 0;
   rotationDegrees: PanelRotationDegrees = 0;
   position: ContextMenuPoint = { x: 0, y: 0 };
 
@@ -71,6 +72,7 @@ export class ContextMenuService {
       0,
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+      0,
       title,
       parentViewContainerRef
     );
@@ -91,6 +93,7 @@ export class ContextMenuService {
       rotationDegrees,
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+      0,
       title,
       parentViewContainerRef
     );
@@ -103,6 +106,7 @@ export class ContextMenuService {
     title?: string,
     radialMenuEnabled = false,
     radialMenuRotationSpeed = DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+    radialMenuClearanceRadius = 0,
     parentViewContainerRef?: ViewContainerRef
   ) {
     this.openComponent(
@@ -113,6 +117,7 @@ export class ContextMenuService {
       0,
       radialMenuEnabled,
       radialMenuRotationSpeed,
+      radialMenuClearanceRadius,
       title,
       parentViewContainerRef
     );
@@ -126,6 +131,7 @@ export class ContextMenuService {
     rotationDegrees: PanelRotationDegrees,
     radialMenuEnabled: boolean,
     radialMenuRotationSpeed: number,
+    radialMenuClearanceRadius: number,
     title?: string,
     parentViewContainerRef?: ViewContainerRef
   ) {
@@ -150,6 +156,7 @@ export class ContextMenuService {
     childPanelService.radialGroups = radialGroups;
     childPanelService.radialMenuEnabled = radialMenuEnabled;
     childPanelService.radialMenuRotationSpeed = radialMenuRotationSpeed;
+    childPanelService.radialMenuClearanceRadius = radialMenuClearanceRadius;
     childPanelService.rotationDegrees = rotationDegrees;
     if (position) {
       childPanelService.position.x = position.x;

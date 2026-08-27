@@ -180,8 +180,12 @@ export class GameTableComponent {
   private readonly objectChangeService = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
+  protected readonly isOrthographicProjection = computed(
+    () => this.tabletopService.mode2d() && this.tabletopService.orthographicProjection()
+  );
   private _initialized = false;
   private _lastTableId: string | null = null;
+  private _lastMode2dTableId: string | null = null;
   readonly gestureService = inject(GameTableGestureService);
 
   constructor() {
@@ -287,9 +291,15 @@ export class GameTableComponent {
 
   private syncMode2d(): void {
     const enabled = this.currentTable.mode2d;
+    const enteredMode2d = enabled && this._lastMode2dTableId !== this.currentTable.identifier;
+    this._lastMode2dTableId = enabled ? this.currentTable.identifier : null;
+    const orthographicProjection = enabled && this.currentTable.orthographicProjection;
+    const projectionChanged = this.gestureService.orthographicProjection !== orthographicProjection;
     this.gestureService.tiltLocked = enabled;
-    if (enabled) {
-      this.gestureService.setTransform(0, 0, 0, 0, 0, 0);
+    this.gestureService.orthographicProjection = orthographicProjection;
+    if (enabled || projectionChanged) {
+      const rotateZ = enteredMode2d ? -this.gestureService.viewRotateZ : 0;
+      this.gestureService.setTransform(0, 0, 0, 0, 0, rotateZ);
     }
   }
 
