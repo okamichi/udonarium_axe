@@ -1594,6 +1594,7 @@
         "multiAngleMotionMode": "回転方法",
         "multiAngleContinuous": "時計回りに連続回転",
         "multiAngleQuarterTurn": "90°回転して静止",
+        "multiAnglePieceQuarterTurn": "コマだけ90°回転して停止",
         "multiAngleRevolutionSeconds": "回転時間（一周）",
         "multiAnglePieceRevolutionSeconds": "コマ本体の一周時間",
         "multiAnglePauseSeconds": "90°後の静止時間",
