@@ -46,7 +46,23 @@ describe('FourWayRadialMenuComponent', () => {
     const labels = buttons().map((button) => button.getAttribute('aria-label'));
     expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-ring]')).toBeTruthy();
     expect(buttonContaining('表示')).toBeTruthy();
+    expect(buttonContaining('戻る')).toBeTruthy();
     expect(labels).not.toContain('南側から操作');
+  });
+
+  it('closes the rotating menu from its return item at the top level', () => {
+    const close = vi.spyOn(service, 'close').mockImplementation(() => undefined);
+    createWithGroups([{ name: '表示', icon: 'visibility', actions: [{ name: '詳細', action: vi.fn() }] }]);
+
+    const returnButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '[data-radial-return]'
+    )!;
+    expect(returnButton.getAttribute('aria-label')).toBe('閉じる');
+    expect(returnButton.querySelector('.material-icons')?.textContent?.trim()).toBe('close');
+
+    returnButton.click();
+
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it('uses the rotating display setting supplied immediately after component creation', () => {
@@ -144,9 +160,10 @@ describe('FourWayRadialMenuComponent', () => {
     expect(ring?.style.animationDuration).toBe('72s');
     expect(buttonContaining('North').classList.contains('rotating-menu-item')).toBe(true);
     expect(buttonContaining('North').style.transform).toBe('translate(-50%, -50%) rotate(180deg)');
-    expect(buttonContaining('East').style.transform).toBe('translate(-50%, -50%) rotate(270deg)');
-    expect(buttonContaining('South').style.transform).toBe('translate(-50%, -50%) rotate(0deg)');
-    expect(buttonContaining('West').style.transform).toBe('translate(-50%, -50%) rotate(90deg)');
+    expect(buttonContaining('East').style.transform).toBe('translate(-50%, -50%) rotate(252deg)');
+    expect(buttonContaining('South').style.transform).toBe('translate(-50%, -50%) rotate(324deg)');
+    expect(buttonContaining('West').style.transform).toBe('translate(-50%, -50%) rotate(36deg)');
+    expect(buttonContaining('戻る').style.transform).toBe('translate(-50%, -50%) rotate(108deg)');
   });
 
   it('uses the configured table rotation speed', () => {
@@ -231,9 +248,9 @@ describe('FourWayRadialMenuComponent', () => {
 
       const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]')!;
       expect(ring.style.animationPlayState).toBe('paused');
-      expect(buttonContaining('Sub action 1').style.left).toBe('138px');
-      expect(buttonContaining('Sub action 1').style.top).toBe('0px');
-      expect(buttonContaining('Sub action 1').style.transform).toBe('translate(-50%, -50%) rotate(270deg)');
+      expect(Number.parseFloat(buttonContaining('Sub action 1').style.left)).toBeCloseTo(131.25, 2);
+      expect(Number.parseFloat(buttonContaining('Sub action 1').style.top)).toBeCloseTo(-42.64, 2);
+      expect(buttonContaining('Sub action 1').style.transform).toBe('translate(-50%, -50%) rotate(252deg)');
 
       vi.advanceTimersByTime(180);
       fixture.detectChanges();
@@ -260,10 +277,35 @@ describe('FourWayRadialMenuComponent', () => {
     fixture.detectChanges();
 
     expect(buttonContaining('影を表示する')).toBeTruthy();
-    const back = buttons().find((button) => button.getAttribute('aria-label') === '前の階層へ戻る');
-    back!.click();
+    const ringBack = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-radial-return]')!;
+    expect(ringBack.getAttribute('aria-label')).toBe('前の階層へ戻る');
+    expect(ringBack.querySelector('.material-icons')?.textContent?.trim()).toBe('arrow_back');
+    ringBack.click();
     fixture.detectChanges();
     expect(buttonContaining('高度設定')).toBeTruthy();
+  });
+
+  it('reserves one of the eight rotating positions for the return item', () => {
+    const actions = Array.from({ length: 8 }, (_, index) => ({
+      name: `Action ${index + 1}`,
+      action: vi.fn(),
+    }));
+    createWithGroups([{ name: '表示', icon: 'visibility', actions }]);
+
+    buttonContaining('表示').click();
+    fixture.detectChanges();
+
+    const rotatingItems = (fixture.nativeElement as HTMLElement).querySelectorAll('.rotating-menu-item');
+    expect(rotatingItems).toHaveLength(8);
+    expect(buttonContaining('Action 7')).toBeTruthy();
+    expect(buttons().some((button) => button.textContent?.includes('Action 8'))).toBe(false);
+
+    buttons()
+      .find((button) => button.getAttribute('aria-label') === '次のページ')!
+      .click();
+    fixture.detectChanges();
+    expect(buttonContaining('Action 8')).toBeTruthy();
+    expect(buttonContaining('戻る')).toBeTruthy();
   });
 
   it('can switch to the complete legacy menu', () => {

@@ -27,6 +27,7 @@ import {
   outwardRotationOnRing,
   pointAtAngle,
   pointOnRing,
+  RADIAL_MENU_PAGE_SIZE,
   RadialMenuSeat,
   radialPage,
   radialPageCount,
@@ -47,6 +48,7 @@ const LAUNCHER_HALF_EXTENT_PX = 28;
 const ITEM_HALF_EXTENT_PX = 60;
 const RING_CLEARANCE_GAP_PX = 8;
 const RING_LEVEL_TRANSITION_MS = 180;
+const RADIAL_ACTION_PAGE_SIZE = RADIAL_MENU_PAGE_SIZE - 1;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,8 +82,13 @@ export class FourWayRadialMenuComponent {
   );
   protected readonly currentLevel = computed(() => this.levels().at(-1) ?? null);
   protected readonly currentActions = computed(() => this.actionItems(this.currentLevel()?.actions ?? []));
-  protected readonly pageCount = computed(() => radialPageCount(this.currentActions().length));
-  protected readonly visibleActions = computed(() => radialPage(this.currentActions(), this.page()));
+  protected readonly pageCount = computed(() => radialPageCount(this.currentActions().length, RADIAL_ACTION_PAGE_SIZE));
+  protected readonly visibleActions = computed(() =>
+    radialPage(this.currentActions(), this.page(), RADIAL_ACTION_PAGE_SIZE)
+  );
+  protected readonly ringItemCount = computed(
+    () => (this.currentLevel() ? this.visibleActions().length : this.radialGroups().length) + 1
+  );
   protected readonly clearanceRadius = computed(() => {
     const radius = Number(this.contextMenuService.radialMenuClearanceRadius);
     return Number.isFinite(radius) ? Math.max(0, radius) : 0;
@@ -168,11 +175,11 @@ export class FourWayRadialMenuComponent {
   protected chooseGroup(group: ContextMenuRadialGroup, index: number): void {
     const actions = this.actionItems(group.actions);
     if (actions.length === 1 && actions[0]?.action && !actions[0].subActions?.length) {
-      this.rememberItemDirection(index, this.radialGroups().length);
+      this.rememberItemDirection(index, this.ringItemCount());
       this.runAction(actions[0]);
       return;
     }
-    this.changeRingLevel(index, this.radialGroups().length, () => {
+    this.changeRingLevel(index, this.ringItemCount(), () => {
       this.levels.set([{ title: group.name, actions }]);
       this.page.set(0);
       this.focusFirstControlSoon();
@@ -183,7 +190,7 @@ export class FourWayRadialMenuComponent {
     if (!this.actionEnabled(action)) return;
     const subActions = this.actionItems(action.subActions ?? []);
     if (subActions.length > 0) {
-      this.changeRingLevel(index, this.visibleActions().length, () => {
+      this.changeRingLevel(index, this.ringItemCount(), () => {
         this.levels.update((levels) => [...levels, { title: this.actionName(action), actions: subActions }]);
         this.page.set(0);
         this.focusFirstControlSoon();
@@ -191,8 +198,16 @@ export class FourWayRadialMenuComponent {
       return;
     }
     if (action.action) {
-      this.rememberItemDirection(index, this.visibleActions().length);
+      this.rememberItemDirection(index, this.ringItemCount());
       this.runAction(action);
+    }
+  }
+
+  protected returnFromRing(): void {
+    if (this.currentLevel()) {
+      this.back();
+    } else {
+      this.close();
     }
   }
 
@@ -236,11 +251,23 @@ export class FourWayRadialMenuComponent {
   }
 
   protected groupPoint(index: number): RadialPoint {
-    return pointOnRing(index, this.radialGroups().length, this.ringRadius(), this.ringStartAngle());
+    return pointOnRing(index, this.ringItemCount(), this.ringRadius(), this.ringStartAngle());
   }
 
   protected actionPoint(index: number): RadialPoint {
-    return pointOnRing(index, this.visibleActions().length, this.ringRadius(), this.ringStartAngle());
+    return pointOnRing(index, this.ringItemCount(), this.ringRadius(), this.ringStartAngle());
+  }
+
+  protected returnPoint(): RadialPoint {
+    return pointOnRing(this.ringItemCount() - 1, this.ringItemCount(), this.ringRadius(), this.ringStartAngle());
+  }
+
+  protected returnIcon(): string {
+    return this.currentLevel() ? 'arrow_back' : 'close';
+  }
+
+  protected returnTitle(): string {
+    return this.currentLevel() ? this.t('ui.contextMenu.radial.back') : this.t('common.button.close');
   }
 
   protected facingTransform(): string {

@@ -156,7 +156,7 @@
             class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform]"
             [style.left.px]="groupPoint(index).x"
             [style.top.px]="groupPoint(index).y"
-            [style.transform]="itemTransform(index, radialGroups().length)"
+            [style.transform]="itemTransform(index, ringItemCount())"
             [title]="group.name"
             (pointerdown)="$event.stopPropagation()"
             (click)="chooseGroup(group, index)"
@@ -173,7 +173,7 @@
             class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform] disabled:cursor-not-allowed disabled:opacity-40"
             [style.left.px]="actionPoint(index).x"
             [style.top.px]="actionPoint(index).y"
-            [style.transform]="itemTransform(index, visibleActions().length)"
+            [style.transform]="itemTransform(index, ringItemCount())"
             [disabled]="!actionEnabled(action)"
             [title]="actionName(action)"
             (pointerdown)="$event.stopPropagation()"
@@ -186,6 +186,23 @@
           </button>
         }
       }
+
+      <button
+        type="button"
+        data-radial-control
+        data-radial-return
+        class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg hover:bg-ui-menu-hover hover:text-ui-accent pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform]"
+        [style.left.px]="returnPoint().x"
+        [style.top.px]="returnPoint().y"
+        [style.transform]="itemTransform(ringItemCount() - 1, ringItemCount())"
+        [attr.aria-label]="returnTitle()"
+        [title]="returnTitle()"
+        (pointerdown)="$event.stopPropagation()"
+        (click)="returnFromRing()"
+      >
+        <i class="material-icons shrink-0 text-[20px]!" aria-hidden="true">{{ returnIcon() }}</i>
+        <span class="max-w-18 truncate">{{ 'ui.contextMenu.radial.return' | transloco }}</span>
+      </button>
     </div>
   }
 </div>

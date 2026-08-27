@@ -2903,6 +2903,7 @@
         "seatSouth": "Use from the south side",
         "seatWest": "Use from the west side",
         "back": "Back one level",
+        "return": "Back",
         "fullMenu": "Show the full list",
         "previousPage": "Previous page",
         "nextPage": "Next page"
