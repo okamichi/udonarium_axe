@@ -210,6 +210,30 @@ describe('FourWayRadialMenuComponent', () => {
     expect(ring.style.rotate).toBe('180deg');
   });
 
+  it('turns the existing rotating menu 90 degrees when it is right-clicked again', () => {
+    const close = vi.spyOn(service, 'close').mockImplementation(() => undefined);
+    createWithGroups([{ name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] }]);
+    const root = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="dialog"]')!;
+    const ring = root.querySelector<HTMLElement>('[data-radial-ring]')!;
+
+    root.dispatchEvent(
+      new MouseEvent('pointerdown', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
+    );
+    root.dispatchEvent(
+      new MouseEvent('contextmenu', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
+    );
+    fixture.detectChanges();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(ring.style.rotate).toBe('90deg');
+
+    root.dispatchEvent(
+      new MouseEvent('contextmenu', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
+    );
+    fixture.detectChanges();
+    expect(ring.style.rotate).toBe('180deg');
+  });
+
   it('passes a manual quarter turn to a panel opened from the menu', () => {
     const action = vi.fn();
     vi.spyOn(service, 'close').mockImplementation(() => undefined);

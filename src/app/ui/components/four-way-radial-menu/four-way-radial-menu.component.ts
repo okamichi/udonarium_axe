@@ -138,14 +138,19 @@ export class FourWayRadialMenuComponent {
     this.contextMenuService.close();
   }
 
-  protected onBackdropPointerDown(event: Event): void {
+  protected onBackdropPointerDown(event: PointerEvent): void {
+    if (event.button === 2 && this.contextMenuService.radialMenuEnabled) {
+      event.stopPropagation();
+      return;
+    }
     event.preventDefault();
     this.close();
   }
 
-  protected onContextMenu(event: Event): void {
+  protected onContextMenu(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
+    if (this.contextMenuService.radialMenuEnabled) this.rotateMenuQuarterTurn();
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
