@@ -1587,6 +1587,7 @@
         "sectionDisplay": "表示モード",
         "imageBillboard": "画像をカメラに追従",
         "mode2d": "2Dモード（俯瞰固定）",
+        "orthographicProjection": "平行投影",
         "radialMenu": "回転メニュー表示",
         "radialMenuSpeed": "回転速度",
         "multiAngle": "コマ名を円周に沿って周回",

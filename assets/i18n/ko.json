@@ -1587,6 +1587,7 @@
         "sectionDisplay": "표시 모드",
         "imageBillboard": "이미지를 카메라를 향하게",
         "mode2d": "2D 모드(부감 고정)",
+        "orthographicProjection": "직교 투영",
         "radialMenu": "회전 메뉴 표시",
         "radialMenuSpeed": "회전 속도",
         "multiAngle": "말 이름을 원주를 따라 회전",
