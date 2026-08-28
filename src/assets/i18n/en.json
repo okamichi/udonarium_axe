@@ -1671,7 +1671,9 @@
         "mode2d": "2D mode (top-down)",
         "orthographicProjection": "Orthographic projection",
         "radialMenu": "Show rotating menus",
+        "radialMenuHelp": "Windows open facing the selected menu item. Right-click the piece repeatedly to force the menu to rotate, then click the item when it is directly below the piece.",
         "radialMenuSpeed": "Rotation speed",
+        "radialMenuSpeedHelp": "Sets the rotating menu speed from 1 to 24 degrees per second. Higher values rotate faster.",
         "multiAngle": "Curve and orbit piece names",
         "multiAngleMotionMode": "Motion",
         "multiAngleContinuous": "Continuous clockwise",
@@ -3247,8 +3249,6 @@
         "seatWest": "Use from the west side",
         "back": "Back one level",
         "return": "Back",
-        "fullMenu": "Show the full list",
-        "previousPage": "Previous page",
         "nextPage": "Next page"
       }
     },

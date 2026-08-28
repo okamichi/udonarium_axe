@@ -14,6 +14,7 @@ import {
   ContextMenuService,
   ContextMenuType,
 } from '@axe/application/ui/context-menu.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelRotationDegrees, PanelService } from '@axe/application/ui/panel.service';
 import {
   DEFAULT_RADIAL_MENU_ROTATION_SPEED,
@@ -49,6 +50,8 @@ const ITEM_HALF_EXTENT_PX = 60;
 const RING_CLEARANCE_GAP_PX = 8;
 const RING_LEVEL_TRANSITION_MS = 180;
 const RADIAL_ACTION_PAGE_SIZE = RADIAL_MENU_PAGE_SIZE - 1;
+const FULL_ROTATION_DEGREES = 360;
+const ROTATION_EPSILON = 1e-9;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +67,7 @@ export class FourWayRadialMenuComponent {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly contextMenuService = inject(ContextMenuService);
   private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
   private readonly t = inject(TRANSLATE_FN);
 
   protected readonly seatOptions = SEATS;
@@ -73,6 +77,8 @@ export class FourWayRadialMenuComponent {
   protected readonly ringStartAngle = signal(-90);
   protected readonly ringTransitioning = signal(false);
   protected readonly manualRotationDegrees = signal(0);
+  protected readonly manualRotationTransitionEnabled = signal(true);
+  protected readonly manualRotationStyleDegrees = computed(() => Number(this.manualRotationDegrees().toFixed(6)));
   private readonly viewport = signal({ width: window.innerWidth, height: window.innerHeight });
   private readonly actionRotationDegrees = signal<PanelRotationDegrees>(0);
   private ringResumeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -86,6 +92,7 @@ export class FourWayRadialMenuComponent {
   protected readonly visibleActions = computed(() =>
     radialPage(this.currentActions(), this.page(), RADIAL_ACTION_PAGE_SIZE)
   );
+  protected readonly hasNextPage = computed(() => this.currentLevel() !== null && this.page() + 1 < this.pageCount());
   protected readonly ringItemCount = computed(
     () => (this.currentLevel() ? this.visibleActions().length : this.radialGroups().length) + 1
   );
@@ -150,7 +157,7 @@ export class FourWayRadialMenuComponent {
   protected onContextMenu(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
-    if (this.contextMenuService.radialMenuEnabled) this.rotateMenuQuarterTurn();
+    if (this.contextMenuService.radialMenuEnabled) this.rotateMenuOneItem();
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
@@ -228,7 +235,6 @@ export class FourWayRadialMenuComponent {
   }
 
   protected openFullMenu(): void {
-    if (this.contextMenuService.radialMenuEnabled) this.rememberCenterDirection();
     this.contextMenuService.openDirectional(
       this.fullMenuPosition(),
       this.contextMenuService.actions,
@@ -237,18 +243,30 @@ export class FourWayRadialMenuComponent {
     );
   }
 
-  protected previousPage(): void {
-    this.page.update((page) => Math.max(0, page - 1));
-    this.focusFirstControlSoon();
-  }
-
-  protected nextPage(): void {
+  protected advancePage(): void {
     this.page.update((page) => Math.min(this.pageCount() - 1, page + 1));
     this.focusFirstControlSoon();
   }
 
-  protected rotateMenuQuarterTurn(): void {
-    this.manualRotationDegrees.update((degrees) => (degrees + 90) % 360);
+  protected rotateMenuOneItem(): void {
+    const step = FULL_ROTATION_DEGREES / Math.max(1, this.ringItemCount());
+    this.manualRotationDegrees.update((degrees) => {
+      const next = degrees + step;
+      const fullTurn = Math.round(next / FULL_ROTATION_DEGREES) * FULL_ROTATION_DEGREES;
+      return Math.abs(next - fullTurn) < ROTATION_EPSILON ? fullTurn : next;
+    });
+  }
+
+  protected onManualRotationTransitionEnd(event: TransitionEvent): void {
+    if (event.propertyName !== 'rotate') return;
+
+    const degrees = this.manualRotationDegrees();
+    const normalized = degrees % FULL_ROTATION_DEGREES;
+    if (Math.abs(degrees - normalized) < ROTATION_EPSILON) return;
+
+    this.manualRotationTransitionEnabled.set(false);
+    this.manualRotationDegrees.set(Math.abs(normalized) < ROTATION_EPSILON ? 0 : normalized);
+    requestAnimationFrame(() => this.manualRotationTransitionEnabled.set(true));
   }
 
   protected launcherPoint(seat: RadialMenuSeat): RadialPoint {
@@ -273,11 +291,6 @@ export class FourWayRadialMenuComponent {
 
   protected returnTitle(): string {
     return this.currentLevel() ? this.t('ui.contextMenu.radial.back') : this.t('common.button.close');
-  }
-
-  protected facingTransform(): string {
-    const seat = this.selectedSeat();
-    return seat ? `translate(-50%, -50%) rotate(${seatTextRotation(seat)}deg)` : 'translate(-50%, -50%)';
   }
 
   protected itemTransform(index: number, count: number): string {
@@ -306,7 +319,10 @@ export class FourWayRadialMenuComponent {
 
   private runAction(action: ContextMenuAction): void {
     if (!this.actionEnabled(action) || !action.action) return;
-    this.panelService.runWithInitialRotation(this.selectedRotationDegrees(), action.action);
+    const rotationDegrees = this.selectedRotationDegrees();
+    this.panelService.runWithInitialRotation(rotationDegrees, () =>
+      this.modalService.runWithInitialRotation(rotationDegrees, action.action!)
+    );
     this.close();
   }
 
@@ -321,13 +337,6 @@ export class FourWayRadialMenuComponent {
     const center = this.center();
     const offset = this.launcherPoint(seat);
     return { x: center.x + offset.x, y: center.y + offset.y };
-  }
-
-  private rememberCenterDirection(): void {
-    const centerRotation = this.selectedSeat() ? seatTextRotation(this.selectedSeat()!) : 0;
-    this.actionRotationDegrees.set(
-      nearestCardinalRotation(centerRotation + this.currentRingRotationDegrees() + this.manualRotationDegrees())
-    );
   }
 
   private rememberItemDirection(index: number, count: number): void {

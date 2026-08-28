@@ -13,6 +13,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -43,6 +44,7 @@ export class ContextMenuComponent {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   contextMenuService = inject(ContextMenuService);
   private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly destroyRef = inject(DestroyRef);
@@ -206,7 +208,10 @@ export class ContextMenuComponent {
   doAction(action: ContextMenuAction) {
     this.showSubMenu(action, true);
     if (action.action != null) {
-      this.panelService.runWithInitialRotation(this.contextMenuService.rotationDegrees, action.action);
+      const rotationDegrees = this.contextMenuService.rotationDegrees;
+      this.panelService.runWithInitialRotation(rotationDegrees, () =>
+        this.modalService.runWithInitialRotation(rotationDegrees, action.action!)
+      );
       this.close();
     }
   }

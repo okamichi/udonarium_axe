@@ -1671,7 +1671,9 @@
         "mode2d": "2Dモード（俯瞰固定）",
         "orthographicProjection": "平行投影",
         "radialMenu": "回転メニュー表示",
+        "radialMenuHelp": "選択したメニューの向きにウィンドウが開くので、コマの右クリック連続で強制回転し、コマの真下での選択クリックしてください。",
         "radialMenuSpeed": "回転速度",
+        "radialMenuSpeedHelp": "回転メニューの回転速度を1～24°/秒で設定します。値が大きいほど速く回転します。",
         "multiAngle": "コマ名を円周に沿って周回",
         "multiAngleMotionMode": "回転方法",
         "multiAngleContinuous": "時計回りに連続回転",
@@ -3247,8 +3249,6 @@
         "seatWest": "西側から操作",
         "back": "前の階層へ戻る",
         "return": "戻る",
-        "fullMenu": "すべての項目を一覧表示",
-        "previousPage": "前のページ",
         "nextPage": "次のページ"
       }
     },

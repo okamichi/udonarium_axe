@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { CutInService } from '@axe/application/media/cut-in.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -8,6 +9,7 @@ import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabl
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
 
 describe('GameTableSettingComponent', () => {
   let component: GameTableSettingComponent;
@@ -212,6 +214,12 @@ describe('GameTableSettingComponent', () => {
       expect(checkbox).toBeTruthy();
       expect(checkbox.checked).toBe(false);
       expect(checkbox.closest('label')?.textContent).toContain('回転メニュー表示');
+      const menuTooltip = fixture.debugElement
+        .query(By.css('[data-testid="radial-menu-label"]'))
+        .injector.get(TextTooltipDirective);
+      expect(menuTooltip.appTextTooltip()).toBe(
+        '選択したメニューの向きにウィンドウが開くので、コマの右クリック連続で強制回転し、コマの真下での選択クリックしてください。'
+      );
       const speed = fixture.nativeElement.querySelector(
         'input[name="tableRadialMenuRotationSpeed"]'
       ) as HTMLInputElement;
@@ -219,6 +227,12 @@ describe('GameTableSettingComponent', () => {
       expect(speed.value).toBe('5');
       expect(speed.max).toBe('24');
       expect(speed.disabled).toBe(true);
+      const speedTooltip = fixture.debugElement
+        .query(By.css('[data-testid="radial-menu-speed-label"]'))
+        .injector.get(TextTooltipDirective);
+      expect(speedTooltip.appTextTooltip()).toBe(
+        '回転メニューの回転速度を1～24°/秒で設定します。値が大きいほど速く回転します。'
+      );
     } finally {
       table.destroy();
     }

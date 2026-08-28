@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContextMenuAction, ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { FourWayRadialMenuComponent } from '@axe/ui/components/four-way-radial-menu/four-way-radial-menu.component';
 
@@ -103,15 +104,19 @@ describe('FourWayRadialMenuComponent', () => {
   it('executes a single action using the clicked category direction', () => {
     const action = vi.fn();
     const close = vi.spyOn(service, 'close').mockImplementation(() => undefined);
-    const runWithRotation = vi
+    const runPanelWithRotation = vi
       .spyOn(TestBed.inject(PanelService), 'runWithInitialRotation')
+      .mockImplementation((_degrees, callback) => callback());
+    const runModalWithRotation = vi
+      .spyOn(TestBed.inject(ModalService), 'runWithInitialRotation')
       .mockImplementation((_degrees, callback) => callback());
     createWithGroups([{ name: '基本情報', icon: 'badge', actions: [{ name: '詳細を表示', action }] }]);
 
     buttonContaining('基本情報').click();
 
     expect(action).toHaveBeenCalledOnce();
-    expect(runWithRotation).toHaveBeenCalledWith(180, action);
+    expect(runPanelWithRotation).toHaveBeenCalledWith(180, expect.any(Function));
+    expect(runModalWithRotation).toHaveBeenCalledWith(180, action);
     expect(close).toHaveBeenCalledOnce();
   });
 
@@ -130,7 +135,7 @@ describe('FourWayRadialMenuComponent', () => {
 
     buttonContaining('East').click();
 
-    expect(runWithRotation).toHaveBeenCalledWith(270, eastAction);
+    expect(runWithRotation).toHaveBeenCalledWith(270, expect.any(Function));
   });
 
   it('combines the clicked item direction with the rotating ring direction', () => {
@@ -145,7 +150,7 @@ describe('FourWayRadialMenuComponent', () => {
 
     buttonContaining('基本情報').click();
 
-    expect(runWithRotation).toHaveBeenCalledWith(270, action);
+    expect(runWithRotation).toHaveBeenCalledWith(270, expect.any(Function));
   });
 
   it('rotates the ring slowly with each item facing outward', () => {
@@ -182,37 +187,21 @@ describe('FourWayRadialMenuComponent', () => {
     expect(ring.style.animationDuration).toBe('15s');
   });
 
-  it('rotates the title and center controls with the outer items', () => {
+  it('leaves the piece center clear without legacy controls', () => {
     createWithGroups([{ name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] }]);
 
     const root = fixture.nativeElement as HTMLElement;
-    const ring = root.querySelector<HTMLElement>('[data-radial-ring]')!;
-    const center = root.querySelector<HTMLElement>('[data-radial-center]')!;
-
-    expect(ring.contains(center)).toBe(true);
-    expect(center.textContent).toContain('Hero');
-    expect(center.querySelector('[aria-label="時計回りに90度回転"]')).toBeTruthy();
-    expect(center.querySelector('[aria-label="すべての項目を一覧表示"]')).toBeTruthy();
-    expect(center.querySelector('[aria-label="閉じる"]')).toBeTruthy();
+    expect(root.querySelector('[data-radial-center]')).toBeNull();
+    expect(root.querySelector('[aria-label="時計回りに90度回転"]')).toBeNull();
+    expect(root.querySelector('[aria-label="すべての項目を一覧表示"]')).toBeNull();
   });
 
-  it('turns the complete rotating menu 90 degrees from its center', () => {
-    createWithGroups([{ name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] }]);
-    const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]')!;
-    const rotate = buttons().find((button) => button.getAttribute('aria-label') === '時計回りに90度回転')!;
-
-    rotate.click();
-    fixture.detectChanges();
-    expect(ring.style.rotate).toBe('90deg');
-
-    rotate.click();
-    fixture.detectChanges();
-    expect(ring.style.rotate).toBe('180deg');
-  });
-
-  it('turns the existing rotating menu 90 degrees when it is right-clicked again', () => {
+  it('turns the existing rotating menu by one displayed item when it is right-clicked again', () => {
     const close = vi.spyOn(service, 'close').mockImplementation(() => undefined);
-    createWithGroups([{ name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] }]);
+    createWithGroups([
+      { name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] },
+      { name: 'Object', icon: 'settings', actions: [{ name: 'Action', action: vi.fn() }] },
+    ]);
     const root = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="dialog"]')!;
     const ring = root.querySelector<HTMLElement>('[data-radial-ring]')!;
 
@@ -225,30 +214,72 @@ describe('FourWayRadialMenuComponent', () => {
     fixture.detectChanges();
 
     expect(close).not.toHaveBeenCalled();
-    expect(ring.style.rotate).toBe('90deg');
+    expect(ring.style.rotate).toBe('120deg');
 
     root.dispatchEvent(
       new MouseEvent('contextmenu', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
     );
     fixture.detectChanges();
-    expect(ring.style.rotate).toBe('180deg');
+    expect(ring.style.rotate).toBe('240deg');
+
+    root.dispatchEvent(
+      new MouseEvent('contextmenu', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
+    );
+    fixture.detectChanges();
+    expect(ring.style.rotate).toBe('360deg');
+    expect(ring.classList.contains('transition-[rotate]')).toBe(true);
+    expect(ring.classList.contains('duration-180')).toBe(true);
+
+    let reenableTransition: FrameRequestCallback | undefined;
+    const requestAnimationFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => ((reenableTransition = callback), 1));
+    ring.dispatchEvent(Object.assign(new Event('transitionend', { bubbles: true }), { propertyName: 'rotate' }));
+    fixture.detectChanges();
+    expect(ring.style.rotate).toBe('0deg');
+    expect(ring.style.transition).toBe('none');
+
+    reenableTransition?.(0);
+    fixture.detectChanges();
+    expect(ring.style.transition).toBe('');
+    requestAnimationFrame.mockRestore();
   });
 
-  it('passes a manual quarter turn to a panel opened from the menu', () => {
+  it('completes an exact forward turn when the item angle is fractional', () => {
+    const groups = Array.from({ length: 6 }, (_, index) => ({
+      name: `Group ${index + 1}`,
+      icon: 'category',
+      actions: [{ name: 'Action', action: vi.fn() }],
+    }));
+    createWithGroups(groups);
+    const root = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="dialog"]')!;
+    const ring = root.querySelector<HTMLElement>('[data-radial-ring]')!;
+
+    for (let index = 0; index < 7; index++) {
+      root.dispatchEvent(new MouseEvent('contextmenu', { button: 2, bubbles: true, cancelable: true }));
+    }
+    fixture.detectChanges();
+
+    expect(ring.style.rotate).toBe('360deg');
+  });
+
+  it('passes a right-clicked one-item turn to a panel opened from the menu', () => {
     const action = vi.fn();
     vi.spyOn(service, 'close').mockImplementation(() => undefined);
     const runWithRotation = vi
       .spyOn(TestBed.inject(PanelService), 'runWithInitialRotation')
       .mockImplementation((_degrees, callback) => callback());
-    createWithGroups([{ name: '基本情報', icon: 'badge', actions: [{ name: '詳細を表示', action }] }]);
+    createWithGroups([
+      { name: '基本情報', icon: 'badge', actions: [{ name: '詳細を表示', action }] },
+      { name: '表示', icon: 'visibility', actions: [{ name: '表示設定', action: vi.fn() }] },
+    ]);
 
-    buttons()
-      .find((button) => button.getAttribute('aria-label') === '時計回りに90度回転')!
-      .click();
+    const root = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="dialog"]')!;
+    root.dispatchEvent(new MouseEvent('contextmenu', { button: 2, bubbles: true, cancelable: true }));
     fixture.detectChanges();
     buttonContaining('基本情報').click();
 
-    expect(runWithRotation).toHaveBeenCalledWith(270, action);
+    expect(runWithRotation).toHaveBeenCalledWith(270, expect.any(Function));
   });
 
   it('pauses while opening a submenu, inherits its direction, then resumes', () => {
@@ -309,8 +340,8 @@ describe('FourWayRadialMenuComponent', () => {
     expect(buttonContaining('高度設定')).toBeTruthy();
   });
 
-  it('reserves one of the eight rotating positions for the return item', () => {
-    const actions = Array.from({ length: 8 }, (_, index) => ({
+  it('uses a page fraction until the final page, then restores the return item', () => {
+    const actions = Array.from({ length: 15 }, (_, index) => ({
       name: `Action ${index + 1}`,
       action: vi.fn(),
     }));
@@ -323,24 +354,20 @@ describe('FourWayRadialMenuComponent', () => {
     expect(rotatingItems).toHaveLength(8);
     expect(buttonContaining('Action 7')).toBeTruthy();
     expect(buttons().some((button) => button.textContent?.includes('Action 8'))).toBe(false);
+    expect(buttonContaining('1 / 3').getAttribute('aria-label')).toBe('次のページ');
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-return]')).toBeNull();
 
-    buttons()
-      .find((button) => button.getAttribute('aria-label') === '次のページ')!
-      .click();
+    buttonContaining('1 / 3').click();
     fixture.detectChanges();
     expect(buttonContaining('Action 8')).toBeTruthy();
+    expect(buttonContaining('Action 14')).toBeTruthy();
+    expect(buttonContaining('2 / 3')).toBeTruthy();
+
+    buttonContaining('2 / 3').click();
+    fixture.detectChanges();
+    expect(buttonContaining('Action 15')).toBeTruthy();
     expect(buttonContaining('戻る')).toBeTruthy();
-  });
-
-  it('can switch to the complete legacy menu', () => {
-    const open = vi.spyOn(service, 'openDirectional').mockImplementation(() => undefined);
-    service.actions = [{ name: 'Complete action', action: vi.fn() }];
-    createWithGroups([{ name: '基本情報', icon: 'badge', actions: service.actions }]);
-
-    const fullMenu = buttons().find((button) => button.getAttribute('aria-label') === 'すべての項目を一覧表示');
-    fullMenu!.click();
-
-    expect(open).toHaveBeenCalledWith(service.position, service.actions, 0, 'Hero');
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-page-advance]')).toBeNull();
   });
 
   it.each([

@@ -1671,7 +1671,9 @@
         "mode2d": "2D 모드(부감 고정)",
         "orthographicProjection": "직교 투영",
         "radialMenu": "회전 메뉴 표시",
+        "radialMenuHelp": "선택한 메뉴 항목이 향한 방향으로 창이 열립니다. 말을 연속으로 오른쪽 클릭해 메뉴를 강제로 회전시킨 뒤, 항목이 말 바로 아래에 왔을 때 클릭하세요.",
         "radialMenuSpeed": "회전 속도",
+        "radialMenuSpeedHelp": "회전 메뉴의 속도를 초당 1~24도로 설정합니다. 값이 클수록 빠르게 회전합니다.",
         "multiAngle": "말 이름을 원주를 따라 회전",
         "multiAngleMotionMode": "회전 방식",
         "multiAngleContinuous": "시계 방향으로 연속 회전",
@@ -3249,8 +3251,6 @@
         "seatWest": "서쪽에서 조작",
         "back": "이전 단계로 돌아가기",
         "return": "돌아가기",
-        "fullMenu": "전체 목록 표시",
-        "previousPage": "이전 페이지",
         "nextPage": "다음 페이지"
       }
     },

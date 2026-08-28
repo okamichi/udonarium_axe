@@ -191,8 +191,29 @@ describe('GameTableComponent', () => {
       expect(openLegacy).not.toHaveBeenCalled();
     });
 
-    it('keeps the existing vertical table menu when rotating display is disabled', () => {
+    it('opens the four-direction launcher on an empty 2D table when rotating display is disabled', () => {
       component.currentTable.mode2d = true;
+      component.currentTable.radialMenuEnabled = false;
+      component.currentTable.radialMenuRotationSpeed = 6;
+      const menus = TestBed.inject(ContextMenuService);
+      const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const openLegacy = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
+
+      component.openTableContextMenu(menuPosition, objectPosition);
+
+      expect(openRotating).toHaveBeenCalledWith(
+        expect.objectContaining({ x: 320, y: 240 }),
+        expect.any(Array),
+        expect.any(Array),
+        component.currentTable.name,
+        false,
+        6
+      );
+      expect(openLegacy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the existing vertical table menu outside 2D mode', () => {
+      component.currentTable.mode2d = false;
       component.currentTable.radialMenuEnabled = false;
       const menus = TestBed.inject(ContextMenuService);
       const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);

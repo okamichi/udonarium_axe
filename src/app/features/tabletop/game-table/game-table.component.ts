@@ -764,13 +764,13 @@ export class GameTableComponent {
   openTableContextMenu(menuPosition: PointerCoordinate, objectPosition: PointerCoordinate): void {
     const menu = this.buildContextMenuModel(objectPosition);
     const table = this.currentTable;
-    if (table.mode2d && table.radialMenuEnabled) {
+    if (table.mode2d) {
       this.contextMenuService.openRadial(
         menuPosition,
         menu.actions,
         menu.rotatingGroups,
         table.name,
-        true,
+        table.radialMenuEnabled,
         table.radialMenuRotationSpeed
       );
       return;

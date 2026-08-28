@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
 
@@ -31,16 +32,20 @@ describe('ContextMenuComponent', () => {
     expect(root.dataset['menuRotation']).toBe('90');
   });
 
-  it('passes the menu direction to panels opened by an action', () => {
+  it('passes the menu direction to panels and modals opened by an action', () => {
     const action = vi.fn();
-    const runWithRotation = vi
+    const runPanelWithRotation = vi
       .spyOn(TestBed.inject(PanelService), 'runWithInitialRotation')
+      .mockImplementation((_degrees, callback) => callback());
+    const runModalWithRotation = vi
+      .spyOn(TestBed.inject(ModalService), 'runWithInitialRotation')
       .mockImplementation((_degrees, callback) => callback());
     component.contextMenuService.rotationDegrees = 270;
 
     component.doAction({ name: 'Open panel', action });
 
-    expect(runWithRotation).toHaveBeenCalledWith(270, action);
+    expect(runPanelWithRotation).toHaveBeenCalledWith(270, expect.any(Function));
+    expect(runModalWithRotation).toHaveBeenCalledWith(270, action);
     expect(action).toHaveBeenCalledOnce();
   });
 
