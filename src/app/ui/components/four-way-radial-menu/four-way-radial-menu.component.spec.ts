@@ -343,14 +343,31 @@ describe('FourWayRadialMenuComponent', () => {
     expect(open).toHaveBeenCalledWith(service.position, service.actions, 0, 'Hero');
   });
 
-  it('opens the legacy menu in the selected direction when radial display is disabled', () => {
+  it.each([
+    ['北側から操作', { x: 300, y: 230 }, 180],
+    ['東側から操作', { x: 370, y: 300 }, 270],
+    ['南側から操作', { x: 300, y: 370 }, 0],
+    ['西側から操作', { x: 230, y: 300 }, 90],
+  ] as const)('opens the legacy menu outside the piece from %s', (label, position, rotation) => {
     const open = vi.spyOn(service, 'openDirectional').mockImplementation(() => undefined);
     service.radialMenuEnabled = false;
     service.actions = [{ name: 'Complete action', action: vi.fn() }];
     createWithGroups([{ name: '基本情報', icon: 'badge', actions: service.actions }]);
 
+    chooseSeat(label);
+
+    expect(open).toHaveBeenCalledWith(position, service.actions, rotation, 'Hero');
+  });
+
+  it('uses the large-piece clearance when placing the legacy menu', () => {
+    const open = vi.spyOn(service, 'openDirectional').mockImplementation(() => undefined);
+    service.radialMenuEnabled = false;
+    service.radialMenuClearanceRadius = 100;
+    service.actions = [{ name: 'Complete action', action: vi.fn() }];
+    createWithGroups([{ name: '基本情報', icon: 'badge', actions: service.actions }]);
+
     chooseSeat('北側から操作');
 
-    expect(open).toHaveBeenCalledWith(service.position, service.actions, 180, 'Hero');
+    expect(open).toHaveBeenCalledWith({ x: 300, y: 172 }, service.actions, 180, 'Hero');
   });
 });

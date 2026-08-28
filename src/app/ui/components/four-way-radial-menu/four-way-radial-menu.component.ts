@@ -230,7 +230,7 @@ export class FourWayRadialMenuComponent {
   protected openFullMenu(): void {
     if (this.contextMenuService.radialMenuEnabled) this.rememberCenterDirection();
     this.contextMenuService.openDirectional(
-      this.contextMenuService.position,
+      this.fullMenuPosition(),
       this.contextMenuService.actions,
       this.selectedRotationDegrees(),
       this.contextMenuService.title
@@ -312,6 +312,15 @@ export class FourWayRadialMenuComponent {
 
   private selectedRotationDegrees(): PanelRotationDegrees {
     return this.actionRotationDegrees();
+  }
+
+  private fullMenuPosition(): RadialPoint {
+    const seat = this.selectedSeat();
+    if (!seat) return this.contextMenuService.position;
+
+    const center = this.center();
+    const offset = this.launcherPoint(seat);
+    return { x: center.x + offset.x, y: center.y + offset.y };
   }
 
   private rememberCenterDirection(): void {
