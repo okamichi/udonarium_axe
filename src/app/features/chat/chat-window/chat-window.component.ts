@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -47,6 +48,14 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+/**
+ * The strip at the foot of the log that who-is-typing hangs over.
+ *
+ * It is held open whether or not anybody is typing, since the whole point is that the log
+ * does not move when somebody starts.
+ */
+const WRITING_STRIP_PX = 32;
+
 const NEAR_BOTTOM_THRESHOLD_PX = 350;
 const AT_BOTTOM_THRESHOLD_PX = 8;
 /**
@@ -70,6 +79,7 @@ const TAB_CLEARANCE_PX = 24;
   imports: [
     ChatTabComponent,
     FormsModule,
+    NgTemplateOutlet,
     ChatPortraitComponent,
     BadgeComponent,
     ChatInputComponent,
@@ -301,6 +311,7 @@ export class ChatWindowComponent {
   private isAutoScroll = true;
   readonly hasNewMessage = signal(false);
   readonly isNearBottom = signal(true);
+  readonly writingStripPx = WRITING_STRIP_PX;
   readonly newMessageCount = signal(0);
   private scrollToBottomTimer: ReturnType<typeof setTimeout> | null = null;
   private scrollListener: (() => void) | null = null;
@@ -569,6 +580,8 @@ export class ChatWindowComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    messBubbleLight?: string;
+    messBubbleDark?: string;
     replyTo: string;
     quoteOf: string;
   }) {
@@ -587,9 +600,7 @@ export class ChatWindowComponent {
         }
       };
       const fillIn = (text: string, target?: GameCharacter): string => {
-        // Spoken as yourself there is nothing to read the references off, and blanking them would
-        // eat the braces out of whatever was typed.
-        if (!speaker) return text;
+        if (!speaker && !target) return text;
         const evaluated = evaluateCharacterReferences(text, speaker, target);
         appendAttachmentImages(evaluated.attachmentImageIdentifiers);
         return evaluated.text;
@@ -645,7 +656,8 @@ export class ChatWindowComponent {
         messageTargetContext,
         attachmentImageIdentifiers,
         value.replyTo,
-        value.quoteOf
+        value.quoteOf,
+        { light: value.messBubbleLight ?? '', dark: value.messBubbleDark ?? '' }
       );
     }
   }

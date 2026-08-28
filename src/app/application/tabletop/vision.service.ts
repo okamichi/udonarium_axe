@@ -5,9 +5,9 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
-import { LightSource } from '@axe/domain/tabletop/light-source';
-import { perimeterSegments, rectangleSegments, Segment } from '@axe/domain/tabletop/los/segments';
+import { perimeterSegments, rectangleSegments, TallSegment } from '@axe/domain/tabletop/los/segments';
 import { type SurfaceDims, surfaceInwardDirection, surfacePointTo3D } from '@axe/domain/tabletop/surface-space';
+import { lightSourcesOn } from '@axe/domain/tabletop/table-lights';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
@@ -16,6 +16,7 @@ import {
   computeWallLights,
   computeWallSilhouettes,
   darknessAlphaFor,
+  eyeHeightPx,
   isPointVisible,
   type LightBeam,
   type LightGlow,
@@ -35,6 +36,8 @@ import { LightSpec, VisionType } from '@axe/domain/tabletop/vision-types';
 
 const GEOMETRY_THROTTLE_MS = 40;
 const RELEVANT_ALIASES = new Set(['character', 'light-source', 'terrain', 'game-table']);
+/** What the walls of a place are cut from. A piece walking past moves none of it. */
+const STANDING_ALIASES = new Set(['terrain', 'game-table']);
 /** How many answers to keep, set well above what a single repaint asks for. */
 const MEMO_LIMIT = 8192;
 const EMPTY_SILHOUETTES: WallSilhouette[] = [];
@@ -43,7 +46,6 @@ const EMPTY_WALL_LIGHTS: WallLight[] = [];
 function faceKey(face: WallFace): string {
   return `${face.ax}:${face.ay}:${face.bx}:${face.by}:${face.nx}:${face.ny}:${face.heightPx}`;
 }
-const LIGHT_EMITTER_HEIGHT_CELLS = 0.5;
 const WALL_LIGHT_INSET_CELLS = 0.4;
 
 @Injectable({ providedIn: 'root' })
@@ -55,6 +57,7 @@ export class VisionService {
 
   readonly previewAsUserId = signal<string | null>(null);
   private readonly geometryEpoch = signal(0);
+  private readonly standingEpoch = signal(0);
 
   /**
    * Remembers the answers for as long as the scene and the viewer hold still.
@@ -86,6 +89,7 @@ export class VisionService {
 
   constructor() {
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let standingTimer: ReturnType<typeof setTimeout> | null = null;
     const bump = () => {
       if (timer !== null) return;
       timer = setTimeout(() => {
@@ -93,17 +97,45 @@ export class VisionService {
         this.geometryEpoch.update((v) => v + 1);
       }, GEOMETRY_THROTTLE_MS);
     };
-    this.objectChange.onObjectChangedForAlias([...RELEVANT_ALIASES], bump, this.destroyRef);
-    this.objectChange.objectAdded$.subscribe((event) => {
-      if (RELEVANT_ALIASES.has(event.aliasName)) bump();
-    }, this.destroyRef);
-    this.objectChange.objectRemoved$.subscribe((event) => {
-      if (RELEVANT_ALIASES.has(event.aliasName)) bump();
-    }, this.destroyRef);
+    const bumpStanding = () => {
+      if (standingTimer !== null) return;
+      standingTimer = setTimeout(() => {
+        standingTimer = null;
+        this.standingEpoch.update((v) => v + 1);
+      }, GEOMETRY_THROTTLE_MS);
+    };
+    const changed = (aliasName: string) => {
+      if (!RELEVANT_ALIASES.has(aliasName)) return;
+      bump();
+      if (STANDING_ALIASES.has(aliasName)) bumpStanding();
+    };
+    this.objectChange.onObjectChangedForAlias(
+      [...RELEVANT_ALIASES],
+      (event) => changed(event.aliasName),
+      this.destroyRef
+    );
+    this.objectChange.objectAdded$.subscribe((event) => changed(event.aliasName), this.destroyRef);
+    this.objectChange.objectRemoved$.subscribe((event) => changed(event.aliasName), this.destroyRef);
     this.destroyRef.onDestroy(() => {
       if (timer !== null) clearTimeout(timer);
+      if (standingTimer !== null) clearTimeout(standingTimer);
     });
   }
+
+  /**
+   * The walls in the way of sight and of light, which only what stands on the table can move.
+   *
+   * Kept apart from the scene so that a piece crossing the floor hands the same lists back
+   * rather than cutting seven hundred terrains into segments again, and so that what has been
+   * worked out about those lists survives the walk.
+   */
+  private readonly standingSegments = computed(() => {
+    this.standingEpoch();
+    const table = this.currentTable();
+    if (!table) return null;
+    const gridSize = table.gridSize;
+    return this.collectSegments(table, gridSize, table.width * gridSize, table.height * gridSize);
+  });
 
   readonly viewer = computed<SceneViewer>(() => {
     this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
@@ -149,10 +181,12 @@ export class VisionService {
     const table = this.currentTable();
     if (!table) return null;
 
+    const standing = this.standingSegments();
+    if (!standing) return null;
     const gridSize = table.gridSize;
     const widthPx = table.width * gridSize;
     const heightPx = table.height * gridSize;
-    const { sight, light } = this.collectSegments(table, gridSize, widthPx, heightPx);
+    const { sight, light } = standing;
     return {
       darknessEnabled: table.darknessEnabled,
       darknessLevel: table.darknessLevel,
@@ -246,7 +280,7 @@ export class VisionService {
   }
 
   private objectZ(altitude: number, posZ: number, gridSize: number): number {
-    return (altitude + LIGHT_EMITTER_HEIGHT_CELLS) * gridSize + posZ;
+    return eyeHeightPx(altitude, posZ, gridSize);
   }
 
   private placeLight(obj: TabletopObject, centerX: number, centerY: number, gridSize: number, dims: SurfaceDims) {
@@ -281,8 +315,8 @@ export class VisionService {
       wallHeightPx: table.wallHeight * gridSize,
     };
 
-    for (const source of this.objectStore.getObjects(LightSource)) {
-      if (!source.isVisibleOnTable || !source.lightEnabled) continue;
+    for (const source of lightSourcesOn(table)) {
+      if (!source.lightEnabled) continue;
       const followed = source.followingCharacterIdentifier
         ? this.objectStore.get<GameCharacter>(source.followingCharacterIdentifier)
         : null;
@@ -359,8 +393,8 @@ export class VisionService {
     gridSize: number,
     widthPx: number,
     heightPx: number
-  ): { sight: Segment[]; light: LightSegment[] } {
-    const sight: Segment[] = [...perimeterSegments(widthPx, heightPx)];
+  ): { sight: TallSegment[]; light: LightSegment[] } {
+    const sight: TallSegment[] = [...perimeterSegments(widthPx, heightPx)];
     const light: LightSegment[] = [];
     const wallHeightPx = table.wallHeight * gridSize;
     const north: LightSegment = { x1: 0, y1: 0, x2: widthPx, y2: 0, heightPx: wallHeightPx };
@@ -381,9 +415,9 @@ export class VisionService {
         terrain.depth * gridSize,
         terrain.rotate
       );
-      if (terrain.blocksSight) sight.push(...edges);
-      if (terrain.blocksLight && !terrain.lightEnabled) {
-        const top = (terrain.altitude + terrain.height) * gridSize;
+      const top = (terrain.altitude + terrain.height) * gridSize;
+      if (terrain.blocksSightNow) for (const edge of edges) sight.push({ ...edge, heightPx: top });
+      if (terrain.blocksLightNow && !terrain.lightEnabled) {
         for (const edge of edges) light.push({ ...edge, heightPx: top });
       }
     }
@@ -418,6 +452,9 @@ export class VisionService {
       sources.push({
         x: character.location.x + center,
         y: character.location.y + center,
+        // The same height the light it carries is hung at: standing on a tower and being
+        // written down as high up reach an eye the same way, so they reach it as one number.
+        z: this.objectZ(character.altitude, character.posZ, gridSize),
         type: character.visionType as VisionType,
         rangePx: character.visionRange * gridSize,
         owner: character.owner,

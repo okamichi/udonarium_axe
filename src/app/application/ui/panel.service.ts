@@ -1,5 +1,6 @@
 import { ComponentRef, Injectable, signal, ViewContainerRef } from '@angular/core';
 import { EventChannel } from '@axe/core/event/event-channel';
+import { Logger } from '@axe/core/logging/logger';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 
@@ -25,6 +26,14 @@ export interface PanelOption {
   invisible?: boolean;
   minimizeToContent?: boolean;
   frameless?: boolean;
+
+  /**
+   * A name that only one panel at a time may hold.
+   *
+   * A button that opens a panel under this name can close it again with `closeSingle`, so
+   * pressing it twice puts the panel away rather than burying the screen in copies of it.
+   */
+  single?: string;
 }
 
 interface UIPanelInstance {
@@ -54,6 +63,7 @@ export class PanelService {
   static cardStackListComponentClass: Type<unknown> | null = null;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
   private actionRotationDegrees: PanelRotationDegrees = 0;
+  private static readonly singles = new Map<string, ComponentRef<UIPanelInstance>>();
   title: string = '';
   titleTooltip: string = '';
   left: number = 0;
@@ -87,11 +97,21 @@ export class PanelService {
     this.scrollablePanel = panel;
   }
 
+  /** Closes the panel holding this name, and says whether there was one to close. */
+  closeSingle(name: string): boolean {
+    const open = PanelService.singles.get(name);
+    if (!open) return false;
+    open.destroy();
+    return true;
+  }
+
   open<T>(childComponent: Type<T>, option?: PanelOption, parentViewContainerRef?: ViewContainerRef): T {
     if (!parentViewContainerRef) {
       parentViewContainerRef = PanelService.defaultParentViewContainerRef;
     }
     const injector = parentViewContainerRef.injector;
+
+    if (option?.single) PanelService.singles.get(option.single)?.destroy();
 
     const panelComponentRef = parentViewContainerRef.createComponent(PanelService.UIPanelComponentClass, {
       index: parentViewContainerRef.length,
@@ -104,8 +124,11 @@ export class PanelService {
     childPanelService.panelComponentRef = panelComponentRef;
     const inheritedOption = this.withInheritedRotation(option, this.actionRotationDegrees);
     if (inheritedOption) this.applyPanelOption(panelComponentRef, childPanelService, inheritedOption);
+    const single = option?.single;
+    if (single) PanelService.singles.set(single, panelComponentRef);
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null;
+      if (single && PanelService.singles.get(single) === panelComponentRef) PanelService.singles.delete(single);
     });
 
     return bodyComponentRef.instance as T;
@@ -118,10 +141,16 @@ export class PanelService {
     parentViewContainerRef?: ViewContainerRef
   ): void {
     const inheritedOption = this.withInheritedRotation(option, this.actionRotationDegrees);
-    factory().then((childComponent) => {
-      const instance = this.open(childComponent, inheritedOption, parentViewContainerRef);
-      setup?.(instance);
-    });
+    // A panel that fails to arrive says nothing for itself: the promise rejects into nowhere
+    // and the reader is left looking at a menu item that appears to do nothing.
+    factory()
+      .then((childComponent) => {
+        const instance = this.open(childComponent, inheritedOption, parentViewContainerRef);
+        setup?.(instance);
+      })
+      .catch((reason) => {
+        Logger.error('[PanelService] パネルを開けませんでした', reason);
+      });
   }
 
   runWithInitialRotation<T>(rotationDegrees: PanelRotationDegrees, action: () => T): T {

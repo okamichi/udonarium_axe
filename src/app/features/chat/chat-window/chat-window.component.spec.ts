@@ -67,6 +67,68 @@ describe('ChatWindowComponent', () => {
     }
   });
 
+  describe('who is typing', () => {
+    function log(): HTMLElement {
+      return fixture.nativeElement.querySelector('[data-testid="chat-log-scroll"]') as HTMLElement;
+    }
+
+    let tab: ChatTab;
+
+    beforeEach(() => {
+      tab = ChatTabList.instance.addChatTab('話している卓');
+      component.chatTabidentifier = tab.identifier;
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      tab.destroy();
+    });
+
+    function typing(names: string[]): void {
+      const speakers = names.map((name, at) => ({
+        peerId: `peer-${at}`,
+        name,
+        imageFile: GameCharacter.create(name, 1, '').imageFile,
+      }));
+      component.chatTabRef()?.writingSpeakers.set(speakers);
+      fixture.detectChanges();
+    }
+
+    it('holds the strip open whether or not anybody is typing', () => {
+      typing([]);
+      const quiet = log().style.paddingBottom;
+
+      typing(['somebody']);
+
+      expect(log().style.paddingBottom).toBe(quiet);
+      expect(quiet).toBe(`${component.writingStripPx}px`);
+    });
+
+    it('hangs it over the log rather than under it, so no line the reader is on moves', () => {
+      typing(['somebody']);
+      const strip = fixture.nativeElement.querySelector('[data-testid="writing-strip"]') as HTMLElement;
+
+      expect(strip).not.toBeNull();
+      expect(strip.className).toContain('absolute');
+      expect(strip.style.height).toBe(`${component.writingStripPx}px`);
+    });
+
+    it('shows nothing at all while nobody is typing', () => {
+      typing([]);
+
+      expect(fixture.nativeElement.querySelector('[data-testid="writing-strip"]')).toBeNull();
+    });
+
+    it('names the first two and counts the rest', () => {
+      typing(['one', 'two', 'three', 'four']);
+      const words = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+      expect(words).toContain('one');
+      expect(words).toContain('two');
+      expect(words).not.toContain('three');
+    });
+  });
+
   describe('noticing a change of chat tab', () => {
     it('moves off a tab that is no longer there when the list changes', () => {
       fixture.detectChanges();
@@ -609,6 +671,7 @@ describe('ChatWindowComponent', () => {
     let tab: ChatTab;
     let character: GameCharacter;
     let sent: { text: string; attachments: string[] | undefined }[];
+    let mark: GameCharacter | null;
 
     function speak(text: string, sendFrom: string): void {
       component.sendChat({
@@ -638,6 +701,7 @@ describe('ChatWindowComponent', () => {
       character.rootDataElement?.appendChild(detail);
 
       sent = [];
+      mark = null;
       vi.spyOn(TestBed.inject(ChatMessageService), 'sendMessage').mockImplementation(((...args: unknown[]) => {
         sent.push({ text: args[1] as string, attachments: args[8] as string[] | undefined });
         return null as never;
@@ -646,6 +710,7 @@ describe('ChatWindowComponent', () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      mark?.destroy();
       character.destroy();
       tab.destroy();
     });
@@ -660,6 +725,17 @@ describe('ChatWindowComponent', () => {
       speak('2d6+{HP}', PeerCursor.myCursor.identifier);
 
       expect(sent[0].text).toBe('2d6+{HP}');
+    });
+
+    it('reads the sheet of the piece the line is aimed at, spoken as yourself', () => {
+      mark = GameCharacter.create('対象', 1, '');
+      mark.status.setValue('HP', 'now', 7);
+      mark.setLocation('table');
+      mark.targeted = true;
+
+      speak('t:HP-t{HP}', PeerCursor.myCursor.identifier);
+
+      expect(sent[0].text).toBe('t:HP-7 [対象]');
     });
 
     it('sends on the picture a reference stands for', () => {
