@@ -113,7 +113,7 @@ export class FourWayRadialMenuComponent {
   );
   protected readonly connectorVisible = computed(() => {
     const center = this.center();
-    const anchor = this.contextMenuService.position;
+    const anchor = this.anchor;
     return Math.hypot(center.x - anchor.x, center.y - anchor.y) > 4;
   });
 
@@ -126,7 +126,7 @@ export class FourWayRadialMenuComponent {
   }
 
   protected get anchor(): RadialPoint {
-    return this.contextMenuService.position;
+    return this.contextMenuService.radialAnchorPosition ?? this.contextMenuService.position;
   }
 
   protected ringDurationSeconds(): number {

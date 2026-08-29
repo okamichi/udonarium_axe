@@ -27,6 +27,7 @@ describe('FourWayRadialMenuComponent', () => {
     service.radialMenuRotationSpeed = 5;
     service.radialMenuClearanceRadius = 0;
     service.rotationDegrees = 0;
+    service.radialAnchorPosition = null;
   });
 
   function createWithGroups(groups: { name: string; icon: string; actions: ContextMenuAction[] }[]): void {
@@ -83,6 +84,29 @@ describe('FourWayRadialMenuComponent', () => {
     const labels = buttons().map((button) => button.getAttribute('aria-label'));
     expect(labels).toEqual(['閉じる', '北側から操作', '東側から操作', '南側から操作', '西側から操作']);
     expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-ring]')).toBeNull();
+  });
+
+  it('draws the connector from a detached piece anchor to the apparent menu center', () => {
+    service.radialAnchorPosition = { x: 120, y: 140 };
+    createWithGroups([]);
+
+    const connector = (fixture.nativeElement as HTMLElement).querySelector('line')!;
+    expect(connector.getAttribute('x1')).toBe('120');
+    expect(connector.getAttribute('y1')).toBe('140');
+    expect(connector.getAttribute('x2')).toBe('300');
+    expect(connector.getAttribute('y2')).toBe('300');
+  });
+
+  it('extends the connector to the screen-corrected center when the dragged center is near an edge', () => {
+    service.position = { x: 1, y: 1 };
+    service.radialAnchorPosition = { x: 300, y: 300 };
+    createWithGroups([]);
+
+    const connector = (fixture.nativeElement as HTMLElement).querySelector('line')!;
+    expect(connector.getAttribute('x1')).toBe('300');
+    expect(connector.getAttribute('y1')).toBe('300');
+    expect(Number(connector.getAttribute('x2'))).toBeGreaterThan(1);
+    expect(Number(connector.getAttribute('y2'))).toBeGreaterThan(1);
   });
 
   it('moves direction launchers away from a large piece', () => {

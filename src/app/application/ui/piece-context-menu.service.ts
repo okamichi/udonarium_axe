@@ -2,10 +2,9 @@ import { inject, Injectable } from '@angular/core';
 import { CharacterDiceService } from '@axe/application/dice/character-dice.service';
 import { DiceRollService } from '@axe/application/dice/dice-roll.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuPoint, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -27,7 +26,7 @@ export class PieceContextMenuService {
   private readonly t = inject(TRANSLATE_FN);
 
   /** True when the bulk menu was opened. The caller stops there. */
-  openForSelection(self: TabletopObject, gridSize: number, position: PointerCoordinate): boolean {
+  openForSelection(self: TabletopObject, gridSize: number, position: ContextMenuPoint): boolean {
     const multi = tryBuildMultiSelectionContextMenu({
       self,
       selectionSignalService: this.selectionSignalService,

@@ -119,6 +119,14 @@ const ROLL_HANDLE_MAX_PX = 56;
 const ROLL_HANDLE_SIZE_RATIO = 0.56;
 const ROLL_HANDLE_GAP_RATIO = 0.25;
 const ROLL_HANDLE_ICON_RATIO = 24 / 28;
+const RIGHT_DRAG_THRESHOLD_PX = 3;
+
+interface PieceRightDrag {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  dragged: boolean;
+}
 
 @Component({
   selector: 'game-character',
@@ -242,6 +250,8 @@ export class GameCharacterComponent {
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.highlightTimer);
       clearTimeout(this.unhighlightTimer);
+      this.clearNativeContextMenuSuppression();
+      this.removeRightDragCenterMarker();
       for (const timer of this.floatingTimers) clearTimeout(timer);
       this.floatingTimers.clear();
     });
@@ -849,6 +859,140 @@ export class GameCharacterComponent {
     if (this.input) this.input.cancel();
   }
 
+  private rightDrag: PieceRightDrag | null = null;
+  private rightDragCenterMarker: HTMLElement | null = null;
+  private nativeContextMenuSuppressionTimer: ReturnType<typeof setTimeout> | null = null;
+  private nativeContextMenuSuppressor: ((event: MouseEvent) => void) | null = null;
+
+  protected onPiecePointerDown(event: PointerEvent): void {
+    this.checkKey(event);
+    if (event.button !== 2 || !this.tabletopService.currentTable.mode2d) return;
+
+    this.selectionSignalService.cancelTableGesture();
+    this.rightDrag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragged: false,
+    };
+    (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+  }
+
+  protected onPiecePointerMove(event: PointerEvent): void {
+    const drag = this.rightDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    if (!drag.dragged) {
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      drag.dragged = dx * dx + dy * dy > RIGHT_DRAG_THRESHOLD_PX * RIGHT_DRAG_THRESHOLD_PX;
+      if (!drag.dragged) return;
+      // Some platforms raise contextmenu on the press rather than the release. Once this is
+      // known to be a drag, remove that early menu and replace it at the release point.
+      this.contextMenuService.close();
+    }
+
+    this.showRightDragCenterMarker(event.clientX, event.clientY);
+    if (event.cancelable) event.preventDefault();
+  }
+
+  protected onPiecePointerUp(event: PointerEvent): void {
+    const drag = this.rightDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    this.releasePiecePointer(event);
+    this.removeRightDragCenterMarker();
+    this.rightDrag = null;
+    if (!drag.dragged) return;
+
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+    this.suppressNextNativeContextMenu();
+
+    const menuPosition = { x: event.clientX, y: event.clientY };
+    const anchor = this.pieceScreenCenter(menuPosition);
+    this.openCharacterContextMenu(menuPosition, menuPosition, anchor);
+  }
+
+  protected onPiecePointerCancel(event: PointerEvent): void {
+    if (!this.rightDrag || this.rightDrag.pointerId !== event.pointerId) return;
+    this.releasePiecePointer(event);
+    this.removeRightDragCenterMarker();
+    this.rightDrag = null;
+  }
+
+  private showRightDragCenterMarker(x: number, y: number): void {
+    let marker = this.rightDragCenterMarker;
+    if (!marker) {
+      marker = document.createElement('div');
+      marker.dataset['pieceRightDragCenter'] = '';
+      marker.setAttribute('aria-hidden', 'true');
+      Object.assign(marker.style, {
+        position: 'fixed',
+        width: '24px',
+        height: '24px',
+        boxSizing: 'border-box',
+        border: '2px solid var(--ui-accent)',
+        borderRadius: '50%',
+        background: 'color-mix(in srgb, var(--ui-menu-bg) 75%, transparent)',
+        boxShadow: '0 0 0 2px color-mix(in srgb, var(--ui-accent) 20%, transparent)',
+        pointerEvents: 'none',
+        transform: 'translate(-50%, -50%)',
+        zIndex: '9910',
+      });
+      const center = document.createElement('div');
+      Object.assign(center.style, {
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        width: '6px',
+        height: '6px',
+        borderRadius: '50%',
+        background: 'var(--ui-accent)',
+        transform: 'translate(-50%, -50%)',
+      });
+      marker.appendChild(center);
+      document.body.appendChild(marker);
+      this.rightDragCenterMarker = marker;
+    }
+    marker.style.left = `${x}px`;
+    marker.style.top = `${y}px`;
+  }
+
+  private removeRightDragCenterMarker(): void {
+    this.rightDragCenterMarker?.remove();
+    this.rightDragCenterMarker = null;
+  }
+
+  private releasePiecePointer(event: PointerEvent): void {
+    const element = event.currentTarget as HTMLElement | null;
+    if (element?.hasPointerCapture?.(event.pointerId)) element.releasePointerCapture(event.pointerId);
+  }
+
+  private suppressNextNativeContextMenu(): void {
+    this.clearNativeContextMenuSuppression();
+    const suppressor = (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      this.clearNativeContextMenuSuppression();
+    };
+    this.nativeContextMenuSuppressor = suppressor;
+    document.addEventListener('contextmenu', suppressor, true);
+    // A contextmenu generated by this release is dispatched in the same task. Do not let this
+    // guard consume a separate right click made later.
+    this.nativeContextMenuSuppressionTimer = setTimeout(() => this.clearNativeContextMenuSuppression(), 0);
+  }
+
+  private clearNativeContextMenuSuppression(): void {
+    if (this.nativeContextMenuSuppressor) {
+      document.removeEventListener('contextmenu', this.nativeContextMenuSuppressor, true);
+      this.nativeContextMenuSuppressor = null;
+    }
+    if (this.nativeContextMenuSuppressionTimer !== null) {
+      clearTimeout(this.nativeContextMenuSuppressionTimer);
+      this.nativeContextMenuSuppressionTimer = null;
+    }
+  }
+
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -860,6 +1004,17 @@ export class GameCharacterComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
+    this.openCharacterContextMenu(position);
+  }
+
+  private openCharacterContextMenu(
+    position: { x: number; y: number },
+    radialCenter?: { x: number; y: number },
+    radialAnchor?: { x: number; y: number }
+  ): void {
+    const char = this.gameCharacter();
+    if (!char || !this.disclosureService.canView(char)) return;
+
     if (this.pieceContextMenu.openForSelection(char, this.gridSize, position)) return;
     const overlapEntries = buildOverlapContextMenu(
       this.tabletopOverlap,
@@ -896,19 +1051,29 @@ export class GameCharacterComponent {
     }
 
     const rootBounds = this.rootElementRef()?.nativeElement.getBoundingClientRect();
-    const menuCenter = rootBounds
-      ? { x: rootBounds.left + rootBounds.width / 2, y: rootBounds.top + rootBounds.height / 2 }
-      : position;
+    const menuCenter = radialCenter ?? this.pieceScreenCenter(position, rootBounds);
     const menuClearanceRadius = rootBounds ? this.contextMenuClearanceRadius(rootBounds) : 0;
-    this.contextMenuService.openRadial(
+    const args = [
       menuCenter,
       menu.actions,
       menu.radialGroups,
       this.name(),
       table.radialMenuEnabled,
       table.radialMenuRotationSpeed,
-      menuClearanceRadius
-    );
+      menuClearanceRadius,
+    ] as const;
+    if (radialAnchor) {
+      this.contextMenuService.openRadial(...args, radialAnchor);
+    } else {
+      this.contextMenuService.openRadial(...args);
+    }
+  }
+
+  private pieceScreenCenter(fallback: { x: number; y: number }, rootBounds?: DOMRect): { x: number; y: number } {
+    const bounds = rootBounds ?? this.rootElementRef()?.nativeElement.getBoundingClientRect();
+    return bounds
+      ? { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 }
+      : { x: fallback.x, y: fallback.y };
   }
 
   private contextMenuClearanceRadius(rootBounds: DOMRect): number {

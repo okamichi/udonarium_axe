@@ -9,7 +9,10 @@
     [appSelectable]="gameCharacter()"
     (movable.ondragstart)="onMove()"
     (movable.ondragend)="onMoved()"
-    (pointerdown)="checkKey($event)"
+    (pointerdown)="onPiecePointerDown($event)"
+    (pointermove)="onPiecePointerMove($event)"
+    (pointerup)="onPiecePointerUp($event)"
+    (pointercancel)="onPiecePointerCancel($event)"
     #root
   >
     @if (hitFlash() === 'damage') {

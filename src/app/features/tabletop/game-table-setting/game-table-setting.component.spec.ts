@@ -218,7 +218,7 @@ describe('GameTableSettingComponent', () => {
         .query(By.css('[data-testid="radial-menu-label"]'))
         .injector.get(TextTooltipDirective);
       expect(menuTooltip.appTextTooltip()).toBe(
-        '選択したメニューの向きにウィンドウが開くので、コマの右クリック連続で強制回転し、コマの真下での選択クリックしてください。'
+        '選択したメニューの向きにウィンドウが開くので、コマの右クリック連続で強制回転し、コマの真下での選択クリックしてください。混み合ってる場所でのメニュー表示は、右ドラッグすれば任意の場所に表示可能です。'
       );
       const speed = fixture.nativeElement.querySelector(
         'input[name="tableRadialMenuRotationSpeed"]'

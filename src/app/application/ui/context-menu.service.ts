@@ -4,7 +4,7 @@ import { PanelRotationDegrees } from '@axe/application/ui/panel.service';
 import { DEFAULT_RADIAL_MENU_ROTATION_SPEED } from '@axe/domain/tabletop/game-table';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
-interface ContextMenuPoint {
+export interface ContextMenuPoint {
   x: number;
   y: number;
 }
@@ -53,6 +53,7 @@ export class ContextMenuService {
   radialMenuClearanceRadius: number = 0;
   rotationDegrees: PanelRotationDegrees = 0;
   position: ContextMenuPoint = { x: 0, y: 0 };
+  radialAnchorPosition: ContextMenuPoint | null = null;
 
   get isShow(): boolean {
     return this.panelComponentRef !== null;
@@ -73,6 +74,7 @@ export class ContextMenuService {
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
       0,
+      undefined,
       title,
       parentViewContainerRef
     );
@@ -94,6 +96,7 @@ export class ContextMenuService {
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
       0,
+      undefined,
       title,
       parentViewContainerRef
     );
@@ -107,6 +110,7 @@ export class ContextMenuService {
     radialMenuEnabled = false,
     radialMenuRotationSpeed = DEFAULT_RADIAL_MENU_ROTATION_SPEED,
     radialMenuClearanceRadius = 0,
+    radialAnchorPosition?: ContextMenuPoint,
     parentViewContainerRef?: ViewContainerRef
   ) {
     this.openComponent(
@@ -118,6 +122,7 @@ export class ContextMenuService {
       radialMenuEnabled,
       radialMenuRotationSpeed,
       radialMenuClearanceRadius,
+      radialAnchorPosition,
       title,
       parentViewContainerRef
     );
@@ -132,6 +137,7 @@ export class ContextMenuService {
     radialMenuEnabled: boolean,
     radialMenuRotationSpeed: number,
     radialMenuClearanceRadius: number,
+    radialAnchorPosition?: ContextMenuPoint,
     title?: string,
     parentViewContainerRef?: ViewContainerRef
   ) {
@@ -162,6 +168,9 @@ export class ContextMenuService {
       childPanelService.position.x = position.x;
       childPanelService.position.y = position.y;
     }
+    childPanelService.radialAnchorPosition = radialAnchorPosition
+      ? { x: radialAnchorPosition.x, y: radialAnchorPosition.y }
+      : null;
 
     childPanelService.title = title != null ? title : '';
 

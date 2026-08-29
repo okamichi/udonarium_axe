@@ -68,6 +68,18 @@ describe('GameCharacterComponent', () => {
   });
 
   describe('character context menu display', () => {
+    function pointerEvent(type: string, x: number, y: number): PointerEvent {
+      return new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 7,
+        button: 2,
+        buttons: type === 'pointerup' ? 0 : 2,
+        clientX: x,
+        clientY: y,
+      });
+    }
+
     function openMenu(tableMode2d: boolean, radialMenuEnabled: boolean, size = 1, showRotatingName = false) {
       const character = GameCharacter.create('menu-piece', size, '');
       fixture.componentRef.setInput('gameCharacter', character);
@@ -149,6 +161,126 @@ describe('GameCharacterComponent', () => {
 
       try {
         expect(openRadial.mock.calls[0]?.[6]).toBe(0);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('opens a 2D piece menu at the release point of a right drag', () => {
+      const character = GameCharacter.create('drag-menu-piece', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = true;
+      table.radialMenuEnabled = false;
+      fixture.detectChanges();
+      const root = component.rootElementRef()!.nativeElement;
+      vi.spyOn(root, 'getBoundingClientRect').mockReturnValue({
+        top: 100,
+        right: 150,
+        bottom: 150,
+        left: 100,
+        width: 50,
+        height: 50,
+        x: 100,
+        y: 100,
+      } as DOMRect);
+      vi.spyOn(TestBed.inject(TabletopOverlapService), 'findAt').mockReturnValue([]);
+      const openRadial = vi.spyOn(TestBed.inject(ContextMenuService), 'openRadial').mockImplementation(() => undefined);
+
+      try {
+        root.dispatchEvent(pointerEvent('pointerdown', 120, 120));
+        root.dispatchEvent(pointerEvent('pointermove', 360, 280));
+        const centerMarker = document.querySelector<HTMLElement>('[data-piece-right-drag-center]');
+        expect(centerMarker?.style.left).toBe('360px');
+        expect(centerMarker?.style.top).toBe('280px');
+        root.dispatchEvent(pointerEvent('pointerup', 360, 280));
+        const nativeMenu = new MouseEvent('contextmenu', {
+          bubbles: true,
+          cancelable: true,
+          button: 2,
+          clientX: 360,
+          clientY: 280,
+        });
+        root.dispatchEvent(nativeMenu);
+
+        expect(openRadial).toHaveBeenCalledWith(
+          { x: 360, y: 280 },
+          expect.any(Array),
+          expect.any(Array),
+          'drag-menu-piece',
+          false,
+          expect.any(Number),
+          0,
+          { x: 125, y: 125 }
+        );
+        expect(openRadial).toHaveBeenCalledTimes(1);
+        expect(nativeMenu.defaultPrevented).toBe(true);
+        expect(document.querySelector('[data-piece-right-drag-center]')).toBeNull();
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('leaves an unmoved right click on the existing menu path', () => {
+      const character = GameCharacter.create('click-menu-piece', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = true;
+      fixture.detectChanges();
+      const root = component.rootElementRef()!.nativeElement;
+      vi.spyOn(root, 'getBoundingClientRect').mockReturnValue({
+        top: 100,
+        right: 150,
+        bottom: 150,
+        left: 100,
+        width: 50,
+        height: 50,
+        x: 100,
+        y: 100,
+      } as DOMRect);
+      vi.spyOn(TestBed.inject(TabletopOverlapService), 'findAt').mockReturnValue([]);
+      const menus = TestBed.inject(ContextMenuService);
+      const openRadial = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+
+      try {
+        root.dispatchEvent(pointerEvent('pointerdown', 120, 120));
+        root.dispatchEvent(pointerEvent('pointerup', 120, 120));
+        expect(openRadial).not.toHaveBeenCalled();
+        expect(document.querySelector('[data-piece-right-drag-center]')).toBeNull();
+
+        TestBed.inject(PointerDeviceService).primeForContextMenu(120, 120);
+        component.onContextMenu(new Event('contextmenu', { cancelable: true }));
+        expect(openRadial).toHaveBeenCalledWith(
+          { x: 125, y: 125 },
+          expect.any(Array),
+          expect.any(Array),
+          'click-menu-piece',
+          table.radialMenuEnabled,
+          table.radialMenuRotationSpeed,
+          0
+        );
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('does not replace the 3D table right drag with a piece menu', () => {
+      const character = GameCharacter.create('3d-menu-piece', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      TestBed.inject(TabletopService).currentTable.mode2d = false;
+      fixture.detectChanges();
+      const root = component.rootElementRef()!.nativeElement;
+      const menus = TestBed.inject(ContextMenuService);
+      const open = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
+      const openRadial = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+
+      try {
+        root.dispatchEvent(pointerEvent('pointerdown', 120, 120));
+        root.dispatchEvent(pointerEvent('pointermove', 360, 280));
+        root.dispatchEvent(pointerEvent('pointerup', 360, 280));
+
+        expect(open).not.toHaveBeenCalled();
+        expect(openRadial).not.toHaveBeenCalled();
       } finally {
         character.destroy();
       }
