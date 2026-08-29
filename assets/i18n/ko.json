@@ -1675,6 +1675,7 @@
         "radialMenuSpeed": "회전 속도",
         "radialMenuSpeedHelp": "회전 메뉴의 속도를 초당 1~24도로 설정합니다. 값이 클수록 빠르게 회전합니다.",
         "multiAngle": "말 이름을 원주를 따라 회전",
+        "multiAngleResourceBuff": "리소스·버프 회전 표시(최대 4개)",
         "multiAngleMotionMode": "회전 방식",
         "multiAngleContinuous": "시계 방향으로 연속 회전",
         "multiAngleQuarterTurn": "90° 회전 후 정지",
