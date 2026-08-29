@@ -1029,6 +1029,7 @@ export class GameCharacterComponent {
     const rootBounds = this.rootElementRef()?.nativeElement.getBoundingClientRect();
     const menuCenter = radialCenter ?? this.pieceScreenCenter(position, rootBounds);
     const menuClearanceRadius = rootBounds ? this.contextMenuClearanceRadius(rootBounds) : 0;
+    const menuOcclusionHalfExtent = rootBounds ? Math.max(rootBounds.width, rootBounds.height) / 2 : 0;
     const args = [
       menuCenter,
       menu.actions,
@@ -1037,6 +1038,7 @@ export class GameCharacterComponent {
       table.radialMenuEnabled,
       table.radialMenuRotationSpeed,
       menuClearanceRadius,
+      menuOcclusionHalfExtent,
     ] as const;
     if (radialAnchor) {
       this.contextMenuService.openRadial(...args, radialAnchor);

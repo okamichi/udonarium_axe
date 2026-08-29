@@ -64,6 +64,86 @@
       </button>
     }
   } @else {
+    @if (contextMenuService.radialMenuEnabled) {
+      <svg
+        data-radial-direction-guide
+        class="pointer-events-none fixed overflow-visible"
+        [style.left.px]="center().x"
+        [style.top.px]="center().y"
+        [style.width.px]="ringRadius() * 2"
+        [style.height.px]="ringRadius() * 2"
+        [style.transform]="'translate(-50%, -50%)'"
+        [attr.viewBox]="'0 0 ' + ringRadius() * 2 + ' ' + ringRadius() * 2"
+        aria-hidden="true"
+      >
+        <defs>
+          <mask
+            id="radial-guide-piece-mask"
+            maskUnits="userSpaceOnUse"
+            x="0"
+            y="0"
+            [attr.width]="ringRadius() * 2"
+            [attr.height]="ringRadius() * 2"
+          >
+            <rect x="0" y="0" [attr.width]="ringRadius() * 2" [attr.height]="ringRadius() * 2" fill="white"></rect>
+            @if (guideOcclusionHalfExtent() > 0) {
+              <rect
+                data-radial-guide-piece-occlusion
+                [attr.x]="ringRadius() - guideOcclusionHalfExtent()"
+                [attr.y]="ringRadius() - guideOcclusionHalfExtent()"
+                [attr.width]="guideOcclusionHalfExtent() * 2"
+                [attr.height]="guideOcclusionHalfExtent() * 2"
+                fill="black"
+              ></rect>
+            }
+          </mask>
+        </defs>
+
+        <g mask="url(#radial-guide-piece-mask)">
+          @for (angle of guideBoundaryAngles; track angle) {
+            <line
+              data-radial-guide-boundary
+              class="stroke-ui-accent"
+              [attr.x1]="ringRadius()"
+              [attr.y1]="ringRadius()"
+              [attr.x2]="guideBoundaryPoint(angle).x"
+              [attr.y2]="guideBoundaryPoint(angle).y"
+              stroke-width="2"
+              stroke-dasharray="4 5"
+              stroke-linecap="round"
+            ></line>
+          }
+        </g>
+
+        @for (angle of directionGuideAngles; track angle) {
+          <g
+            data-radial-guide-direction
+            [attr.data-panel-rotation]="guidePanelRotation(angle)"
+            [attr.transform]="guideArrowTransform(angle)"
+          >
+            <circle
+              class="stroke-ui-accent"
+              cx="0"
+              cy="0"
+              r="12"
+              fill="var(--ui-menu-bg)"
+              fill-opacity="0.74"
+              stroke-width="1.5"
+              opacity="0.9"
+            ></circle>
+            <path
+              class="stroke-ui-accent"
+              d="M -7 0 H 7 M 2 -5 L 7 0 L 2 5"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </g>
+        }
+      </svg>
+    }
+
     <div
       data-radial-ring
       class="animate-radial-orbit pointer-events-none fixed transition-[rotate] duration-180 ease-out will-change-[rotate] motion-reduce:animate-none motion-reduce:transition-none"

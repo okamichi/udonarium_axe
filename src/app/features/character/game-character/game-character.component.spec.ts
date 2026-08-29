@@ -134,7 +134,8 @@ describe('GameCharacterComponent', () => {
           'menu-piece',
           enabled,
           7,
-          0
+          0,
+          25
         );
       } finally {
         character.destroy();
@@ -154,13 +155,14 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('keeps the original 1x1 distance when rotating names are enabled', () => {
+    it('keeps the original 1x1 distance and passes its rendered half extent', () => {
       const menus = TestBed.inject(ContextMenuService);
       const openRadial = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
       const character = openMenu(true, true, 1, true);
 
       try {
         expect(openRadial.mock.calls[0]?.[6]).toBe(0);
+        expect(openRadial.mock.calls[0]?.[7]).toBe(25);
       } finally {
         character.destroy();
       }
@@ -212,6 +214,7 @@ describe('GameCharacterComponent', () => {
           false,
           expect.any(Number),
           0,
+          25,
           { x: 125, y: 125 }
         );
         expect(openRadial).toHaveBeenCalledTimes(1);
@@ -258,7 +261,8 @@ describe('GameCharacterComponent', () => {
           'click-menu-piece',
           table.radialMenuEnabled,
           table.radialMenuRotationSpeed,
-          0
+          0,
+          25
         );
       } finally {
         character.destroy();

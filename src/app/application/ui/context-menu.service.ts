@@ -51,6 +51,7 @@ export class ContextMenuService {
   radialMenuEnabled: boolean = false;
   radialMenuRotationSpeed: number = DEFAULT_RADIAL_MENU_ROTATION_SPEED;
   radialMenuClearanceRadius: number = 0;
+  radialMenuOcclusionHalfExtent: number = 0;
   rotationDegrees: PanelRotationDegrees = 0;
   position: ContextMenuPoint = { x: 0, y: 0 };
   radialAnchorPosition: ContextMenuPoint | null = null;
@@ -74,6 +75,7 @@ export class ContextMenuService {
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
       0,
+      0,
       undefined,
       title,
       parentViewContainerRef
@@ -96,6 +98,7 @@ export class ContextMenuService {
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
       0,
+      0,
       undefined,
       title,
       parentViewContainerRef
@@ -110,6 +113,7 @@ export class ContextMenuService {
     radialMenuEnabled = false,
     radialMenuRotationSpeed = DEFAULT_RADIAL_MENU_ROTATION_SPEED,
     radialMenuClearanceRadius = 0,
+    radialMenuOcclusionHalfExtent = 0,
     radialAnchorPosition?: ContextMenuPoint,
     parentViewContainerRef?: ViewContainerRef
   ) {
@@ -122,6 +126,7 @@ export class ContextMenuService {
       radialMenuEnabled,
       radialMenuRotationSpeed,
       radialMenuClearanceRadius,
+      radialMenuOcclusionHalfExtent,
       radialAnchorPosition,
       title,
       parentViewContainerRef
@@ -137,6 +142,7 @@ export class ContextMenuService {
     radialMenuEnabled: boolean,
     radialMenuRotationSpeed: number,
     radialMenuClearanceRadius: number,
+    radialMenuOcclusionHalfExtent: number,
     radialAnchorPosition?: ContextMenuPoint,
     title?: string,
     parentViewContainerRef?: ViewContainerRef
@@ -163,6 +169,7 @@ export class ContextMenuService {
     childPanelService.radialMenuEnabled = radialMenuEnabled;
     childPanelService.radialMenuRotationSpeed = radialMenuRotationSpeed;
     childPanelService.radialMenuClearanceRadius = radialMenuClearanceRadius;
+    childPanelService.radialMenuOcclusionHalfExtent = radialMenuOcclusionHalfExtent;
     childPanelService.rotationDegrees = rotationDegrees;
     if (position) {
       childPanelService.position.x = position.x;

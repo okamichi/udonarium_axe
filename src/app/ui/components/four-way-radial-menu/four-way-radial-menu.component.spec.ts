@@ -26,6 +26,7 @@ describe('FourWayRadialMenuComponent', () => {
     service.radialMenuEnabled = true;
     service.radialMenuRotationSpeed = 5;
     service.radialMenuClearanceRadius = 0;
+    service.radialMenuOcclusionHalfExtent = 0;
     service.rotationDegrees = 0;
     service.radialAnchorPosition = null;
   });
@@ -50,6 +51,50 @@ describe('FourWayRadialMenuComponent', () => {
     expect(buttonContaining('表示')).toBeTruthy();
     expect(buttonContaining('戻る')).toBeTruthy();
     expect(labels).not.toContain('南側から操作');
+  });
+
+  it('shows fixed snap boundaries and the resulting four panel directions', () => {
+    createWithGroups([
+      { name: 'North', icon: 'north', actions: [{ name: 'North action', action: vi.fn() }] },
+      { name: 'East', icon: 'east', actions: [{ name: 'East action', action: vi.fn() }] },
+      { name: 'South', icon: 'south', actions: [{ name: 'South action', action: vi.fn() }] },
+      { name: 'West', icon: 'west', actions: [{ name: 'West action', action: vi.fn() }] },
+    ]);
+
+    const root = fixture.nativeElement as HTMLElement;
+    const guide = root.querySelector<SVGElement>('[data-radial-direction-guide]')!;
+    const boundaries = Array.from(guide.querySelectorAll<SVGLineElement>('[data-radial-guide-boundary]'));
+    const directions = Array.from(guide.querySelectorAll<SVGGElement>('[data-radial-guide-direction]'));
+    const radius = Number(guide.getAttribute('viewBox')?.split(' ')[2]) / 2;
+
+    expect(boundaries).toHaveLength(4);
+    expect(boundaries.every((line) => line.getAttribute('x1') === `${radius}`)).toBe(true);
+    expect(boundaries.every((line) => line.getAttribute('y1') === `${radius}`)).toBe(true);
+    expect(boundaries.every((line) => line.classList.contains('stroke-ui-accent'))).toBe(true);
+    expect(boundaries.every((line) => line.getAttribute('stroke-dasharray') === '4 5')).toBe(true);
+    expect(directions.map((direction) => Number(direction.dataset['panelRotation']))).toEqual([180, 270, 0, 90]);
+  });
+
+  it('masks the dotted boundaries where they pass behind a piece', () => {
+    service.radialMenuOcclusionHalfExtent = 25;
+    createWithGroups([{ name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] }]);
+
+    const guide = (fixture.nativeElement as HTMLElement).querySelector<SVGElement>('[data-radial-direction-guide]')!;
+    const occlusion = guide.querySelector<SVGRectElement>('[data-radial-guide-piece-occlusion]')!;
+    const radius = Number(guide.getAttribute('viewBox')?.split(' ')[2]) / 2;
+
+    expect(occlusion.getAttribute('x')).toBe(`${radius - 27}`);
+    expect(occlusion.getAttribute('y')).toBe(`${radius - 27}`);
+    expect(occlusion.getAttribute('width')).toBe('54');
+    expect(occlusion.getAttribute('height')).toBe('54');
+  });
+
+  it('does not mask the guide center after a piece menu is dragged elsewhere', () => {
+    service.radialMenuOcclusionHalfExtent = 25;
+    service.radialAnchorPosition = { x: 120, y: 140 };
+    createWithGroups([{ name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] }]);
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-guide-piece-occlusion]')).toBeNull();
   });
 
   it('closes the rotating menu from its return item at the top level', () => {
@@ -84,6 +129,7 @@ describe('FourWayRadialMenuComponent', () => {
     const labels = buttons().map((button) => button.getAttribute('aria-label'));
     expect(labels).toEqual(['閉じる', '北側から操作', '東側から操作', '南側から操作', '西側から操作']);
     expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-ring]')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-direction-guide]')).toBeNull();
   });
 
   it('draws the connector from a detached piece anchor to the apparent menu center', () => {

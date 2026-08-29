@@ -44,10 +44,13 @@ interface RadialMenuLevel {
 }
 
 const SEATS: RadialMenuSeat[] = ['north', 'east', 'south', 'west'];
+const GUIDE_BOUNDARY_ANGLES = [-135, -45, 45, 135];
+const DIRECTION_GUIDE_ANGLES = [-90, 0, 90, 180];
 const LAUNCHER_RADIUS_PX = 70;
 const LAUNCHER_HALF_EXTENT_PX = 28;
 const ITEM_HALF_EXTENT_PX = 60;
 const RING_CLEARANCE_GAP_PX = 8;
+const GUIDE_OCCLUSION_GAP_PX = 2;
 const RING_LEVEL_TRANSITION_MS = 180;
 const RADIAL_ACTION_PAGE_SIZE = RADIAL_MENU_PAGE_SIZE - 1;
 const FULL_ROTATION_DEGREES = 360;
@@ -71,6 +74,8 @@ export class FourWayRadialMenuComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   protected readonly seatOptions = SEATS;
+  protected readonly guideBoundaryAngles = GUIDE_BOUNDARY_ANGLES;
+  protected readonly directionGuideAngles = DIRECTION_GUIDE_ANGLES;
   protected readonly selectedSeat = signal<RadialMenuSeat | null>(null);
   protected readonly levels = signal<RadialMenuLevel[]>([]);
   protected readonly page = signal(0);
@@ -116,6 +121,11 @@ export class FourWayRadialMenuComponent {
     const anchor = this.anchor;
     return Math.hypot(center.x - anchor.x, center.y - anchor.y) > 4;
   });
+  protected readonly guideOcclusionHalfExtent = computed(() =>
+    this.connectorVisible() || this.contextMenuService.radialMenuOcclusionHalfExtent <= 0
+      ? 0
+      : this.contextMenuService.radialMenuOcclusionHalfExtent + GUIDE_OCCLUSION_GAP_PX
+  );
 
   constructor() {
     afterNextRender(() => this.focusFirstControl());
@@ -271,6 +281,21 @@ export class FourWayRadialMenuComponent {
 
   protected launcherPoint(seat: RadialMenuSeat): RadialPoint {
     return pointAtAngle(seatAngle(seat), this.launcherRadius());
+  }
+
+  protected guideBoundaryPoint(angle: number): RadialPoint {
+    const radius = this.ringRadius();
+    const offset = pointAtAngle(angle, radius);
+    return { x: radius + offset.x, y: radius + offset.y };
+  }
+
+  protected guideArrowTransform(angle: number): string {
+    const radius = this.ringRadius();
+    return `translate(${radius} ${radius}) rotate(${angle}) translate(${radius * 0.52} 0)`;
+  }
+
+  protected guidePanelRotation(angle: number): PanelRotationDegrees {
+    return nearestCardinalRotation(angle + 270);
   }
 
   protected groupPoint(index: number): RadialPoint {
