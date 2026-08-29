@@ -21,6 +21,16 @@
     </svg>
   }
 
+  @if (contextMenuService.radialAnchorPosition) {
+    <div
+      data-piece-right-drag-center
+      class="piece-right-drag-center"
+      [style.left.px]="center().x"
+      [style.top.px]="center().y"
+      aria-hidden="true"
+    ></div>
+  }
+
   @if (!contextMenuService.radialMenuEnabled && !selectedSeat()) {
     <button
       type="button"

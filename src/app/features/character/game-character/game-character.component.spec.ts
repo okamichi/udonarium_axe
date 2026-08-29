@@ -191,6 +191,7 @@ describe('GameCharacterComponent', () => {
         root.dispatchEvent(pointerEvent('pointerdown', 120, 120));
         root.dispatchEvent(pointerEvent('pointermove', 360, 280));
         const centerMarker = document.querySelector<HTMLElement>('[data-piece-right-drag-center]');
+        expect(centerMarker?.classList.contains('piece-right-drag-center')).toBe(true);
         expect(centerMarker?.style.left).toBe('360px');
         expect(centerMarker?.style.top).toBe('280px');
         root.dispatchEvent(pointerEvent('pointerup', 360, 280));

@@ -557,6 +557,36 @@ chat-message > div > div {
   --ui-shadow-lg: 0 8px 40px rgba(91, 64, 116, 0.22), 0 2px 8px rgba(91, 64, 116, 0.14);
 }
 
+/* Right-dragged piece menus use this translucent crosshair both while dragging and
+   while the menu is open. It is deliberately larger than a mouse pointer. */
+.piece-right-drag-center {
+  position: fixed;
+  z-index: 10001;
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+  border: 2px solid color-mix(in srgb, var(--ui-accent) 78%, transparent);
+  border-radius: 50%;
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--ui-accent) 72%, transparent),
+        color-mix(in srgb, var(--ui-accent) 72%, transparent)
+      )
+      center / 24px 2px no-repeat,
+    linear-gradient(
+        color-mix(in srgb, var(--ui-accent) 72%, transparent),
+        color-mix(in srgb, var(--ui-accent) 72%, transparent)
+      )
+      center / 2px 24px no-repeat,
+    color-mix(in srgb, var(--ui-menu-bg) 32%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--ui-accent) 14%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  opacity: 0.86;
+  transform: translate(-50%, -50%);
+}
+
 /* Multi-select highlight applied by SelectableDirective on tabletop object roots.
    Uses an inset glow so it tracks any non-rectangular pedestal/border without
    adding a wrapper element. */

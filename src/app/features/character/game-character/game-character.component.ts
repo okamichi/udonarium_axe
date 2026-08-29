@@ -925,32 +925,8 @@ export class GameCharacterComponent {
     if (!marker) {
       marker = document.createElement('div');
       marker.dataset['pieceRightDragCenter'] = '';
+      marker.className = 'piece-right-drag-center';
       marker.setAttribute('aria-hidden', 'true');
-      Object.assign(marker.style, {
-        position: 'fixed',
-        width: '24px',
-        height: '24px',
-        boxSizing: 'border-box',
-        border: '2px solid var(--ui-accent)',
-        borderRadius: '50%',
-        background: 'color-mix(in srgb, var(--ui-menu-bg) 75%, transparent)',
-        boxShadow: '0 0 0 2px color-mix(in srgb, var(--ui-accent) 20%, transparent)',
-        pointerEvents: 'none',
-        transform: 'translate(-50%, -50%)',
-        zIndex: '9910',
-      });
-      const center = document.createElement('div');
-      Object.assign(center.style, {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        width: '6px',
-        height: '6px',
-        borderRadius: '50%',
-        background: 'var(--ui-accent)',
-        transform: 'translate(-50%, -50%)',
-      });
-      marker.appendChild(center);
       document.body.appendChild(marker);
       this.rightDragCenterMarker = marker;
     }

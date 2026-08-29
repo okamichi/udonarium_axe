@@ -90,7 +90,11 @@ describe('FourWayRadialMenuComponent', () => {
     service.radialAnchorPosition = { x: 120, y: 140 };
     createWithGroups([]);
 
+    const marker = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-piece-right-drag-center]')!;
     const connector = (fixture.nativeElement as HTMLElement).querySelector('line')!;
+    expect(marker.classList.contains('piece-right-drag-center')).toBe(true);
+    expect(marker.style.left).toBe('300px');
+    expect(marker.style.top).toBe('300px');
     expect(connector.getAttribute('x1')).toBe('120');
     expect(connector.getAttribute('y1')).toBe('140');
     expect(connector.getAttribute('x2')).toBe('300');
@@ -102,11 +106,21 @@ describe('FourWayRadialMenuComponent', () => {
     service.radialAnchorPosition = { x: 300, y: 300 };
     createWithGroups([]);
 
-    const connector = (fixture.nativeElement as HTMLElement).querySelector('line')!;
+    const root = fixture.nativeElement as HTMLElement;
+    const connector = root.querySelector('line')!;
+    const marker = root.querySelector<HTMLElement>('[data-piece-right-drag-center]')!;
     expect(connector.getAttribute('x1')).toBe('300');
     expect(connector.getAttribute('y1')).toBe('300');
     expect(Number(connector.getAttribute('x2'))).toBeGreaterThan(1);
     expect(Number(connector.getAttribute('y2'))).toBeGreaterThan(1);
+    expect(marker.style.left).toBe(`${connector.getAttribute('x2')}px`);
+    expect(marker.style.top).toBe(`${connector.getAttribute('y2')}px`);
+  });
+
+  it('does not add the right-drag center marker to an ordinary piece menu', () => {
+    createWithGroups([]);
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-piece-right-drag-center]')).toBeNull();
   });
 
   it('moves direction launchers away from a large piece', () => {
