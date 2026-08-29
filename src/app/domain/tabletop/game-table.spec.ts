@@ -134,6 +134,7 @@ describe('GameTable', () => {
       expect(table.radialMenuEnabled).toBe(false);
       expect(table.radialMenuRotationSpeed).toBe(5);
       expect(table.multiAngleEnabled).toBe(false);
+      expect(table.multiAngleResourceBuffEnabled).toBe(false);
       expect(table.multiAngleMotionMode).toBe('continuous');
       expect(table.multiAngleRevolutionSeconds).toBe(12);
       expect(table.multiAnglePauseSeconds).toBe(2);

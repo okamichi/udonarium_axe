@@ -1675,6 +1675,7 @@
         "radialMenuSpeed": "Rotation speed",
         "radialMenuSpeedHelp": "Sets the rotating menu speed from 1 to 24 degrees per second. Higher values rotate faster.",
         "multiAngle": "Curve and orbit piece names",
+        "multiAngleResourceBuff": "Orbit resources and buffs (up to 4)",
         "multiAngleMotionMode": "Motion",
         "multiAngleContinuous": "Continuous clockwise",
         "multiAngleQuarterTurn": "Turn 90° then pause",

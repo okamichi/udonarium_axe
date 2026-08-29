@@ -83,6 +83,11 @@ import {
 } from '@axe/ui/tabletop/billboard-transform';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { makeMultiAngleCurvedName } from '@axe/ui/tabletop/multi-angle-curved-name';
+import {
+  makeMultiAngleBuffOrbit,
+  makeMultiAngleResourceGauge,
+  MAX_MULTI_ANGLE_RESOURCE_GAUGES,
+} from '@axe/ui/tabletop/multi-angle-orbit-decoration';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -92,6 +97,7 @@ const DECOR_SUPERSAMPLE = 3;
 const DECOR_BASE_FONT_PX = 10;
 const NAME_BASE_FONT_PX = 15;
 const GAUGE_ROW_HEIGHT_PX = 13;
+const MULTI_ANGLE_RESOURCE_BUFF_DURATION_FACTOR = 1.25;
 type BuffViewMode = 'icon' | 'detail' | 'count';
 
 function resourceChangeSound(kind: 'damage' | 'heal', ratio: number): string {
@@ -545,6 +551,8 @@ export class GameCharacterComponent {
     return toBuffBadges(buffEl);
   });
 
+  readonly orbitPieceGauges = computed(() => this.pieceGauges().slice(0, MAX_MULTI_ANGLE_RESOURCE_GAUGES));
+
   protected readonly decorFontSizePx = DECOR_BASE_FONT_PX * DECOR_SUPERSAMPLE;
   protected readonly nameFontSizePx = NAME_BASE_FONT_PX * DECOR_SUPERSAMPLE;
   private readonly decorScale = `scale(${(1 / DECOR_SUPERSAMPLE).toFixed(6)})`;
@@ -602,7 +610,9 @@ export class GameCharacterComponent {
     return this.labelOrbitTransform(56, 96);
   });
 
-  private readonly gaugePanelHeightEstimate = computed(() => this.pieceGauges().length * GAUGE_ROW_HEIGHT_PX);
+  private readonly gaugePanelHeightEstimate = computed(() =>
+    this.multiAngleResourceBuffOrbitEnabled() ? 0 : this.pieceGauges().length * GAUGE_ROW_HEIGHT_PX
+  );
 
   readonly billboardTransformGauge = computed(() =>
     this.isPoster() ? '' : this.makeBillboardTransform(GAUGE_STACK_GAP_PX + this.gaugePanelHeightEstimate() / 2)
@@ -628,12 +638,19 @@ export class GameCharacterComponent {
     return !this.isPoster() && table.mode2d && table.multiAngleEnabled;
   });
 
+  readonly multiAngleResourceBuffOrbitEnabled = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return this.multiAngleNameOrbitEnabled() && table.multiAngleResourceBuffEnabled;
+  });
+
   readonly multiAngleCurvedNameLayout = computed(() =>
     makeMultiAngleCurvedName(this.multiAngleLabelText(), this.size() * this.gridSize)
   );
 
   readonly multiAngleLabelText = computed(() => {
-    if (this.hideBuff()) return this.name();
+    if (this.hideBuff() || this.multiAngleResourceBuffOrbitEnabled()) return this.name();
     const buffNames = this.buffBadges()
       .map((buff) => buff.name.trim())
       .filter((name) => name.length > 0)
@@ -642,6 +659,25 @@ export class GameCharacterComponent {
     const leadingBuff = Array.from(buffNames).slice(0, 5).join('');
     return `${this.name()}/${leadingBuff}`;
   });
+
+  readonly multiAngleResourceGaugeLayout = computed(() =>
+    makeMultiAngleResourceGauge(this.orbitPieceGauges(), this.size() * this.gridSize)
+  );
+
+  readonly multiAngleBuffOrbitLayout = computed(() => {
+    const name = this.multiAngleCurvedNameLayout();
+    const gauge = this.multiAngleResourceGaugeLayout();
+    const innerExtent = Math.max(name.radius + name.fontSize / 2 + name.strokeWidth / 2, gauge.outerExtent);
+    return makeMultiAngleBuffOrbit(this.buffBadges().length, this.size() * this.gridSize, innerExtent);
+  });
+
+  readonly multiAngleOrbitVisible = computed(
+    () =>
+      this.multiAngleNameOrbitEnabled() &&
+      ((this.name().length > 0 && !this.hideName()) ||
+        (this.multiAngleResourceBuffOrbitEnabled() &&
+          (this.orbitPieceGauges().length > 0 || (!this.hideBuff() && this.buffBadges().length > 0))))
+  );
 
   readonly multiAngleCurvedNamePathId = computed(
     () => `multi-angle-curved-name-${this.gameCharacter()?.identifier ?? 'unknown'}`
@@ -658,8 +694,20 @@ export class GameCharacterComponent {
     );
   });
 
+  readonly multiAngleResourceBuffOrbitAnimation = computed(() => {
+    const nameAnimation = this.multiAngleNameOrbitAnimation();
+    return {
+      durationSeconds: nameAnimation.durationSeconds * MULTI_ANGLE_RESOURCE_BUFF_DURATION_FACTOR,
+      timingFunction: nameAnimation.timingFunction,
+    };
+  });
+
   private readonly multiAngleNamePhase = computed(() =>
     multiAngleRotationPhase(`${this.gameCharacter()?.identifier ?? 'unknown'}:name`)
+  );
+
+  private readonly multiAngleResourceBuffPhase = computed(() =>
+    multiAngleRotationPhase(`${this.gameCharacter()?.identifier ?? 'unknown'}:resource-buff`)
   );
 
   private readonly multiAnglePiecePhase = computed(() =>
@@ -668,6 +716,10 @@ export class GameCharacterComponent {
 
   readonly multiAngleNameOrbitDelaySeconds = computed(
     () => -this.multiAngleNamePhase() * this.multiAngleNameOrbitAnimation().durationSeconds
+  );
+
+  readonly multiAngleResourceBuffOrbitDelaySeconds = computed(
+    () => -this.multiAngleResourceBuffPhase() * this.multiAngleResourceBuffOrbitAnimation().durationSeconds
   );
 
   readonly multiAnglePieceRevolutionSeconds = computed(() => {
@@ -705,11 +757,15 @@ export class GameCharacterComponent {
   });
 
   private readonly buffPanelHeightEstimate = computed(() => {
-    if (this.hideBuff() || this.buffNum() < 1) return 0;
+    if (this.multiAngleResourceBuffOrbitEnabled() || this.hideBuff() || this.buffNum() < 1) return 0;
     if (this.buffViewMode() === 'detail') return this.buffChildren().length * BUFF_DETAIL_ROW_HEIGHT_PX;
     if (this.buffViewMode() === 'count') return BUFF_BADGE_ROW_HEIGHT_PX;
     return Math.ceil(this.buffBadges().length / BUFF_BADGES_PER_ROW) * BUFF_BADGE_ROW_HEIGHT_PX;
   });
+
+  protected multiAngleBuffOrbitTransform(angle: number, radius: number): string {
+    return `rotate(${angle}deg) translateY(${-radius}px)`;
+  }
 
   private readonly pieceImageHeightEstimate = computed(() => {
     if (!this.gameCharacter() || this.imageFile().url.length < 1) return 0;
@@ -1055,15 +1111,20 @@ export class GameCharacterComponent {
   }
 
   private contextMenuClearanceRadius(rootBounds: DOMRect): number {
-    if (this.size() <= 1) return 0;
-
     const pieceDiameter = this.size() * this.gridSize;
     const renderedDiameter = Math.max(rootBounds.width, rootBounds.height);
     if (pieceDiameter <= 0 || renderedDiameter <= 0) return 0;
 
     const renderedScale = renderedDiameter / pieceDiameter;
     const curvedName = this.multiAngleCurvedNameLayout();
-    return (curvedName.radius + curvedName.fontSize / 2 + curvedName.strokeWidth / 2) * renderedScale;
+    const nameExtent = curvedName.radius + curvedName.fontSize / 2 + curvedName.strokeWidth / 2;
+    const buffOrbit = this.multiAngleBuffOrbitLayout();
+    const resourceBuffExtent =
+      this.multiAngleResourceBuffOrbitEnabled() && !this.hideBuff() && this.buffBadges().length > 0
+        ? buffOrbit.radius + buffOrbit.iconSize / 2
+        : 0;
+    if (this.size() <= 1) return resourceBuffExtent * renderedScale;
+    return Math.max(nameExtent, resourceBuffExtent) * renderedScale;
   }
 
   /** How it goes down, set only while an effect is aimed at it. */

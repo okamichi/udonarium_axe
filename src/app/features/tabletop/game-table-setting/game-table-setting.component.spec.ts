@@ -122,6 +122,10 @@ describe('GameTableSettingComponent', () => {
       expect(table.multiAnglePauseSeconds).toBe(3.5);
       expect(table.multiAnglePieceRevolutionSeconds).toBe(90);
 
+      expect(component.tableMultiAngleResourceBuffEnabled).toBe(false);
+      component.tableMultiAngleResourceBuffEnabled = true;
+      expect(table.multiAngleResourceBuffEnabled).toBe(true);
+
       component.tableMultiAngleMotionMode = 'piece-quarter-turn';
       expect(component.tableMultiAngleMotionMode).toBe('piece-quarter-turn');
       expect(table.multiAngleMotionMode).toBe('piece-quarter-turn');
@@ -155,6 +159,11 @@ describe('GameTableSettingComponent', () => {
       ) as HTMLOptionElement | null;
       expect(option?.textContent).toContain('コマだけ90°回転して停止');
       expect(fixture.nativeElement.querySelector('input[name="tableMultiAnglePauseSeconds"]')).toBeTruthy();
+      const resourceBuff = fixture.nativeElement.querySelector(
+        'input[name="tableMultiAngleResourceBuffEnabled"]'
+      ) as HTMLInputElement | null;
+      expect(resourceBuff?.checked).toBe(false);
+      expect(resourceBuff?.closest('label')?.textContent).toContain('リソースバフ回転表示（最大4つまで）');
     } finally {
       table.destroy();
     }

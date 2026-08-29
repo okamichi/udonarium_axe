@@ -37,6 +37,7 @@ describe('GameCharacterComponent', () => {
     table.radialMenuEnabled = false;
     table.imageBillboard = false;
     table.multiAngleEnabled = false;
+    table.multiAngleResourceBuffEnabled = false;
     table.multiAngleMotionMode = 'continuous';
     table.multiAngleRevolutionSeconds = 12;
     table.multiAnglePauseSeconds = 2;
@@ -949,6 +950,147 @@ describe('GameCharacterComponent', () => {
         expect(root.querySelector<HTMLElement>('[data-testid="piece-gauge"]')?.style.transform ?? '').not.toContain(
           '--multi-angle-piece-angle'
         );
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('replaces the linear resource bars with equal rotating pedestal arcs', () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = true;
+      table.multiAngleEnabled = true;
+      table.multiAngleResourceBuffEnabled = true;
+      const character = GameCharacter.create('円形ゲージ', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+        const nameOrbit = root.querySelector<HTMLElement>('[data-testid="multi-angle-name-orbit"]')!;
+        const resourceBuffOrbit = root.querySelector<HTMLElement>('[data-testid="multi-angle-resource-buff-orbit"]')!;
+        const segments = Array.from(
+          root.querySelectorAll<SVGCircleElement>('[data-testid="multi-angle-resource-segment"]')
+        );
+        const labels = Array.from(root.querySelectorAll<SVGTextElement>('[data-testid="multi-angle-resource-label"]'));
+
+        expect(component.multiAngleResourceBuffOrbitEnabled()).toBe(true);
+        expect(root.querySelectorAll('[data-testid="piece-gauge"]')).toHaveLength(0);
+        expect(segments).toHaveLength(2);
+        expect(segments.map((segment) => segment.dataset['segmentDegrees'])).toEqual(['180', '180']);
+        expect(labels.map((label) => label.textContent?.trim())).toEqual(['H', 'M']);
+        expect(root.querySelector('[data-testid="multi-angle-resource-gauge"]')?.textContent).not.toContain('200');
+        expect(nameOrbit.style.animationDuration).toBe('12s');
+        expect(resourceBuffOrbit.classList.contains('animate-multi-angle-name-orbit')).toBe(true);
+        expect(resourceBuffOrbit.style.animationDuration).toBe('15s');
+        expect(resourceBuffOrbit.style.animationTimingFunction).toBe('linear');
+        expect(resourceBuffOrbit.style.animationDelay).toBe(`${component.multiAngleResourceBuffOrbitDelaySeconds()}s`);
+        expect(component.multiAngleResourceBuffOrbitAnimation()).toEqual({
+          durationSeconds: 15,
+          timingFunction: 'linear',
+        });
+        expect(resourceBuffOrbit.parentElement).toBe(nameOrbit.parentElement);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('switches between stationary and rotating resource and buff displays', () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      const objectChange = TestBed.inject(ObjectChangeService);
+      table.mode2d = true;
+      table.multiAngleEnabled = true;
+      const character = GameCharacter.create('表示切替', 1, '');
+      const buff = DataElement.create('加護', 2, { type: DataElementType.NUMBER_RESOURCE });
+      character.buffDataElement!.appendChild(buff);
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+        expect(root.querySelectorAll('[data-testid="piece-gauge"]')).toHaveLength(2);
+        expect(root.querySelector('[data-testid="buff-badge"]')).toBeTruthy();
+        expect(root.querySelector('[data-testid="multi-angle-resource-buff-orbit"]')).toBeNull();
+
+        table.multiAngleResourceBuffEnabled = true;
+        objectChange.notifyChanged(table.identifier);
+        fixture.detectChanges();
+        expect(root.querySelector('[data-testid="piece-gauge"]')).toBeNull();
+        expect(root.querySelector('[data-testid="buff-badge"]')).toBeNull();
+        expect(root.querySelectorAll('[data-testid="multi-angle-resource-segment"]')).toHaveLength(2);
+        expect(root.querySelector('[data-testid="multi-angle-buff-icon"]')).toBeTruthy();
+
+        table.multiAngleResourceBuffEnabled = false;
+        objectChange.notifyChanged(table.identifier);
+        fixture.detectChanges();
+        expect(root.querySelectorAll('[data-testid="piece-gauge"]')).toHaveLength(2);
+        expect(root.querySelector('[data-testid="buff-badge"]')).toBeTruthy();
+        expect(root.querySelector('[data-testid="multi-angle-resource-buff-orbit"]')).toBeNull();
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('shows at most four configured resources in ninety-degree segments', () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = true;
+      table.multiAngleEnabled = true;
+      table.multiAngleResourceBuffEnabled = true;
+      const character = GameCharacter.create('四分割', 1, '');
+      const group = character.detailDataElement!.getFirstElementByName('基本')!;
+      for (const name of ['AP', 'BP', 'CP']) {
+        const resource = DataElement.create(name, 10, {
+          type: DataElementType.NUMBER_RESOURCE,
+          currentValue: '5',
+        });
+        resource.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
+        group.appendChild(resource);
+      }
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const segments = Array.from(
+          (fixture.nativeElement as HTMLElement).querySelectorAll<SVGCircleElement>(
+            '[data-testid="multi-angle-resource-segment"]'
+          )
+        );
+
+        expect(component.pieceGauges()).toHaveLength(5);
+        expect(segments).toHaveLength(4);
+        expect(segments.map((segment) => segment.dataset['resourceName'])).toEqual(['HP', 'MP', 'AP', 'BP']);
+        expect(segments.every((segment) => segment.dataset['segmentDegrees'] === '90')).toBe(true);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('moves buff icons onto the same rotating outer orbit', () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = true;
+      table.multiAngleEnabled = true;
+      table.multiAngleResourceBuffEnabled = true;
+      const character = GameCharacter.create('外周バフ', 1, '');
+      const buff = DataElement.create('毒', 3, {
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: 'ダメージ2',
+      });
+      buff.setAttribute(DataElementAttribute.BUFF_ICON, '☠️');
+      character.buffDataElement!.appendChild(buff);
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+        const icon = root.querySelector<HTMLElement>('[data-testid="multi-angle-buff-icon"]');
+        const position = root.querySelector<HTMLElement>('[data-testid="multi-angle-buff-position"]');
+
+        expect(root.querySelector('[data-testid="buff-badge"]')).toBeNull();
+        expect(icon?.textContent?.trim()).toBe('☠️');
+        expect(icon?.title).toBe('毒');
+        expect(position?.style.transform).toContain('rotate(0deg)');
+        expect(position?.closest('[data-testid="multi-angle-resource-buff-orbit"]')).toBeTruthy();
+        expect(position?.closest('[data-testid="multi-angle-name-orbit"]')).toBeNull();
+        expect(component.multiAngleLabelText()).toBe('外周バフ');
       } finally {
         character.destroy();
       }

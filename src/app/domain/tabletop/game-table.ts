@@ -64,6 +64,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() radialMenuEnabled: boolean = false;
   @SyncVar() radialMenuRotationSpeed: number = DEFAULT_RADIAL_MENU_ROTATION_SPEED;
   @SyncVar() multiAngleEnabled: boolean = false;
+  @SyncVar() multiAngleResourceBuffEnabled: boolean = false;
   @SyncVar() multiAngleMotionMode: MultiAngleMotionMode = 'continuous';
   @SyncVar() multiAngleRevolutionSeconds: number = DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS;
   @SyncVar() multiAnglePauseSeconds: number = DEFAULT_MULTI_ANGLE_PAUSE_SECONDS;

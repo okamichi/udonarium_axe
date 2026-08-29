@@ -467,6 +467,16 @@
               <div
                 class="border-ui-border-panel bg-ui-input/35 ml-5 grid grid-cols-[8.5rem_1fr] items-center gap-2 rounded-md border border-solid p-2"
               >
+                <label class="text-ui-text col-span-2 flex cursor-pointer items-center gap-1.5 text-[12px] select-none">
+                  <input
+                    type="checkbox"
+                    class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                    [(ngModel)]="tableMultiAngleResourceBuffEnabled"
+                    name="tableMultiAngleResourceBuffEnabled"
+                  />
+                  {{ 'feature.tabletop.tableSetting.multiAngleResourceBuff' | transloco }}
+                </label>
+
                 <label class="text-ui-muted text-[11px]" for="tableMultiAngleMotionMode">{{
                   'feature.tabletop.tableSetting.multiAngleMotionMode' | transloco
                 }}</label>

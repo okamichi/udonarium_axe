@@ -1675,6 +1675,7 @@
         "radialMenuSpeed": "回転速度",
         "radialMenuSpeedHelp": "回転メニューの回転速度を1～24°/秒で設定します。値が大きいほど速く回転します。",
         "multiAngle": "コマ名を円周に沿って周回",
+        "multiAngleResourceBuff": "リソースバフ回転表示（最大4つまで）",
         "multiAngleMotionMode": "回転方法",
         "multiAngleContinuous": "時計回りに連続回転",
         "multiAngleQuarterTurn": "90°回転して静止",

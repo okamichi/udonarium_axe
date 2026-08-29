@@ -236,6 +236,15 @@ export class GameTableSettingComponent {
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
+  get tableMultiAngleResourceBuffEnabled(): boolean {
+    return this.selectedTable?.multiAngleResourceBuffEnabled ?? false;
+  }
+  set tableMultiAngleResourceBuffEnabled(value: boolean) {
+    if (!this.selectedTable) return;
+    this.selectedTable.multiAngleResourceBuffEnabled = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
   get tableMultiAngleMotionMode(): MultiAngleMotionMode {
     const mode = this.selectedTable?.multiAngleMotionMode;
     return mode === 'quarter-turn' || mode === 'piece-quarter-turn' ? mode : 'continuous';
