@@ -1534,6 +1534,8 @@
         "copy": "コピーを作る",
         "delete": "削除する",
         "createObject": "オブジェクト作成",
+        "createObject1": "オブジェクト作成1",
+        "createObject2": "オブジェクト作成2",
         "terrainEdit": "地形設定を編集",
         "lightSection": "暗闇（視界・発光）",
         "blocksSight": "視界を遮る",

@@ -1534,6 +1534,8 @@
         "copy": "복제 만들기",
         "delete": "삭제하기",
         "createObject": "오브젝트 만들기",
+        "createObject1": "오브젝트 만들기 1",
+        "createObject2": "오브젝트 만들기 2",
         "terrainEdit": "지형 설정 편집",
         "lightSection": "어둠(시야·발광)",
         "blocksSight": "시야를 막음",

@@ -1534,6 +1534,8 @@
         "copy": "Duplicate",
         "delete": "Delete",
         "createObject": "Create object",
+        "createObject1": "Create object 1",
+        "createObject2": "Create object 2",
         "terrainEdit": "Edit terrain",
         "lightSection": "Darkness (vision & glow)",
         "blocksSight": "Blocks sight",
