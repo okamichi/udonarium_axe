@@ -20,7 +20,7 @@ import { EffectParticleLayer } from '@axe/domain/effect/effect-particles';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { EffectCanvasComponent } from '@axe/features/effect/effect-canvas/effect-canvas.component';
-import { buildTableAmbienceContextMenu } from '@axe/features/tabletop/table-ambience/table-ambience-context-menu';
+import { buildTableAmbienceContextMenuModel } from '@axe/features/tabletop/table-ambience/table-ambience-context-menu';
 import { TableAmbienceSettingsComponent } from '@axe/features/tabletop/table-ambience/table-ambience-settings.component';
 import { MovableDirective, MovableOption } from '@axe/ui/directives/movable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
@@ -196,8 +196,20 @@ export class TableAmbienceComponent {
     const menuPosition = this.pointerDeviceService.pointers[0];
     if (this.pieceContextMenu.openForSelection(area, this.gridSize(), menuPosition)) return;
 
-    const menu = buildTableAmbienceContextMenu(area, this.gridSize(), () => this.openSettings(area), this.t);
-    this.contextMenuService.open(menuPosition, menu, area.name);
+    const menu = buildTableAmbienceContextMenuModel(area, this.gridSize(), () => this.openSettings(area), this.t);
+    const table = this.tabletopService.currentTable;
+    if (table.mode2d) {
+      this.contextMenuService.openRadial(
+        menuPosition,
+        menu.actions,
+        menu.radialGroups,
+        area.name,
+        table.radialMenuEnabled,
+        table.radialMenuRotationSpeed
+      );
+      return;
+    }
+    this.contextMenuService.open(menuPosition, menu.actions, area.name);
   }
 
   private openSettings(area: TableAmbience): void {

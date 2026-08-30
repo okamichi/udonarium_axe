@@ -1029,9 +1029,62 @@ button.radial-menu-sector:focus-visible {
   outline: none;
 }
 
-button.radial-child-menu-item.radial-child-menu-item-active:not(:disabled) {
-  background: var(--ui-menu-hover);
+button.radial-child-menu-item-detached {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
+}
+
+button.radial-child-menu-item-detached:hover:not(:disabled),
+button.radial-child-menu-item-detached:focus-visible:not(:disabled),
+button.radial-child-menu-item-detached.radial-child-menu-item-active:not(:disabled) {
+  background: var(--ui-menu-bg);
+  box-shadow:
+    inset 0 0 0 9999px var(--ui-menu-hover),
+    0 1px 3px rgba(0, 0, 0, 0.38);
   color: var(--ui-accent);
+}
+
+button.radial-child-menu-item:focus-visible {
+  outline: none;
+}
+
+/* 回転メニューから開く子・孫メニューは、外箱ではなく各項目に黒い下地を持たせる。 */
+.context-menu-detached-title {
+  margin-bottom: 2px;
+  border: 1px solid var(--ui-menu-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-menu-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
+}
+
+.context-menu-detached-item {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
+}
+
+.context-menu-detached-item:hover {
+  background: var(--ui-menu-bg);
+  box-shadow:
+    inset 0 0 0 9999px var(--ui-menu-hover),
+    0 1px 3px rgba(0, 0, 0, 0.38);
+  color: var(--ui-accent);
+}
+
+/* 高度スライダーは通常の項目行ではないため、分離表示時だけ専用の不透明パネルで支える。 */
+.context-menu-detached-altitude-slider-panel {
+  display: flex;
+  align-self: stretch;
+  margin-right: 2px;
+  border: 1px solid var(--ui-menu-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-menu-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
+}
+
+.context-menu-detached-altitude-title {
+  margin-bottom: 2px;
+  border: 1px solid var(--ui-menu-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-menu-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
 }
 
 html,

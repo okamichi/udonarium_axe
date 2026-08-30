@@ -427,8 +427,9 @@ describe('FourWayRadialMenuComponent', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const listAnchor = root.querySelector<HTMLElement>('[data-radial-child-list]')!;
-    const list = listAnchor.firstElementChild as HTMLElement;
+    const list = listAnchor.querySelector<HTMLElement>('[data-radial-child-items]')!;
     const children = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-radial-child]'));
+    const gaps = Array.from(root.querySelectorAll<HTMLElement>('[data-radial-child-item-gap]'));
 
     expect(children.map((button) => button.getAttribute('aria-label'))).toEqual(['Action 1', 'Action 2', 'Action 3']);
     expect(root.querySelectorAll('[data-radial-child-list]')).toHaveLength(1);
@@ -436,7 +437,16 @@ describe('FourWayRadialMenuComponent', () => {
     expect(listAnchor.style.rotate).toBe('180deg');
     expect(list.classList.contains('flex-col')).toBe(true);
     expect(list.style.width).toBe('128px');
+    expect(list.classList.contains('bg-ui-menu')).toBe(false);
+    expect(list.classList.contains('border')).toBe(false);
+    expect(list.classList.contains('shadow-ui-lg')).toBe(false);
+    expect(gaps).toHaveLength(2);
+    expect(gaps.every((gap) => gap.style.height === '2px')).toBe(true);
     expect(children.every((button) => button.classList.contains('radial-child-menu-item'))).toBe(true);
+    expect(children.every((button) => button.classList.contains('radial-child-menu-item-detached'))).toBe(true);
+    expect(children.every((button) => button.classList.contains('rounded-ui-sm'))).toBe(true);
+    expect(children.every((button) => button.classList.contains('bg-ui-menu'))).toBe(true);
+    expect(children.every((button) => button.classList.contains('border'))).toBe(true);
     expect(children.every((button) => !button.classList.contains('radial-menu-sector'))).toBe(true);
     expect(children.every((button) => button.style.clipPath === '')).toBe(true);
 
@@ -451,7 +461,13 @@ describe('FourWayRadialMenuComponent', () => {
         name: '表示',
         icon: 'visibility',
         actions: [
-          { name: '高度設定', subActions: [{ name: '影を表示する', action: vi.fn() }] },
+          {
+            name: '高度設定',
+            subActions: [
+              { name: '影を表示する', action: vi.fn() },
+              { name: '高度を固定する', action: vi.fn() },
+            ],
+          },
           { name: 'インベントリ非表示', action: vi.fn() },
         ],
       },
@@ -479,6 +495,17 @@ describe('FourWayRadialMenuComponent', () => {
     expect(anchor.style.top).toBe('110px');
     expect(anchor.style.rotate).toBe('180deg');
     expect(anchor.textContent).toContain('影を表示する');
+    const flyoutRoot = anchor.querySelector<HTMLElement>('[data-context-menu-root]')!;
+    const flyoutItems = Array.from(flyoutRoot.querySelectorAll<HTMLElement>('[data-context-menu-item]'));
+    const flyoutGaps = Array.from(flyoutRoot.querySelectorAll<HTMLElement>('[data-context-menu-item-gap]'));
+    expect(flyoutRoot.dataset['detachedItems']).toBe('true');
+    expect(flyoutRoot.classList.contains('bg-ui-menu')).toBe(false);
+    expect(flyoutRoot.classList.contains('border')).toBe(false);
+    expect(flyoutItems).toHaveLength(2);
+    expect(flyoutItems.every((item) => item.classList.contains('bg-ui-menu'))).toBe(true);
+    expect(flyoutItems.every((item) => item.classList.contains('rounded-ui-sm'))).toBe(true);
+    expect(flyoutGaps).toHaveLength(1);
+    expect(flyoutGaps[0]?.style.height).toBe('2px');
     expect(ring.style.animationPlayState).toBe('paused');
     expect(buttonWithLabel('表示')).toBeTruthy();
     expect(buttonWithLabel('インベントリ非表示')).toBeTruthy();

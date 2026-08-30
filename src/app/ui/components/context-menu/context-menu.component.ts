@@ -57,6 +57,7 @@ export class ContextMenuComponent {
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 
   readonly isSubmenu = input(false);
+  readonly detachedItems = input(false);
   protected readonly titleInput = input('', { alias: 'title' });
   readonly titleColor = input('');
   readonly titleBold = input(false);
