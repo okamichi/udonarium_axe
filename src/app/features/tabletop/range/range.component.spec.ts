@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 
 describe('RangeComponent', () => {
   let component: RangeComponent;
@@ -98,6 +101,18 @@ describe('RangeComponent', () => {
   });
 
   describe('the turn handle', () => {
+    it('keeps rotation enabled for a rotatable shape in 2D mode', () => {
+      const range = RangeArea.create('テスト', 3, 3, 1);
+      range.type = 'SQUARE';
+      TestBed.inject(TabletopService).currentTable.mode2d = true;
+      fixture.componentRef.setInput('range', range);
+      fixture.detectChanges();
+
+      const rotable = fixture.debugElement.query(By.directive(RotableDirective)).injector.get(RotableDirective);
+
+      expect(rotable.isDisable()).toBe(false);
+    });
+
     it('shows a turn handle on a square', () => {
       const range = RangeArea.create('テスト', 3, 3, 1);
       range.type = 'SQUARE';

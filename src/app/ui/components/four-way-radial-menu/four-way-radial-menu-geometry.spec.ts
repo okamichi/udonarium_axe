@@ -1,5 +1,8 @@
 import {
   angleOnRing,
+  annularSectorLabelPoint,
+  annularSectorLabelWidth,
+  annularSectorPolygon,
   clampRadialCenter,
   nearestCardinalRotation,
   outwardRotationOnRing,
@@ -28,6 +31,21 @@ describe('four-way radial menu geometry', () => {
   it('faces each item toward the outside of the ring', () => {
     const rotations = Array.from({ length: 4 }, (_, index) => outwardRotationOnRing(index, 4));
     expect(rotations).toEqual([180, 270, 0, 90]);
+  });
+
+  it('builds a clipped annular sector with a transparent center and item gap', () => {
+    const polygon = annularSectorPolygon(0, 8, 100, 150, 3);
+
+    expect(polygon).toMatch(/^polygon\(/);
+    expect(polygon).not.toContain('NaN');
+    expect(polygon.split(',')).toHaveLength(10);
+  });
+
+  it('places annular labels on the middle radius', () => {
+    expect(annularSectorLabelPoint(0, 4, 125)).toEqual({ x: expect.closeTo(0), y: expect.closeTo(-125) });
+    expect(annularSectorLabelPoint(1, 4, 125)).toEqual({ x: expect.closeTo(125), y: expect.closeTo(0) });
+    expect(annularSectorLabelWidth(125, 8, 3)).toBeGreaterThan(80);
+    expect(annularSectorLabelWidth(125, 1, 3)).toBe(150);
   });
 
   it('inherits the selected item angle as the next ring start angle', () => {

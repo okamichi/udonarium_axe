@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   inject,
   signal,
@@ -21,26 +22,36 @@ import {
   MAX_RADIAL_MENU_ROTATION_SPEED,
   MIN_RADIAL_MENU_ROTATION_SPEED,
 } from '@axe/domain/tabletop/game-table';
+import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
 import {
-  angleOnRing,
+  annularSectorLabelPoint,
+  annularSectorLabelWidth,
+  annularSectorPolygon,
   clampRadialCenter,
   nearestCardinalRotation,
   outwardRotationOnRing,
   pointAtAngle,
   pointOnRing,
-  RADIAL_MENU_PAGE_SIZE,
   RadialMenuSeat,
-  radialPage,
-  radialPageCount,
   RadialPoint,
   seatAngle,
   seatTextRotation,
 } from '@axe/ui/components/four-way-radial-menu/four-way-radial-menu-geometry';
 import { TranslocoModule } from '@jsverse/transloco';
 
-interface RadialMenuLevel {
-  title: string;
+interface ActionPresentation {
+  label: string;
+  kind: 'checkbox' | 'radio' | 'selected' | 'none';
+  checked: boolean | null;
+  icon: string | null;
+}
+
+interface RadialFlyout {
+  action: ContextMenuAction;
   actions: ContextMenuAction[];
+  left: number;
+  top: number;
+  rotation: PanelRotationDegrees;
 }
 
 const SEATS: RadialMenuSeat[] = ['north', 'east', 'south', 'west'];
@@ -51,8 +62,14 @@ const LAUNCHER_HALF_EXTENT_PX = 28;
 const ITEM_HALF_EXTENT_PX = 60;
 const RING_CLEARANCE_GAP_PX = 8;
 const GUIDE_OCCLUSION_GAP_PX = 2;
-const RING_LEVEL_TRANSITION_MS = 180;
-const RADIAL_ACTION_PAGE_SIZE = RADIAL_MENU_PAGE_SIZE - 1;
+const ROOT_BAND_HALF_DEPTH_PX = 28;
+const CHILD_LIST_GAP_PX = 8;
+const CHILD_LIST_WIDTH_PX = 128;
+const CHILD_ITEM_HEIGHT_PX = 28;
+const CHILD_LIST_VERTICAL_PADDING_PX = 8;
+const SECTOR_GAP_PX = 3;
+const MENU_VIEWPORT_MARGIN_PX = 12;
+const PARENT_CLICK_PAUSE_MS = 3000;
 const FULL_ROTATION_DEGREES = 360;
 const ROTATION_EPSILON = 1e-9;
 
@@ -60,7 +77,7 @@ const ROTATION_EPSILON = 1e-9;
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'four-way-radial-menu',
   templateUrl: './four-way-radial-menu.component.html',
-  imports: [TranslocoModule],
+  imports: [ContextMenuComponent, TranslocoModule],
   host: {
     class: 'block',
     '(window:resize)': 'onResize()',
@@ -68,6 +85,7 @@ const ROTATION_EPSILON = 1e-9;
 })
 export class FourWayRadialMenuComponent {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly contextMenuService = inject(ContextMenuService);
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
@@ -77,29 +95,27 @@ export class FourWayRadialMenuComponent {
   protected readonly guideBoundaryAngles = GUIDE_BOUNDARY_ANGLES;
   protected readonly directionGuideAngles = DIRECTION_GUIDE_ANGLES;
   protected readonly selectedSeat = signal<RadialMenuSeat | null>(null);
-  protected readonly levels = signal<RadialMenuLevel[]>([]);
-  protected readonly page = signal(0);
-  protected readonly ringStartAngle = signal(-90);
-  protected readonly ringTransitioning = signal(false);
+  protected readonly ringStartAngle = -90;
   protected readonly manualRotationDegrees = signal(0);
   protected readonly manualRotationTransitionEnabled = signal(true);
   protected readonly manualRotationStyleDegrees = computed(() => Number(this.manualRotationDegrees().toFixed(6)));
+  protected readonly pausedParentIndex = signal<number | null>(null);
+  protected readonly flyout = signal<RadialFlyout | null>(null);
+  protected readonly flyoutItems = computed(() => {
+    const flyout = this.flyout();
+    return flyout ? [flyout] : [];
+  });
+  protected readonly ringPaused = computed(() => this.pausedParentIndex() !== null || this.flyout() !== null);
   private readonly viewport = signal({ width: window.innerWidth, height: window.innerHeight });
   private readonly actionRotationDegrees = signal<PanelRotationDegrees>(0);
-  private ringResumeTimer: ReturnType<typeof setTimeout> | null = null;
+  private parentPauseTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly radialGroups = computed(() =>
     this.contextMenuService.radialGroups.filter((group) => this.actionItems(group.actions).length > 0)
   );
-  protected readonly currentLevel = computed(() => this.levels().at(-1) ?? null);
-  protected readonly currentActions = computed(() => this.actionItems(this.currentLevel()?.actions ?? []));
-  protected readonly pageCount = computed(() => radialPageCount(this.currentActions().length, RADIAL_ACTION_PAGE_SIZE));
-  protected readonly visibleActions = computed(() =>
-    radialPage(this.currentActions(), this.page(), RADIAL_ACTION_PAGE_SIZE)
-  );
-  protected readonly hasNextPage = computed(() => this.currentLevel() !== null && this.page() + 1 < this.pageCount());
-  protected readonly ringItemCount = computed(
-    () => (this.currentLevel() ? this.visibleActions().length : this.radialGroups().length) + 1
+  protected readonly ringItemCount = computed(() => this.radialGroups().length + 1);
+  protected readonly maxChildCount = computed(() =>
+    this.radialGroups().reduce((maximum, group) => Math.max(maximum, this.actionItems(group.actions).length), 0)
   );
   protected readonly clearanceRadius = computed(() => {
     const radius = Number(this.contextMenuService.radialMenuClearanceRadius);
@@ -113,8 +129,18 @@ export class FourWayRadialMenuComponent {
     const baseRadius = Math.max(82, Math.min(138, shortestSide / 2 - ITEM_HALF_EXTENT_PX - 12));
     return Math.max(baseRadius, this.clearanceRadius() + ITEM_HALF_EXTENT_PX + RING_CLEARANCE_GAP_PX);
   });
+  protected readonly rootInnerRadius = computed(() => Math.max(1, this.ringRadius() - ROOT_BAND_HALF_DEPTH_PX));
+  protected readonly rootOuterRadius = computed(() => this.ringRadius() + ROOT_BAND_HALF_DEPTH_PX);
+  protected readonly menuExtent = computed(() => {
+    const childCount = this.maxChildCount();
+    if (childCount < 1) return this.rootOuterRadius() + MENU_VIEWPORT_MARGIN_PX;
+
+    const listHeight = childCount * CHILD_ITEM_HEIGHT_PX + CHILD_LIST_VERTICAL_PADDING_PX;
+    const farEdge = this.childListAnchorRadius() + listHeight;
+    return Math.hypot(farEdge, CHILD_LIST_WIDTH_PX / 2) + MENU_VIEWPORT_MARGIN_PX;
+  });
   protected readonly center = computed(() =>
-    clampRadialCenter(this.contextMenuService.position, this.viewport(), this.ringRadius() + ITEM_HALF_EXTENT_PX)
+    clampRadialCenter(this.contextMenuService.position, this.viewport(), this.menuExtent())
   );
   protected readonly connectorVisible = computed(() => {
     const center = this.center();
@@ -129,6 +155,7 @@ export class FourWayRadialMenuComponent {
 
   constructor() {
     afterNextRender(() => this.focusFirstControl());
+    this.destroyRef.onDestroy(() => this.clearParentPauseTimer());
   }
 
   protected get title(): string {
@@ -152,6 +179,7 @@ export class FourWayRadialMenuComponent {
   }
 
   protected close(): void {
+    this.clearParentPauseTimer();
     this.contextMenuService.close();
   }
 
@@ -161,18 +189,29 @@ export class FourWayRadialMenuComponent {
       return;
     }
     event.preventDefault();
+    if (this.flyout()) {
+      this.closeFlyout();
+      return;
+    }
     this.close();
   }
 
   protected onContextMenu(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
-    if (this.contextMenuService.radialMenuEnabled) this.rotateMenuOneItem();
+    if (this.contextMenuService.radialMenuEnabled) {
+      this.closeFlyout();
+      this.rotateMenuOneItem();
+    }
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
       event.preventDefault();
+      if (this.flyout()) {
+        this.closeFlyout();
+        return;
+      }
       this.close();
       return;
     }
@@ -189,59 +228,53 @@ export class FourWayRadialMenuComponent {
   protected chooseSeat(seat: RadialMenuSeat): void {
     this.selectedSeat.set(seat);
     this.actionRotationDegrees.set(seatTextRotation(seat) as PanelRotationDegrees);
-    this.levels.set([]);
-    this.page.set(0);
     this.openFullMenu();
   }
 
-  protected chooseGroup(group: ContextMenuRadialGroup, index: number): void {
-    const actions = this.actionItems(group.actions);
-    if (actions.length === 1 && actions[0]?.action && !actions[0].subActions?.length) {
-      this.rememberItemDirection(index, this.ringItemCount());
-      this.runAction(actions[0]);
-      return;
-    }
-    this.changeRingLevel(index, this.ringItemCount(), () => {
-      this.levels.set([{ title: group.name, actions }]);
-      this.page.set(0);
-      this.focusFirstControlSoon();
-    });
+  protected pauseAtGroup(index: number): void {
+    this.closeFlyout();
+    this.rememberItemDirection(index, this.ringItemCount());
+    this.pausedParentIndex.set(index);
+    this.clearParentPauseTimer();
+    this.parentPauseTimer = setTimeout(() => {
+      this.pausedParentIndex.set(null);
+      this.parentPauseTimer = null;
+    }, PARENT_CLICK_PAUSE_MS);
   }
 
-  protected chooseAction(action: ContextMenuAction, index: number): void {
+  protected chooseAction(action: ContextMenuAction, parentIndex: number, event: MouseEvent): void {
     if (!this.actionEnabled(action)) return;
+    this.rememberItemDirection(parentIndex, this.ringItemCount());
     const subActions = this.actionItems(action.subActions ?? []);
     if (subActions.length > 0) {
-      this.changeRingLevel(index, this.ringItemCount(), () => {
-        this.levels.update((levels) => [...levels, { title: this.actionName(action), actions: subActions }]);
-        this.page.set(0);
-        this.focusFirstControlSoon();
+      if (this.flyout()?.action === action) {
+        this.closeFlyout();
+        return;
+      }
+      const button = event.currentTarget as HTMLElement | null;
+      const rect = button?.getBoundingClientRect();
+      const rotation = this.selectedRotationDegrees();
+      this.contextMenuService.rotationDegrees = rotation;
+      this.flyout.set({
+        action,
+        actions: subActions,
+        left: rect?.right ?? this.center().x,
+        top: rect ? rect.top + rect.height / 2 : this.center().y,
+        rotation,
       });
       return;
     }
     if (action.action) {
-      this.rememberItemDirection(index, this.ringItemCount());
       this.runAction(action);
     }
   }
 
-  protected returnFromRing(): void {
-    if (this.currentLevel()) {
-      this.back();
-    } else {
-      this.close();
-    }
+  protected closeFlyout(): void {
+    this.flyout.set(null);
   }
 
-  protected back(): void {
-    const levels = this.levels();
-    if (levels.length > 1) {
-      this.levels.set(levels.slice(0, -1));
-    } else {
-      this.levels.set([]);
-    }
-    this.page.set(0);
-    this.focusFirstControlSoon();
+  protected isFlyoutAction(action: ContextMenuAction): boolean {
+    return this.flyout()?.action === action;
   }
 
   protected openFullMenu(): void {
@@ -251,11 +284,6 @@ export class FourWayRadialMenuComponent {
       this.selectedRotationDegrees(),
       this.contextMenuService.title
     );
-  }
-
-  protected advancePage(): void {
-    this.page.update((page) => Math.min(this.pageCount() - 1, page + 1));
-    this.focusFirstControlSoon();
   }
 
   protected rotateMenuOneItem(): void {
@@ -298,28 +326,53 @@ export class FourWayRadialMenuComponent {
     return nearestCardinalRotation(angle + 270);
   }
 
-  protected groupPoint(index: number): RadialPoint {
-    return pointOnRing(index, this.ringItemCount(), this.ringRadius(), this.ringStartAngle());
+  protected groupActions(group: ContextMenuRadialGroup): ContextMenuAction[] {
+    return this.actionItems(group.actions);
   }
 
-  protected actionPoint(index: number): RadialPoint {
-    return pointOnRing(index, this.ringItemCount(), this.ringRadius(), this.ringStartAngle());
+  protected rootSectorSize(): number {
+    return this.rootOuterRadius() * 2;
   }
 
-  protected returnPoint(): RadialPoint {
-    return pointOnRing(this.ringItemCount() - 1, this.ringItemCount(), this.ringRadius(), this.ringStartAngle());
+  protected rootSectorClipPath(index: number): string {
+    return annularSectorPolygon(
+      index,
+      this.ringItemCount(),
+      this.rootInnerRadius(),
+      this.rootOuterRadius(),
+      SECTOR_GAP_PX,
+      this.ringStartAngle
+    );
   }
 
-  protected returnIcon(): string {
-    return this.currentLevel() ? 'arrow_back' : 'close';
+  protected rootLabelPoint(index: number): RadialPoint {
+    const radius = this.ringRadius();
+    const point = annularSectorLabelPoint(index, this.ringItemCount(), radius, this.ringStartAngle);
+    return { x: this.rootOuterRadius() + point.x, y: this.rootOuterRadius() + point.y };
   }
 
-  protected returnTitle(): string {
-    return this.currentLevel() ? this.t('ui.contextMenu.radial.back') : this.t('common.button.close');
+  protected rootLabelWidth(): number {
+    return annularSectorLabelWidth(this.ringRadius(), this.ringItemCount(), SECTOR_GAP_PX);
   }
 
-  protected itemTransform(index: number, count: number): string {
-    return `translate(-50%, -50%) rotate(${outwardRotationOnRing(index, count, this.ringStartAngle())}deg)`;
+  protected childListWidth(): number {
+    return CHILD_LIST_WIDTH_PX;
+  }
+
+  protected childListAnchorPoint(parentIndex: number): RadialPoint {
+    return pointOnRing(parentIndex, this.ringItemCount(), this.childListAnchorRadius(), this.ringStartAngle);
+  }
+
+  protected childListRotation(parentIndex: number): number {
+    return outwardRotationOnRing(parentIndex, this.ringItemCount(), this.ringStartAngle);
+  }
+
+  protected itemTransform(index: number): string {
+    return `translate(-50%, -50%) rotate(${outwardRotationOnRing(
+      index,
+      this.ringItemCount(),
+      this.ringStartAngle
+    )}deg)`;
   }
 
   protected launcherTransform(seat: RadialMenuSeat): string {
@@ -331,7 +384,34 @@ export class FourWayRadialMenuComponent {
   }
 
   protected actionName(action: ContextMenuAction): string {
-    return action.name.replace(/^[☑☐◉○✔]\s*/, '');
+    return this.actionPresentation(action).label;
+  }
+
+  protected actionPresentation(action: ContextMenuAction): ActionPresentation {
+    const match = action.name.match(/^([☑☐◉○✔])\s*/);
+    const label = match ? action.name.slice(match[0].length) : action.name;
+    switch (match?.[1]) {
+      case '☑':
+        return { label, kind: 'checkbox', checked: true, icon: 'check_box' };
+      case '☐':
+        return { label, kind: 'checkbox', checked: false, icon: 'check_box_outline_blank' };
+      case '◉':
+        return { label, kind: 'radio', checked: true, icon: 'radio_button_checked' };
+      case '○':
+        return { label, kind: 'radio', checked: false, icon: 'radio_button_unchecked' };
+      case '✔':
+        return { label, kind: 'selected', checked: true, icon: 'check' };
+      default:
+        return { label, kind: 'none', checked: null, icon: null };
+    }
+  }
+
+  protected hasSubActions(action: ContextMenuAction): boolean {
+    return this.actionItems(action.subActions ?? []).length > 0;
+  }
+
+  protected returnTitle(): string {
+    return this.t('common.button.close');
   }
 
   protected actionEnabled(action: ContextMenuAction): boolean {
@@ -355,6 +435,10 @@ export class FourWayRadialMenuComponent {
     return this.actionRotationDegrees();
   }
 
+  private childListAnchorRadius(): number {
+    return this.rootOuterRadius() + CHILD_LIST_GAP_PX;
+  }
+
   private fullMenuPosition(): RadialPoint {
     const seat = this.selectedSeat();
     if (!seat) return this.contextMenuService.position;
@@ -365,7 +449,7 @@ export class FourWayRadialMenuComponent {
   }
 
   private rememberItemDirection(index: number, count: number): void {
-    const itemRotation = outwardRotationOnRing(index, count, this.ringStartAngle());
+    const itemRotation = outwardRotationOnRing(index, count, this.ringStartAngle);
     this.actionRotationDegrees.set(
       nearestCardinalRotation(itemRotation + this.currentRingRotationDegrees() + this.manualRotationDegrees())
     );
@@ -384,19 +468,10 @@ export class FourWayRadialMenuComponent {
     return (Math.atan2(values[1]!, values[0]!) * 180) / Math.PI;
   }
 
-  private changeRingLevel(index: number, count: number, changeLevel: () => void): void {
-    this.ringTransitioning.set(true);
-    this.ringStartAngle.set(angleOnRing(index, count, this.ringStartAngle()));
-    changeLevel();
-    if (this.ringResumeTimer) clearTimeout(this.ringResumeTimer);
-    this.ringResumeTimer = setTimeout(() => {
-      this.ringTransitioning.set(false);
-      this.ringResumeTimer = null;
-    }, RING_LEVEL_TRANSITION_MS);
-  }
-
-  private focusFirstControlSoon(): void {
-    setTimeout(() => this.focusFirstControl());
+  private clearParentPauseTimer(): void {
+    if (!this.parentPauseTimer) return;
+    clearTimeout(this.parentPauseTimer);
+    this.parentPauseTimer = null;
   }
 
   private focusFirstControl(): void {

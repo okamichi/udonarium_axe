@@ -1009,6 +1009,31 @@ button.rotating-menu-item:hover:not(:disabled) {
   color: var(--ui-accent);
 }
 
+/* 回転メニューの親項目は、表示形状とクリック領域を同じドーナツセクターにする。 */
+button.radial-menu-sector {
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+button.radial-menu-sector:hover:not(:disabled),
+button.radial-menu-sector:focus-visible:not(:disabled),
+button.radial-menu-sector.radial-menu-sector-active:not(:disabled) {
+  background: var(--ui-menu-bg);
+  box-shadow: inset 0 0 0 9999px var(--ui-menu-hover);
+  color: var(--ui-accent);
+}
+
+button.radial-menu-sector:focus-visible {
+  outline: none;
+}
+
+button.radial-child-menu-item.radial-child-menu-item-active:not(:disabled) {
+  background: var(--ui-menu-hover);
+  color: var(--ui-accent);
+}
+
 html,
 body {
   width: 100%;

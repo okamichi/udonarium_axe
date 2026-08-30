@@ -15,6 +15,11 @@ describe('FourWayRadialMenuComponent', () => {
     expect(button).toBeDefined();
     return button!;
   };
+  const buttonWithLabel = (label: string): HTMLButtonElement => {
+    const button = buttons().find((candidate) => candidate.getAttribute('aria-label') === label);
+    expect(button).toBeDefined();
+    return button!;
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({ imports: [FourWayRadialMenuComponent] }).compileComponents();
@@ -49,7 +54,9 @@ describe('FourWayRadialMenuComponent', () => {
     const labels = buttons().map((button) => button.getAttribute('aria-label'));
     expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-ring]')).toBeTruthy();
     expect(buttonContaining('表示')).toBeTruthy();
-    expect(buttonContaining('戻る')).toBeTruthy();
+    expect(buttonContaining('閉じる')).toBeTruthy();
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('[data-radial-parent]')).toHaveLength(1);
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('[data-radial-child]')).toHaveLength(1);
     expect(labels).not.toContain('南側から操作');
   });
 
@@ -182,10 +189,13 @@ describe('FourWayRadialMenuComponent', () => {
     service.radialMenuClearanceRadius = 100;
     createWithGroups([{ name: 'North', icon: 'north', actions: [{ name: 'Action', action: vi.fn() }] }]);
 
-    expect(buttonContaining('North').style.top).toBe('-168px');
+    const parent = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-radial-parent]')!;
+    const label = parent.querySelector<HTMLElement>('[data-radial-parent-label]')!;
+    expect(parent.style.width).toBe('392px');
+    expect(label.style.top).toBe('28px');
   });
 
-  it('executes a single action using the clicked category direction', () => {
+  it('shows and executes a single child action using its parent direction', () => {
     const action = vi.fn();
     const close = vi.spyOn(service, 'close').mockImplementation(() => undefined);
     const runPanelWithRotation = vi
@@ -196,7 +206,8 @@ describe('FourWayRadialMenuComponent', () => {
       .mockImplementation((_degrees, callback) => callback());
     createWithGroups([{ name: '基本情報', icon: 'badge', actions: [{ name: '詳細を表示', action }] }]);
 
-    buttonContaining('基本情報').click();
+    expect(buttonWithLabel('詳細を表示')).toBeTruthy();
+    buttonWithLabel('詳細を表示').click();
 
     expect(action).toHaveBeenCalledOnce();
     expect(runPanelWithRotation).toHaveBeenCalledWith(180, expect.any(Function));
@@ -217,7 +228,7 @@ describe('FourWayRadialMenuComponent', () => {
       { name: 'West', icon: 'west', actions: [{ name: 'West action', action: vi.fn() }] },
     ]);
 
-    buttonContaining('East').click();
+    buttonWithLabel('East action').click();
 
     expect(runWithRotation).toHaveBeenCalledWith(270, expect.any(Function));
   });
@@ -232,7 +243,7 @@ describe('FourWayRadialMenuComponent', () => {
     const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]')!;
     ring.style.transform = 'matrix(0, 1, -1, 0, 0, 0)';
 
-    buttonContaining('基本情報').click();
+    buttonWithLabel('詳細を表示').click();
 
     expect(runWithRotation).toHaveBeenCalledWith(270, expect.any(Function));
   });
@@ -245,14 +256,17 @@ describe('FourWayRadialMenuComponent', () => {
       { name: 'West', icon: 'west', actions: [{ name: 'Action 4', action: vi.fn() }] },
     ]);
     const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]');
+    const labelTransform = (label: string): string =>
+      buttonWithLabel(label).querySelector<HTMLElement>('[data-radial-parent-label]')!.style.transform;
     expect(ring?.classList.contains('animate-radial-orbit')).toBe(true);
     expect(ring?.style.animationDuration).toBe('72s');
-    expect(buttonContaining('North').classList.contains('rotating-menu-item')).toBe(true);
-    expect(buttonContaining('North').style.transform).toBe('translate(-50%, -50%) rotate(180deg)');
-    expect(buttonContaining('East').style.transform).toBe('translate(-50%, -50%) rotate(252deg)');
-    expect(buttonContaining('South').style.transform).toBe('translate(-50%, -50%) rotate(324deg)');
-    expect(buttonContaining('West').style.transform).toBe('translate(-50%, -50%) rotate(36deg)');
-    expect(buttonContaining('戻る').style.transform).toBe('translate(-50%, -50%) rotate(108deg)');
+    expect(buttonWithLabel('North').classList.contains('radial-menu-sector')).toBe(true);
+    expect(buttonWithLabel('North').style.clipPath).toMatch(/^polygon\(/);
+    expect(labelTransform('North')).toBe('translate(-50%, -50%) rotate(180deg)');
+    expect(labelTransform('East')).toBe('translate(-50%, -50%) rotate(252deg)');
+    expect(labelTransform('South')).toBe('translate(-50%, -50%) rotate(324deg)');
+    expect(labelTransform('West')).toBe('translate(-50%, -50%) rotate(36deg)');
+    expect(labelTransform('閉じる')).toBe('translate(-50%, -50%) rotate(108deg)');
   });
 
   it('uses the configured table rotation speed', () => {
@@ -361,45 +375,77 @@ describe('FourWayRadialMenuComponent', () => {
     const root = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="dialog"]')!;
     root.dispatchEvent(new MouseEvent('contextmenu', { button: 2, bubbles: true, cancelable: true }));
     fixture.detectChanges();
-    buttonContaining('基本情報').click();
+    buttonWithLabel('詳細を表示').click();
 
     expect(runWithRotation).toHaveBeenCalledWith(270, expect.any(Function));
   });
 
-  it('pauses while opening a submenu, inherits its direction, then resumes', () => {
+  it('pauses for three seconds when a parent is clicked and extends the pause when clicked again', () => {
     vi.useFakeTimers();
     try {
       createWithGroups([
         { name: 'North', icon: 'north', actions: [{ name: 'Action 1', action: vi.fn() }] },
-        {
-          name: 'East',
-          icon: 'east',
-          actions: [
-            { name: 'Sub action 1', action: vi.fn() },
-            { name: 'Sub action 2', action: vi.fn() },
-          ],
-        },
+        { name: 'East', icon: 'east', actions: [{ name: 'Action 2', action: vi.fn() }] },
         { name: 'South', icon: 'south', actions: [{ name: 'Action 3', action: vi.fn() }] },
         { name: 'West', icon: 'west', actions: [{ name: 'Action 4', action: vi.fn() }] },
       ]);
-      buttonContaining('East').click();
+      const parent = buttonWithLabel('East');
+      parent.click();
       fixture.detectChanges();
 
       const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]')!;
       expect(ring.style.animationPlayState).toBe('paused');
-      expect(Number.parseFloat(buttonContaining('Sub action 1').style.left)).toBeCloseTo(131.25, 2);
-      expect(Number.parseFloat(buttonContaining('Sub action 1').style.top)).toBeCloseTo(-42.64, 2);
-      expect(buttonContaining('Sub action 1').style.transform).toBe('translate(-50%, -50%) rotate(252deg)');
+      expect(parent.getAttribute('aria-pressed')).toBe('true');
 
-      vi.advanceTimersByTime(180);
+      vi.advanceTimersByTime(2500);
+      parent.click();
+      vi.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(ring.style.animationPlayState).toBe('paused');
+
+      vi.advanceTimersByTime(2000);
       fixture.detectChanges();
       expect(ring.style.animationPlayState).toBe('running');
+      expect(parent.getAttribute('aria-pressed')).toBe('false');
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('opens a category, follows a submenu and returns one level', () => {
+  it('shows every first-level child immediately in a rectangular list outside its parent', () => {
+    createWithGroups([
+      {
+        name: '表示',
+        icon: 'visibility',
+        actions: [
+          { name: 'Action 1', action: vi.fn() },
+          { name: 'Action 2', action: vi.fn() },
+          { name: 'Action 3', action: vi.fn() },
+        ],
+      },
+    ]);
+
+    const root = fixture.nativeElement as HTMLElement;
+    const listAnchor = root.querySelector<HTMLElement>('[data-radial-child-list]')!;
+    const list = listAnchor.firstElementChild as HTMLElement;
+    const children = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-radial-child]'));
+
+    expect(children.map((button) => button.getAttribute('aria-label'))).toEqual(['Action 1', 'Action 2', 'Action 3']);
+    expect(root.querySelectorAll('[data-radial-child-list]')).toHaveLength(1);
+    expect(listAnchor.style.top).toBe('-174px');
+    expect(listAnchor.style.rotate).toBe('180deg');
+    expect(list.classList.contains('flex-col')).toBe(true);
+    expect(list.style.width).toBe('128px');
+    expect(children.every((button) => button.classList.contains('radial-child-menu-item'))).toBe(true);
+    expect(children.every((button) => !button.classList.contains('radial-menu-sector'))).toBe(true);
+    expect(children.every((button) => button.style.clipPath === '')).toBe(true);
+
+    buttonWithLabel('表示').click();
+    fixture.detectChanges();
+    expect(root.querySelectorAll('[data-radial-child]')).toHaveLength(3);
+  });
+
+  it('opens grandchildren in a fixed bar menu beside the selected child', () => {
     createWithGroups([
       {
         name: '表示',
@@ -410,48 +456,113 @@ describe('FourWayRadialMenuComponent', () => {
         ],
       },
     ]);
-    buttonContaining('表示').click();
-    fixture.detectChanges();
-    buttonContaining('高度設定').click();
+    const child = buttonWithLabel('高度設定');
+    vi.spyOn(child, 'getBoundingClientRect').mockReturnValue({
+      x: 120,
+      y: 90,
+      left: 120,
+      top: 90,
+      right: 220,
+      bottom: 130,
+      width: 100,
+      height: 40,
+      toJSON: () => ({}),
+    });
+
+    child.click();
     fixture.detectChanges();
 
-    expect(buttonContaining('影を表示する')).toBeTruthy();
-    const ringBack = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-radial-return]')!;
-    expect(ringBack.getAttribute('aria-label')).toBe('前の階層へ戻る');
-    expect(ringBack.querySelector('.material-icons')?.textContent?.trim()).toBe('arrow_back');
-    ringBack.click();
+    const root = fixture.nativeElement as HTMLElement;
+    const ring = root.querySelector<HTMLElement>('[data-radial-ring]')!;
+    const anchor = root.querySelector<HTMLElement>('[data-radial-flyout-anchor]')!;
+    expect(anchor.style.left).toBe('220px');
+    expect(anchor.style.top).toBe('110px');
+    expect(anchor.style.rotate).toBe('180deg');
+    expect(anchor.textContent).toContain('影を表示する');
+    expect(ring.style.animationPlayState).toBe('paused');
+    expect(buttonWithLabel('表示')).toBeTruthy();
+    expect(buttonWithLabel('インベントリ非表示')).toBeTruthy();
+
+    child.click();
     fixture.detectChanges();
-    expect(buttonContaining('高度設定')).toBeTruthy();
+    expect(root.querySelector('[data-radial-flyout-anchor]')).toBeNull();
+    expect(ring.style.animationPlayState).toBe('running');
   });
 
-  it('uses a page fraction until the final page, then restores the return item', () => {
+  it('keeps the ring paused while a grandchild menu is open after the parent pause expires', () => {
+    vi.useFakeTimers();
+    try {
+      createWithGroups([
+        {
+          name: '表示',
+          icon: 'visibility',
+          actions: [{ name: '高度設定', subActions: [{ name: '影を表示する', action: vi.fn() }] }],
+        },
+      ]);
+      const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-ring]')!;
+      buttonWithLabel('表示').click();
+      buttonWithLabel('高度設定').click();
+      fixture.detectChanges();
+
+      vi.advanceTimersByTime(3000);
+      fixture.detectChanges();
+      expect(ring.style.animationPlayState).toBe('paused');
+
+      buttonWithLabel('高度設定').click();
+      fixture.detectChanges();
+      expect(ring.style.animationPlayState).toBe('running');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows all first-level children without radial paging', () => {
     const actions = Array.from({ length: 15 }, (_, index) => ({
       name: `Action ${index + 1}`,
       action: vi.fn(),
     }));
     createWithGroups([{ name: '表示', icon: 'visibility', actions }]);
 
-    buttonContaining('表示').click();
-    fixture.detectChanges();
-
-    const rotatingItems = (fixture.nativeElement as HTMLElement).querySelectorAll('.rotating-menu-item');
-    expect(rotatingItems).toHaveLength(8);
-    expect(buttonContaining('Action 7')).toBeTruthy();
-    expect(buttons().some((button) => button.textContent?.includes('Action 8'))).toBe(false);
-    expect(buttonContaining('1 / 3').getAttribute('aria-label')).toBe('次のページ');
-    expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-return]')).toBeNull();
-
-    buttonContaining('1 / 3').click();
-    fixture.detectChanges();
-    expect(buttonContaining('Action 8')).toBeTruthy();
-    expect(buttonContaining('Action 14')).toBeTruthy();
-    expect(buttonContaining('2 / 3')).toBeTruthy();
-
-    buttonContaining('2 / 3').click();
-    fixture.detectChanges();
-    expect(buttonContaining('Action 15')).toBeTruthy();
-    expect(buttonContaining('戻る')).toBeTruthy();
+    const children = (fixture.nativeElement as HTMLElement).querySelectorAll('[data-radial-child]');
+    expect(children).toHaveLength(15);
+    expect(buttonWithLabel('Action 1')).toBeTruthy();
+    expect(buttonWithLabel('Action 15')).toBeTruthy();
     expect((fixture.nativeElement as HTMLElement).querySelector('[data-radial-page-advance]')).toBeNull();
+  });
+
+  it('renders checkbox, radio and selected prefixes as state icons', () => {
+    createWithGroups([
+      {
+        name: '表示',
+        icon: 'visibility',
+        actions: [
+          { name: '☑ 名前を表示', action: vi.fn() },
+          { name: '☐ 外周表示', action: vi.fn() },
+          { name: '◉ 高速', action: vi.fn() },
+          { name: '○ 低速', action: vi.fn() },
+          { name: '✔ 選択中', action: vi.fn() },
+          { name: '通常項目', action: vi.fn() },
+        ],
+      },
+    ]);
+
+    const state = (label: string): { button: HTMLButtonElement; icon: string | undefined } => {
+      const button = buttonWithLabel(label);
+      return {
+        button,
+        icon: button.querySelector<HTMLElement>('[data-radial-state-icon]')?.textContent?.trim(),
+      };
+    };
+
+    expect(state('名前を表示').icon).toBe('check_box');
+    expect(state('名前を表示').button.getAttribute('aria-pressed')).toBe('true');
+    expect(state('外周表示').icon).toBe('check_box_outline_blank');
+    expect(state('外周表示').button.getAttribute('aria-pressed')).toBe('false');
+    expect(state('高速').icon).toBe('radio_button_checked');
+    expect(state('低速').icon).toBe('radio_button_unchecked');
+    expect(state('選択中').icon).toBe('check');
+    expect(state('通常項目').icon).toBeUndefined();
+    expect(buttons().some((button) => button.textContent?.includes('☑'))).toBe(false);
   });
 
   it.each([

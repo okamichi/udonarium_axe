@@ -150,85 +150,136 @@
       [style.left.px]="center().x"
       [style.top.px]="center().y"
       [style.animation-duration]="ringDurationSeconds() + 's'"
-      [style.animation-play-state]="ringTransitioning() ? 'paused' : 'running'"
+      [style.animation-play-state]="ringPaused() ? 'paused' : 'running'"
       [style.rotate]="manualRotationStyleDegrees() + 'deg'"
       [style.transition]="manualRotationTransitionEnabled() ? null : 'none'"
+      [attr.data-radial-paused]="ringPaused() ? 'true' : null"
       (transitionend)="onManualRotationTransitionEnd($event)"
       aria-live="polite"
     >
-      @if (!currentLevel()) {
-        @for (group of radialGroups(); track group.name; let index = $index) {
-          <button
-            type="button"
-            data-radial-control
-            class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform]"
-            [style.left.px]="groupPoint(index).x"
-            [style.top.px]="groupPoint(index).y"
-            [style.transform]="itemTransform(index, ringItemCount())"
-            [title]="group.name"
-            (pointerdown)="$event.stopPropagation()"
-            (click)="chooseGroup(group, index)"
+      @for (group of radialGroups(); track group.name; let parentIndex = $index) {
+        <button
+          type="button"
+          data-radial-control
+          data-radial-parent
+          class="radial-menu-sector bg-ui-menu text-ui-text pointer-events-auto absolute m-0 border-0 p-0"
+          [class.radial-menu-sector-active]="pausedParentIndex() === parentIndex"
+          [style.left.px]="0"
+          [style.top.px]="0"
+          [style.width.px]="rootSectorSize()"
+          [style.height.px]="rootSectorSize()"
+          [style.transform]="'translate(-50%, -50%)'"
+          [style.clip-path]="rootSectorClipPath(parentIndex)"
+          [attr.aria-label]="group.name"
+          [attr.aria-pressed]="pausedParentIndex() === parentIndex"
+          [title]="group.name"
+          (pointerdown)="$event.stopPropagation()"
+          (click)="pauseAtGroup(parentIndex)"
+        >
+          <span
+            data-radial-parent-label
+            class="pointer-events-none absolute flex h-7 items-center justify-center gap-1 overflow-hidden px-1 text-[11px] font-semibold whitespace-nowrap"
+            [style.left.px]="rootLabelPoint(parentIndex).x"
+            [style.top.px]="rootLabelPoint(parentIndex).y"
+            [style.width.px]="rootLabelWidth()"
+            [style.transform]="itemTransform(parentIndex)"
           >
-            <i class="material-icons shrink-0 text-[20px]!" aria-hidden="true">{{ group.icon }}</i>
-            <span class="max-w-18 truncate">{{ group.name }}</span>
-          </button>
-        }
-      } @else {
-        @for (action of visibleActions(); track $index; let index = $index) {
-          <button
-            type="button"
-            data-radial-control
-            class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform] disabled:cursor-not-allowed disabled:opacity-40"
-            [style.left.px]="actionPoint(index).x"
-            [style.top.px]="actionPoint(index).y"
-            [style.transform]="itemTransform(index, ringItemCount())"
-            [disabled]="!actionEnabled(action)"
-            [title]="actionName(action)"
-            (pointerdown)="$event.stopPropagation()"
-            (click)="chooseAction(action, index)"
+            <i class="material-icons shrink-0 text-[18px]!" aria-hidden="true">{{ group.icon }}</i>
+            <span class="min-w-0 truncate">{{ group.name }}</span>
+          </span>
+        </button>
+
+        <div
+          data-radial-child-list
+          class="pointer-events-none absolute size-0"
+          [style.left.px]="childListAnchorPoint(parentIndex).x"
+          [style.top.px]="childListAnchorPoint(parentIndex).y"
+          [style.rotate]="childListRotation(parentIndex) + 'deg'"
+          [style.transform-origin]="'0 0'"
+          [attr.data-parent-index]="parentIndex"
+        >
+          <div
+            class="rounded-ui border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg pointer-events-auto absolute top-0 left-0 flex -translate-x-1/2 flex-col overflow-hidden border border-solid py-1"
+            [style.width.px]="childListWidth()"
           >
-            @if (action.subActions?.length) {
-              <i class="material-icons shrink-0 text-[18px]!" aria-hidden="true">folder_open</i>
+            @for (action of groupActions(group); track action; let childIndex = $index) {
+              @let presentation = actionPresentation(action);
+              <button
+                type="button"
+                data-radial-control
+                data-radial-child
+                class="radial-child-menu-item text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent relative flex min-h-7 w-full items-center gap-1 border-0 bg-transparent px-2 text-left text-[11px] font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                [class.radial-child-menu-item-active]="isFlyoutAction(action)"
+                [disabled]="!actionEnabled(action)"
+                [attr.aria-label]="presentation.label"
+                [attr.aria-pressed]="presentation.checked"
+                [attr.data-parent-index]="parentIndex"
+                [attr.data-child-index]="childIndex"
+                [title]="presentation.label"
+                (pointerdown)="$event.stopPropagation()"
+                (click)="chooseAction(action, parentIndex, $event)"
+              >
+                @if (presentation.icon) {
+                  <i data-radial-state-icon class="material-icons shrink-0 text-[15px]!" aria-hidden="true">{{
+                    presentation.icon
+                  }}</i>
+                }
+                <span class="min-w-0 grow truncate">{{ presentation.label }}</span>
+                @if (hasSubActions(action)) {
+                  <i data-radial-submenu-icon class="material-icons shrink-0 text-[13px]!" aria-hidden="true"
+                    >arrow_forward_ios</i
+                  >
+                }
+              </button>
             }
-            <span class="max-w-22 truncate">{{ actionName(action) }}</span>
-          </button>
-        }
+          </div>
+        </div>
       }
 
-      @if (hasNextPage()) {
-        <button
-          type="button"
-          data-radial-control
-          data-radial-page-advance
-          class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg hover:bg-ui-menu-hover hover:text-ui-accent pointer-events-auto absolute flex h-14 w-28 items-center justify-center rounded-full border border-solid px-2 text-[12px] font-semibold tabular-nums transition-[background-color,color,transform]"
-          [style.left.px]="returnPoint().x"
-          [style.top.px]="returnPoint().y"
-          [style.transform]="itemTransform(ringItemCount() - 1, ringItemCount())"
-          [attr.aria-label]="'ui.contextMenu.radial.nextPage' | transloco"
-          [title]="'ui.contextMenu.radial.nextPage' | transloco"
-          (pointerdown)="$event.stopPropagation()"
-          (click)="advancePage()"
+      <button
+        type="button"
+        data-radial-control
+        data-radial-return
+        class="radial-menu-sector bg-ui-menu text-ui-text pointer-events-auto absolute m-0 border-0 p-0"
+        [style.left.px]="0"
+        [style.top.px]="0"
+        [style.width.px]="rootSectorSize()"
+        [style.height.px]="rootSectorSize()"
+        [style.transform]="'translate(-50%, -50%)'"
+        [style.clip-path]="rootSectorClipPath(ringItemCount() - 1)"
+        [attr.aria-label]="returnTitle()"
+        [title]="returnTitle()"
+        (pointerdown)="$event.stopPropagation()"
+        (click)="close()"
+      >
+        <span
+          data-radial-parent-label
+          class="pointer-events-none absolute flex h-7 items-center justify-center gap-1 overflow-hidden px-1 text-[11px] font-semibold whitespace-nowrap"
+          [style.left.px]="rootLabelPoint(ringItemCount() - 1).x"
+          [style.top.px]="rootLabelPoint(ringItemCount() - 1).y"
+          [style.width.px]="rootLabelWidth()"
+          [style.transform]="itemTransform(ringItemCount() - 1)"
         >
-          {{ page() + 1 }} / {{ pageCount() }}
-        </button>
-      } @else {
-        <button
-          type="button"
-          data-radial-control
-          data-radial-return
-          class="rotating-menu-item border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg hover:bg-ui-menu-hover hover:text-ui-accent pointer-events-auto absolute flex h-14 w-28 items-center justify-center gap-1 rounded-full border border-solid px-2 text-[11px] font-semibold transition-[background-color,color,transform]"
-          [style.left.px]="returnPoint().x"
-          [style.top.px]="returnPoint().y"
-          [style.transform]="itemTransform(ringItemCount() - 1, ringItemCount())"
-          [attr.aria-label]="returnTitle()"
-          [title]="returnTitle()"
-          (pointerdown)="$event.stopPropagation()"
-          (click)="returnFromRing()"
-        >
-          <i class="material-icons shrink-0 text-[20px]!" aria-hidden="true">{{ returnIcon() }}</i>
-          <span class="max-w-18 truncate">{{ 'ui.contextMenu.radial.return' | transloco }}</span>
-        </button>
-      }
+          <i class="material-icons shrink-0 text-[18px]!" aria-hidden="true">close</i>
+          <span class="min-w-0 truncate">{{ 'common.button.close' | transloco }}</span>
+        </span>
+      </button>
     </div>
+
+    @for (menu of flyoutItems(); track menu.action) {
+      <div
+        data-radial-flyout-anchor
+        class="pointer-events-auto fixed z-10000 size-1"
+        [style.left.px]="menu.left"
+        [style.top.px]="menu.top"
+        [style.rotate]="menu.rotation + 'deg'"
+        [style.transform-origin]="'top left'"
+        [attr.data-menu-rotation]="menu.rotation"
+        (pointerdown)="$event.stopPropagation()"
+        (contextmenu)="$event.preventDefault(); $event.stopPropagation()"
+      >
+        <context-menu [title]="actionName(menu.action)" [actions]="menu.actions" [isSubmenu]="true"></context-menu>
+      </div>
+    }
   }
 </div>
