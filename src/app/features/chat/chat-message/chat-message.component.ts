@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ChatTickerSelectionService } from '@axe/application/chat/chat-ticker-selection.service';
 import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { LanguageService } from '@axe/application/i18n/language.service';
@@ -30,6 +31,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { formatChatTickerMessage } from '@axe/features/chat/chat-ticker/chat-ticker-layout';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
@@ -50,6 +52,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 })
 export class ChatMessageComponent {
   private readonly chatMessageService = inject(ChatMessageService);
+  private readonly chatTickerSelection = inject(ChatTickerSelectionService);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly imageStorage = inject(ImageStorage);
@@ -291,6 +294,13 @@ export class ChatMessageComponent {
     return true;
   }
 
+  readonly canShowInTicker = computed(() => {
+    const message = this.chatMessageInput();
+    if (!message) return false;
+    this.objectChange.versionOf(message.identifier)();
+    return formatChatTickerMessage(message) != null;
+  });
+
   clickReply() {
     if (!this.canInteract) return;
     this.uiSignalService.requestChatReply(this.chatMessage.identifier);
@@ -299,6 +309,11 @@ export class ChatMessageComponent {
   clickQuote() {
     if (!this.canInteract) return;
     this.uiSignalService.requestChatQuote(this.chatMessage.identifier);
+  }
+
+  clickShowInTicker() {
+    if (!this.canShowInTicker()) return;
+    this.chatTickerSelection.showMessage(this.chatMessage.identifier);
   }
 
   jumpToReplyTarget() {

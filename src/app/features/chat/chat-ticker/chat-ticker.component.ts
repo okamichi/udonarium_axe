@@ -11,6 +11,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { ChatTickerSelectionService } from '@axe/application/chat/chat-ticker-selection.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -43,6 +44,7 @@ const MAX_DEVICE_PIXEL_RATIO = 2;
 })
 export class ChatTickerComponent {
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly chatTickerSelection = inject(ChatTickerSelectionService);
   private readonly tabletopService = inject(TabletopService);
   private readonly objectStore = inject(ObjectStore);
   private readonly chatTabList = inject(ChatTabList);
@@ -69,6 +71,11 @@ export class ChatTickerComponent {
       if (event.tabIdentifier !== TICKER_CHAT_TAB_IDENTIFIER) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (message) this.enqueueMessage(message);
+    }, this.destroyRef);
+
+    this.chatTickerSelection.selection$.subscribe((event) => {
+      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
+      if (message instanceof ChatMessage) this.replaceMessage(message);
     }, this.destroyRef);
 
     this.objectChange.objectDeleted$.subscribe((event) => {
@@ -99,12 +106,16 @@ export class ChatTickerComponent {
   private enqueueMessage(message: ChatMessage): void {
     if (this.seenMessageIdentifiers.has(message.identifier)) return;
     this.seenMessageIdentifiers.add(message.identifier);
+    this.replaceMessage(message);
+  }
+
+  private replaceMessage(message: ChatMessage): void {
     const text = formatChatTickerMessage(message);
     if (!text) return;
 
     // A full perimeter takes one to two minutes at the default speed on a desktop screen.
-    // Waiting for that lap made every message after the first look lost, so a new public
-    // message becomes the ticker text on the next animation frame.
+    // Waiting for that lap made replacements look lost, so a selected or newly posted
+    // public message becomes the ticker text on the next animation frame.
     this.currentText.set(text);
     this.cycleStartedAt = null;
     if (this.isVisible()) this.startAnimation();

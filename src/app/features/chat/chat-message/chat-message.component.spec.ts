@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatTickerSelectionService } from '@axe/application/chat/chat-ticker-selection.service';
 import {
   DEFAULT_SYSTEM_AVATAR_URL,
   DEFAULT_SYSTEM_DICE_AVATAR_URL,
@@ -501,6 +502,49 @@ describe('ChatMessageComponent', () => {
           .find((n, idx) => idx >= before && n.text === '2D6 → 7');
         created?.destroy();
       }
+    });
+  });
+
+  describe('the ticker action', () => {
+    it('shows after the other actions and broadcasts an ordinary public message', () => {
+      const message = new ChatMessage('ticker-action-message');
+      message.initialize();
+      message.from = 'tester';
+      message.name = 'GM';
+      message.text = '扉が開いた';
+      fixture.componentRef.setInput('chatMessage', message);
+      const tickerSelection = TestBed.inject(ChatTickerSelectionService);
+      const spy = vi.spyOn(tickerSelection, 'showMessage');
+
+      fixture.detectChanges();
+      const action = fixture.nativeElement.querySelector('[data-testid="chat-message-ticker"]') as HTMLElement | null;
+
+      expect(component.canShowInTicker()).toBe(true);
+      expect(action?.title).toBe('ティッカー');
+      expect(action?.textContent?.trim()).toBe('campaign');
+      expect(Array.from(action?.parentElement?.querySelectorAll('.material-icons') ?? []).at(-1)).toBe(action);
+      action?.click();
+      expect(spy).toHaveBeenCalledWith(message.identifier);
+    });
+
+    it.each([
+      { label: 'a direct message', to: 'other-user', tag: '', text: '秘密会話' },
+      { label: 'a secret message', to: '', tag: 'secret', text: '秘匿情報' },
+      { label: 'a system message', to: '', tag: 'system', text: 'システム通知' },
+      { label: 'an empty message', to: '', tag: '', text: '   \n  ' },
+    ])('does not offer $label to the public ticker', ({ to, tag, text }) => {
+      const message = new ChatMessage();
+      message.initialize();
+      message.from = 'tester';
+      message.to = to;
+      message.tag = tag;
+      message.text = text;
+      fixture.componentRef.setInput('chatMessage', message);
+
+      fixture.detectChanges();
+
+      expect(component.canShowInTicker()).toBe(false);
+      expect(fixture.nativeElement.querySelector('[data-testid="chat-message-ticker"]')).toBeNull();
     });
   });
 

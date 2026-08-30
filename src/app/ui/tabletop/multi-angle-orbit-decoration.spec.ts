@@ -49,6 +49,23 @@ describe('multi-angle orbit decoration', () => {
     ]);
   });
 
+  it.each([
+    { count: 1, angles: [] },
+    { count: 2, angles: [-90, 90] },
+    { count: 3, angles: [-90, 30, 150] },
+    { count: 4, angles: [-90, 0, 90, 180] },
+  ])('draws black boundaries only when $count resources share the ring', ({ count, angles }) => {
+    const layout = makeMultiAngleResourceGauge(
+      Array.from({ length: count }, (_, index) => gauge(index)),
+      50
+    );
+
+    expect(layout.separators.map((separator) => separator.angleDegrees)).toEqual(angles);
+    expect(layout.separators.every((separator) => separator.x1 !== separator.x2 || separator.y1 !== separator.y2)).toBe(
+      true
+    );
+  });
+
   it('fills only the resource ratio inside its assigned segment', () => {
     const layout = makeMultiAngleResourceGauge([gauge(0, 0.5), gauge(1, 0.25)], 50);
 

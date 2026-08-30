@@ -13,15 +13,25 @@ export interface MultiAngleResourceGaugeSegment {
   readonly labelRotationDegrees: number;
 }
 
+export interface MultiAngleResourceGaugeSeparator {
+  readonly angleDegrees: number;
+  readonly x1: number;
+  readonly y1: number;
+  readonly x2: number;
+  readonly y2: number;
+}
+
 export interface MultiAngleResourceGaugeLayout {
   readonly svgSize: number;
   readonly offset: number;
   readonly center: number;
   readonly radius: number;
   readonly strokeWidth: number;
+  readonly separatorStrokeWidth: number;
   readonly fontSize: number;
   readonly outerExtent: number;
   readonly segments: readonly MultiAngleResourceGaugeSegment[];
+  readonly separators: readonly MultiAngleResourceGaugeSeparator[];
 }
 
 export interface MultiAngleBuffOrbitLayout {
@@ -48,6 +58,7 @@ export function makeMultiAngleResourceGauge(
   const count = visibleGauges.length;
   const segmentDegrees = count > 0 ? 360 / count : 0;
   const strokeWidth = clamp(diameter * 0.1, 5, 9);
+  const separatorStrokeWidth = clamp(strokeWidth * 0.4, 2, 3);
   const radius = diameter / 2 + strokeWidth / 2;
   const outerExtent = radius + strokeWidth / 2 + 2;
   const svgSize = outerExtent * 2;
@@ -71,6 +82,22 @@ export function makeMultiAngleResourceGauge(
       labelRotationDegrees: rounded(labelDegrees + 90),
     };
   });
+  const separatorInnerRadius = radius - strokeWidth / 2 - 1;
+  const separatorOuterRadius = radius + strokeWidth / 2 + 1;
+  const separators =
+    count < 2
+      ? []
+      : Array.from({ length: count }, (_, index): MultiAngleResourceGaugeSeparator => {
+          const angleDegrees = -90 + index * segmentDegrees;
+          const angleRadians = (angleDegrees * Math.PI) / 180;
+          return {
+            angleDegrees: rounded(angleDegrees),
+            x1: rounded(center + Math.cos(angleRadians) * separatorInnerRadius),
+            y1: rounded(center + Math.sin(angleRadians) * separatorInnerRadius),
+            x2: rounded(center + Math.cos(angleRadians) * separatorOuterRadius),
+            y2: rounded(center + Math.sin(angleRadians) * separatorOuterRadius),
+          };
+        });
 
   return {
     svgSize,
@@ -78,9 +105,11 @@ export function makeMultiAngleResourceGauge(
     center,
     radius,
     strokeWidth,
+    separatorStrokeWidth,
     fontSize,
     outerExtent,
     segments,
+    separators,
   };
 }
 

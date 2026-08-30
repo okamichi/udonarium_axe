@@ -565,6 +565,19 @@
                         {{ segment.gauge.initial }}
                       </text>
                     }
+                    @for (separator of gaugeLayout.separators; track separator.angleDegrees) {
+                      <line
+                        data-testid="multi-angle-resource-separator"
+                        [attr.data-separator-angle]="separator.angleDegrees"
+                        [attr.x1]="separator.x1"
+                        [attr.y1]="separator.y1"
+                        [attr.x2]="separator.x2"
+                        [attr.y2]="separator.y2"
+                        stroke="rgba(0,0,0,0.95)"
+                        [attr.stroke-width]="gaugeLayout.separatorStrokeWidth"
+                        stroke-linecap="round"
+                      ></line>
+                    }
                   </svg>
                 }
 

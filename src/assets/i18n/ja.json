@@ -2003,7 +2003,8 @@
         "reply": "返信",
         "quote": "引用",
         "jumpToOriginal": "元のメッセージへ移動",
-        "shareAsMemo": "共有メモにする"
+        "shareAsMemo": "共有メモにする",
+        "ticker": "ティッカー"
       },
       "palette": {
         "panelTitle": "チャットパレット",

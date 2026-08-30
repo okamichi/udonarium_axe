@@ -972,12 +972,16 @@ describe('GameCharacterComponent', () => {
           root.querySelectorAll<SVGCircleElement>('[data-testid="multi-angle-resource-segment"]')
         );
         const labels = Array.from(root.querySelectorAll<SVGTextElement>('[data-testid="multi-angle-resource-label"]'));
+        const separators = Array.from(
+          root.querySelectorAll<SVGLineElement>('[data-testid="multi-angle-resource-separator"]')
+        );
 
         expect(component.multiAngleResourceBuffOrbitEnabled()).toBe(true);
         expect(root.querySelectorAll('[data-testid="piece-gauge"]')).toHaveLength(0);
         expect(segments).toHaveLength(2);
         expect(segments.map((segment) => segment.dataset['segmentDegrees'])).toEqual(['180', '180']);
         expect(labels.map((label) => label.textContent?.trim())).toEqual(['H', 'M']);
+        expect(separators.map((separator) => separator.dataset['separatorAngle'])).toEqual(['-90', '90']);
         expect(root.querySelector('[data-testid="multi-angle-resource-gauge"]')?.textContent).not.toContain('200');
         expect(nameOrbit.style.animationDuration).toBe('12s');
         expect(resourceBuffOrbit.classList.contains('animate-multi-angle-name-orbit')).toBe(true);
