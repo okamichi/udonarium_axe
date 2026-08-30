@@ -708,15 +708,16 @@ export class GameTableComponent {
     actions: ContextMenuAction[];
     rotatingGroups: ContextMenuRadialGroup[];
   } {
-    const createActions = [...this.tabletopActionService.makeDefaultContextMenuActions(objectPosition)];
-    createActions.push({
+    const [primaryCreateActions, secondaryCreateActions] =
+      this.tabletopActionService.makeDefaultContextMenuActionGroups(objectPosition);
+    secondaryCreateActions.push({
       name: this.t('feature.tabletop.action.createDeck'),
       action: () => {
         void this.openDeckBuilder(objectPosition);
       },
     });
     if (this.mobileLayout.isActive()) {
-      createActions.push({
+      secondaryCreateActions.push({
         name: this.t('feature.tabletop.contextMenu.createWithOptions'),
         action: () => {
           this.panelService.open(GameCharacterGeneratorComponent, {
@@ -734,12 +735,23 @@ export class GameTableComponent {
       },
     };
     return {
-      actions: [...createActions, ContextMenuSeparator, tableSettingAction],
+      actions: [
+        ...primaryCreateActions,
+        ContextMenuSeparator,
+        ...secondaryCreateActions,
+        ContextMenuSeparator,
+        tableSettingAction,
+      ],
       rotatingGroups: [
         {
-          name: this.t('feature.tabletop.contextMenu.createObject'),
+          name: this.t('feature.tabletop.contextMenu.createObject1'),
           icon: 'add_circle',
-          actions: createActions,
+          actions: primaryCreateActions,
+        },
+        {
+          name: this.t('feature.tabletop.contextMenu.createObject2'),
+          icon: 'add_box',
+          actions: secondaryCreateActions,
         },
         {
           name: this.t('feature.tabletop.tableSetting.title'),

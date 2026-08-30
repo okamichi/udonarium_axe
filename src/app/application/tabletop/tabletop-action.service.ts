@@ -298,18 +298,28 @@ export class TabletopActionService {
   }
 
   makeDefaultContextMenuActions(position: PointerCoordinate): ContextMenuAction[] {
+    return this.makeDefaultContextMenuActionGroups(position).flat();
+  }
+
+  // The create items come in two halves so a rotating menu can spread them over two spokes
+  // instead of piling every one of them onto a single group.
+  makeDefaultContextMenuActionGroups(position: PointerCoordinate): ContextMenuAction[][] {
     return [
-      this.getCreateCharacterMenu(position),
-      this.getCreateTableMaskMenu(position),
-      this.getCreateTerrainMenu(position),
-      this.getCreateTextNoteMenu(position),
-      this.getCreateTrumpMenu(position),
-      this.getCreateDiceSymbolMenu(position),
-      this.getCreateCoinMenu(position),
-      this.getCreateRangeMenu(position),
-      this.getCreateLightSourceMenu(position),
-      this.getCreateWhiteBoardMenu(position),
-      this.getCreateAmbienceMenu(position),
+      [
+        this.getCreateCharacterMenu(position),
+        this.getCreateTableMaskMenu(position),
+        this.getCreateTerrainMenu(position),
+        this.getCreateTextNoteMenu(position),
+        this.getCreateTrumpMenu(position),
+        this.getCreateDiceSymbolMenu(position),
+      ],
+      [
+        this.getCreateCoinMenu(position),
+        this.getCreateRangeMenu(position),
+        this.getCreateLightSourceMenu(position),
+        this.getCreateWhiteBoardMenu(position),
+        this.getCreateAmbienceMenu(position),
+      ],
     ];
   }
 

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuService, ContextMenuType } from '@axe/application/ui/context-menu.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -160,9 +160,25 @@ describe('GameTableComponent', () => {
       const groupedActions = model.rotatingGroups.flatMap((group) => group.actions);
       const legacyActions = model.actions.filter((action) => action.name.length > 0);
 
-      expect(model.rotatingGroups.map((group) => group.name)).toEqual(['オブジェクト作成', 'テーブル設定']);
+      expect(model.rotatingGroups.map((group) => group.name)).toEqual([
+        'オブジェクト作成1',
+        'オブジェクト作成2',
+        'テーブル設定',
+      ]);
       expect(groupedActions).toEqual(expect.arrayContaining(legacyActions));
       expect(groupedActions).toHaveLength(legacyActions.length);
+    });
+
+    it('splits the create items with a separator between the dice and the coin', () => {
+      const model = component.buildContextMenuModel(position);
+      const separatorIndexes = model.actions
+        .map((action, index) => (action.type === ContextMenuType.SEPARATOR ? index : -1))
+        .filter((index) => 0 <= index);
+
+      expect(separatorIndexes).toHaveLength(2);
+      expect(model.actions[separatorIndexes[0] - 1].name).toBe('ダイスを作成');
+      expect(model.actions[separatorIndexes[0] + 1].name).toBe('コインを作成');
+      expect(model.rotatingGroups[0].actions).toHaveLength(separatorIndexes[0]);
     });
   });
 
