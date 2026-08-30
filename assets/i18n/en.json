@@ -2753,7 +2753,9 @@
         "settings": "Ambient effect settings",
         "kind": "Change type",
         "density": "Change density",
-        "size": "Change size"
+        "size": "Change size",
+        "radialAppearance": "Appearance",
+        "radialObject": "Object actions"
       },
       "kind": {
         "fog": "Dense fog",

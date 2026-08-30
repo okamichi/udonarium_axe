@@ -2753,7 +2753,9 @@
         "settings": "環境エフェクトの設定",
         "kind": "種類を変える",
         "density": "濃さを変える",
-        "size": "広さを変える"
+        "size": "広さを変える",
+        "radialAppearance": "見た目",
+        "radialObject": "オブジェクト操作"
       },
       "kind": {
         "fog": "濃霧",

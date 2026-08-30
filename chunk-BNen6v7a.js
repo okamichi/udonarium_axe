@@ -1,0 +1,1 @@
+import{la as ue}from"./chunk-D8Sjgy9W.js";var s=ue.instance;export{s as t};
