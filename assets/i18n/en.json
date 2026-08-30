@@ -2003,7 +2003,8 @@
         "reply": "Reply",
         "quote": "Quote",
         "jumpToOriginal": "Jump to original message",
-        "shareAsMemo": "Send to shared memo"
+        "shareAsMemo": "Send to shared memo",
+        "ticker": "Ticker"
       },
       "palette": {
         "panelTitle": "Chat palette",

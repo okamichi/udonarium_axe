@@ -2003,7 +2003,8 @@
         "reply": "답장",
         "quote": "인용",
         "jumpToOriginal": "원래 메시지로 이동",
-        "shareAsMemo": "공유 메모로 보내기"
+        "shareAsMemo": "공유 메모로 보내기",
+        "ticker": "티커"
       },
       "palette": {
         "panelTitle": "채팅 팔레트",
