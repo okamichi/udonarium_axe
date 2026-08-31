@@ -849,22 +849,22 @@ export class GameCharacterComponent {
   /**
    * The frame everything above the pedestal hangs from.
    *
-   * Seen from above, the piece's own turn is taken back out here, once, so that the name, the
-   * bars and the balloon keep the side of the piece they were on however it is turned. The
-   * picture puts the turn back on itself where the table asks the picture to turn.
+   * The existing flat/multi-angle renderer takes the piece's turn back out on each billboard.
+   * Counter-rotating this shared 3D frame as well makes the image plane disappear in some
+   * browsers when the table switches to 2D, so the frame itself keeps the original transform.
    */
   readonly standTransform = computed(() => {
     if (this.isPoster()) return 'translateY(-50%)';
-    const held = this.mode2dEnabled() ? `rotateZ(${-this.rotateSignal()}deg) ` : '';
     return (
-      `${held}rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) ` +
+      'rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) ' +
       `translateY(-50%) translateY(${-this.altitude() * this.gridSize}px)`
     );
   });
 
   private makeBillboardTransform(verticalOffset3D: number, turnsWithPiece = false): string {
-    // Above the pedestal in plan there is no turn left to take out; only the picture puts one back.
-    const pieceRotate = this.mode2dEnabled() ? (turnsWithPiece ? -this.rotateSignal() : 0) : this.rotateSignal();
+    // In 2D every billboard cancels the piece's turn, except the picture when the table asks it
+    // to turn with the piece. This also composes with the multi-angle image rotation.
+    const pieceRotate = this.mode2dEnabled() && turnsWithPiece ? 0 : this.rotateSignal();
     return makeBillboardTransform({
       rotation: this.uiSignalService.tableViewRotation(),
       pieceRotate,

@@ -35,6 +35,7 @@ describe('GameCharacterComponent', () => {
   const useFlatTable = () => {
     const table = TestBed.inject(TabletopService).currentTable;
     table.mode2d = false;
+    table.facingMark = 'none';
     table.radialMenuEnabled = false;
     table.imageBillboard = false;
     table.multiAngleEnabled = false;
@@ -333,9 +334,10 @@ describe('GameCharacterComponent', () => {
       place(90);
 
       expect(component.imageTurnsWithPiece()).toBe(true);
-      // The frame above the pedestal holds the turn back; the picture alone puts it on again.
-      expect(component.standTransform().startsWith('rotateZ(-90deg)')).toBe(true);
-      expect(component.billboardTransformImage()).toContain('rotateZ(90deg)');
+      // The shared frame stays compatible with the multi-angle renderer, and this picture alone
+      // declines to cancel the turn supplied by the piece.
+      expect(component.standTransform().startsWith('rotateY(90deg)')).toBe(true);
+      expect(component.billboardTransformImage()).toContain('rotateZ(0deg)');
     });
 
     it('leaves the picture square to the reader where a mark shows the facing instead', () => {
@@ -343,8 +345,8 @@ describe('GameCharacterComponent', () => {
       place(90);
 
       expect(component.imageTurnsWithPiece()).toBe(false);
-      expect(component.standTransform().startsWith('rotateZ(-90deg)')).toBe(true);
-      expect(component.billboardTransformImage()).toContain('rotateZ(0deg)');
+      expect(component.standTransform().startsWith('rotateY(90deg)')).toBe(true);
+      expect(component.billboardTransformImage()).toContain('rotateZ(-90deg)');
       expect(arrow()).not.toBeNull();
     });
 
@@ -352,9 +354,9 @@ describe('GameCharacterComponent', () => {
       tableShowing('turn', true);
       place(180);
 
-      // Held still once above the pedestal, so nothing hanging there turns with the piece.
-      expect(component.standTransform().startsWith('rotateZ(-180deg)')).toBe(true);
-      expect(component.billboardTransform()).toContain('rotateZ(0deg)');
+      // Each billboard cancels the piece turn, keeping everything above it on the same side.
+      expect(component.standTransform().startsWith('rotateY(90deg)')).toBe(true);
+      expect(component.billboardTransform()).toContain('rotateZ(-180deg)');
     });
 
     it('leaves a table seen from the side to turn its pieces as it always did', () => {
@@ -1067,6 +1069,39 @@ describe('GameCharacterComponent', () => {
       await new Promise<void>((resolve) => queueMicrotask(resolve));
       expect(component.imageBillboardEnabled()).toBe(true);
     });
+
+    it.each(['none', 'turn', 'arrow'] as const)(
+      'keeps the character image renderable in 2D multi-angle mode with facing mark %s',
+      (facingMark) => {
+        const imageUrl = `2d-facing-${facingMark}.png`;
+        ImageStorage.instance.add(imageUrl);
+        const character = GameCharacter.create('2D image', 1, imageUrl);
+        character.rotate = 90;
+        fixture.componentRef.setInput('gameCharacter', character);
+        const table = TestBed.inject(TabletopService).currentTable;
+        table.mode2d = true;
+        table.multiAngleEnabled = true;
+        table.facingMark = facingMark;
+
+        try {
+          fixture.detectChanges();
+          const image = (fixture.nativeElement as HTMLElement).querySelector<HTMLImageElement>(
+            'img.image.chrome-smooth-image-trick'
+          );
+
+          expect(image).not.toBeNull();
+          expect(image?.style.transform).not.toBe('');
+          expect(component.standTransform().startsWith('rotateY(90deg)')).toBe(true);
+          expect(component.billboardTransformImage()).toContain(
+            facingMark === 'turn' ? 'rotateZ(0deg)' : 'rotateZ(-90deg)'
+          );
+          expect(component.pieceImageTransform()).toContain('rotateZ(var(--multi-angle-piece-angle, 0deg))');
+        } finally {
+          character.destroy();
+          ImageStorage.instance.delete(imageUrl);
+        }
+      }
+    );
   });
 
   describe('keeping the name above the piece on the screen in the flat mode', () => {
