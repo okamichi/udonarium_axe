@@ -1,6 +1,6 @@
 # Udonarium Axe with Table-Top Display
 
-> **おことわり** : このリポジトリは [Udonarium Axe](https://github.com/Xelltis/udonarium_axe) のフォークで、卓上ディスプレイに特化した機能を追加しています。このドキュメントはほぼフォーク元の内容なので、特化した追加機能の詳細は [2D多方向閲覧・回転メニュー・外周ティッカー](./docs/multi-angle.md) を参照してください。
+> **おことわり** : このリポジトリ/ブランチは [Udonarium Axe](https://github.com/Xelltis/udonarium_axe) のフォークで、卓上ディスプレイに特化した機能を追加しています。このドキュメントはほぼフォーク元の内容なので、特化した追加機能の詳細は [2D多方向閲覧・回転メニュー・外周ティッカー](./docs/multi-angle.md) を参照してください。
 
 [![Latest release](https://img.shields.io/github/v/release/okamichi/udonarium_axe?logo=github)](https://github.com/okamichi/udonarium_axe/releases/latest)
 [![Docs](https://img.shields.io/badge/Docs-機能追加ガイド-5C73E7?logo=vitepress&logoColor=white)](https://github.com/okamichi/udonarium_axe/docs/multi-angle.md)
@@ -82,8 +82,8 @@ Secret をブラウザに置くわけにはいきません。そのため、**�
 
 | バックエンド                                                                    | 実装 / 配置先                                               | こんな人に                                   | デプロイ方法                                                |
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------- |
-| [udonarium-backend-vercel](https://github.com/okamichi/udonarium-backend-vercel) | TypeScript (Hono) / **Vercel Edge**                         | とにかく手軽に始めたい                       | ◎ README の **Deploy with Vercel** ボタンから               |
-| [udonarium_axe_backend](https://github.com/okamichi/udonarium_axe_backend)       | **PHP 8.3 / Apache**                                        | レンタルサーバーを持っている                 | ○ Releases の zip を展開し `.env` を設定して docroot に配置 |
+| [udonarium-backend-vercel](https://github.com/Xelltis/udonarium-backend-vercel) | TypeScript (Hono) / **Vercel Edge**                         | とにかく手軽に始めたい                       | ◎ README の **Deploy with Vercel** ボタンから               |
+| [udonarium_axe_backend](https://github.com/Xelltis/udonarium_axe_backend)       | **PHP 8.3 / Apache**                                        | レンタルサーバーを持っている                 | ○ Releases の zip を展開し `.env` を設定して docroot に配置 |
 | [udonarium-backend（本家）](https://github.com/TK11235/udonarium-backend)       | TypeScript (Hono) / Cloudflare Workers・AWS Lambda・Node.js | CF Workers / Lambda / 自前 Node で運用したい | ○ 各環境に自前でデプロイ（CLI）                             |
 
 > 本家 [TK11235/udonarium-backend](https://github.com/TK11235/udonarium-backend) も **そのまま利用できます**。
