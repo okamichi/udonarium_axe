@@ -62,6 +62,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() imageBillboard: boolean = false;
   @SyncVar() mode2d: boolean = false;
   @SyncVar() orthographicProjection: boolean = false;
+  @SyncVar() terrainRotationIn2dEnabled: boolean = false;
   @SyncVar() radialMenuEnabled: boolean = false;
   @SyncVar() radialMenuRotationSpeed: number = DEFAULT_RADIAL_MENU_ROTATION_SPEED;
   @SyncVar() multiAngleEnabled: boolean = false;

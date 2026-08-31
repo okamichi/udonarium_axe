@@ -376,6 +376,19 @@ describe('GameCharacterComponent', () => {
       expect(component.canTurn()).toBe(true);
     });
 
+    it('moves the arrow outside the rotating resource gauge', () => {
+      tableShowing('arrow', true);
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.multiAngleEnabled = true;
+      table.multiAngleResourceBuffEnabled = true;
+      place();
+
+      const baseOffset = Math.round(component.gridSize * 0.06);
+      const gauge = component.multiAngleResourceGaugeLayout();
+      expect(gauge.segments.length).toBeGreaterThan(0);
+      expect(component.facingArrowOffsetPx()).toBe(baseOffset + gauge.strokeWidth);
+    });
+
     it('turns the picture only from above, a turned billboard being no help from the side', () => {
       tableShowing('turn', false);
       place(90);

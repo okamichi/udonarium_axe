@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { CutInService } from '@axe/application/media/cut-in.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -9,7 +8,6 @@ import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabl
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
 
 describe('GameTableSettingComponent', () => {
   let component: GameTableSettingComponent;
@@ -104,6 +102,45 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableFacingMark).toBe('none');
       table.destroy();
     });
+
+    it('turns off multi-angle rotation when the whole piece is selected', () => {
+      const table = new GameTable();
+      table.initialize();
+      table.multiAngleEnabled = true;
+      component.selectedTable = table;
+
+      component.tableFacingMark = 'turn';
+
+      expect(table.facingMark).toBe('turn');
+      expect(table.multiAngleEnabled).toBe(false);
+      table.destroy();
+    });
+
+    it('resets whole-piece facing when multi-angle rotation is enabled', () => {
+      const table = new GameTable();
+      table.initialize();
+      table.facingMark = 'turn';
+      component.selectedTable = table;
+
+      component.tableMultiAngleEnabled = true;
+
+      expect(table.multiAngleEnabled).toBe(true);
+      expect(table.facingMark).toBe('none');
+      table.destroy();
+    });
+
+    it('keeps arrow facing when multi-angle rotation is enabled', () => {
+      const table = new GameTable();
+      table.initialize();
+      table.facingMark = 'arrow';
+      component.selectedTable = table;
+
+      component.tableMultiAngleEnabled = true;
+
+      expect(table.multiAngleEnabled).toBe(true);
+      expect(table.facingMark).toBe('arrow');
+      table.destroy();
+    });
   });
 
   describe('signal-driven CD', () => {
@@ -165,6 +202,28 @@ describe('GameTableSettingComponent', () => {
       expect(table.multiAngleRevolutionSeconds).toBe(1);
       expect(table.multiAnglePauseSeconds).toBe(30);
       expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
+    } finally {
+      table.destroy();
+    }
+  });
+
+  it('resets the piece revolution time for each selected motion mode', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      table.multiAnglePieceRevolutionSeconds = 90;
+      component.tableMultiAngleMotionMode = 'quarter-turn';
+      expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
+
+      table.multiAnglePieceRevolutionSeconds = 90;
+      component.tableMultiAngleMotionMode = 'piece-quarter-turn';
+      expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
+
+      table.multiAnglePieceRevolutionSeconds = 90;
+      component.tableMultiAngleMotionMode = 'continuous';
+      expect(table.multiAnglePieceRevolutionSeconds).toBe(60);
     } finally {
       table.destroy();
     }
@@ -232,6 +291,20 @@ describe('GameTableSettingComponent', () => {
     }
   });
 
+  it('stores the 2D terrain rotation setting on the table', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      expect(component.tableTerrainRotationIn2dEnabled).toBe(false);
+      component.tableTerrainRotationIn2dEnabled = true;
+      expect(table.terrainRotationIn2dEnabled).toBe(true);
+    } finally {
+      table.destroy();
+    }
+  });
+
   it('shows projection and rotating menu checkboxes inside 2D mode settings', async () => {
     const table = new GameTable();
     table.initialize();
@@ -248,16 +321,21 @@ describe('GameTableSettingComponent', () => {
       expect(projection).toBeTruthy();
       expect(projection.checked).toBe(false);
       expect(projection.closest('label')?.textContent).toContain('平行投影');
+      const terrainRotation = fixture.nativeElement.querySelector(
+        'input[name="tableTerrainRotationIn2dEnabled"]'
+      ) as HTMLInputElement;
+      expect(terrainRotation).toBeTruthy();
+      expect(terrainRotation.checked).toBe(false);
+      expect(terrainRotation.closest('label')?.textContent).toContain('地形の回転を許可（通常は2Dモードでは固定）');
       const checkbox = fixture.nativeElement.querySelector('input[name="tableRadialMenuEnabled"]') as HTMLInputElement;
       expect(checkbox).toBeTruthy();
       expect(checkbox.checked).toBe(false);
       expect(checkbox.closest('label')?.textContent).toContain('回転メニュー表示');
-      const menuTooltip = fixture.debugElement
-        .query(By.css('[data-testid="radial-menu-label"]'))
-        .injector.get(TextTooltipDirective);
-      expect(menuTooltip.appTextTooltip()).toBe(
-        '選択したメニューの向きにウィンドウが開くので、コマの右クリック連続で強制回転し、コマの真下での選択クリックしてください。混み合ってる場所でのメニュー表示は、右ドラッグすれば任意の場所に表示可能です。'
+      const radialMenuHelp = fixture.nativeElement.querySelector('[data-testid="radial-menu-help"]') as HTMLElement;
+      expect(radialMenuHelp.textContent).toContain(
+        '右クリックで回転メニューを開き、連打で強制回転、右ドラッグでメニューの表示位置を移動できます。各メニュー項目から開くウィンドウの向きは、中心から4分割した角度方向になります。'
       );
+      expect(radialMenuHelp.classList).toContain('text-ui-dim');
       const speed = fixture.nativeElement.querySelector(
         'input[name="tableRadialMenuRotationSpeed"]'
       ) as HTMLInputElement;
@@ -265,12 +343,9 @@ describe('GameTableSettingComponent', () => {
       expect(speed.value).toBe('5');
       expect(speed.max).toBe('24');
       expect(speed.disabled).toBe(true);
-      const speedTooltip = fixture.debugElement
-        .query(By.css('[data-testid="radial-menu-speed-label"]'))
-        .injector.get(TextTooltipDirective);
-      expect(speedTooltip.appTextTooltip()).toBe(
-        '回転メニューの回転速度を1～24°/秒で設定します。値が大きいほど速く回転します。'
-      );
+      const multiAngleHint = fixture.nativeElement.querySelector('[data-testid="multi-angle-hint"]') as HTMLElement;
+      expect(multiAngleHint.textContent).toContain('キャラクターの向きの「コマごと回す」とは併用できません。');
+      expect(multiAngleHint.classList).toContain('text-ui-dim');
     } finally {
       table.destroy();
     }

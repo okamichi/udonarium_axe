@@ -418,11 +418,19 @@
                 />
                 {{ 'feature.tabletop.tableSetting.orthographicProjection' | transloco }}
               </label>
+              <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+                <input
+                  type="checkbox"
+                  class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                  [(ngModel)]="tableTerrainRotationIn2dEnabled"
+                  name="tableTerrainRotationIn2dEnabled"
+                />
+                {{ 'feature.tabletop.tableSetting.terrainRotationIn2d' | transloco }}
+              </label>
               <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <label
                   class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none"
                   data-testid="radial-menu-label"
-                  [appTextTooltip]="'feature.tabletop.tableSetting.radialMenuHelp' | transloco"
                 >
                   <input
                     type="checkbox"
@@ -436,7 +444,6 @@
                   class="text-ui-muted flex items-center gap-1 text-[11px]"
                   [class.opacity-45]="!tableRadialMenuEnabled"
                   data-testid="radial-menu-speed-label"
-                  [appTextTooltip]="'feature.tabletop.tableSetting.radialMenuSpeedHelp' | transloco"
                 >
                   <span>{{ 'feature.tabletop.tableSetting.radialMenuSpeed' | transloco }}</span>
                   <input
@@ -452,6 +459,9 @@
                   <span class="min-w-9 text-right">{{ tableRadialMenuRotationSpeed }}°/s</span>
                 </label>
               </div>
+              <p data-testid="radial-menu-help" class="text-ui-dim m-0 text-[11px]">
+                {{ 'feature.tabletop.tableSetting.radialMenuHelp' | transloco }}
+              </p>
             </div>
 
             <label class="text-ui-text ml-5 flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
@@ -463,6 +473,9 @@
               />
               {{ 'feature.tabletop.tableSetting.multiAngle' | transloco }}
             </label>
+            <p data-testid="multi-angle-hint" class="text-ui-dim m-0 ml-5 text-[11px]">
+              {{ 'feature.tabletop.tableSetting.multiAngleHint' | transloco }}
+            </p>
             @if (tableMultiAngleEnabled) {
               <div
                 class="border-ui-border-panel bg-ui-input/35 ml-5 grid grid-cols-[8.5rem_1fr] items-center gap-2 rounded-md border border-solid p-2"

@@ -567,7 +567,12 @@ export class GameCharacterComponent {
    */
   readonly facingArrowSizePx = computed(() => Math.max(16, Math.round(this.gridSize * 0.44)));
 
-  readonly facingArrowOffsetPx = computed(() => Math.round(this.gridSize * 0.06));
+  readonly facingArrowOffsetPx = computed(() => {
+    const baseOffset = Math.round(this.gridSize * 0.06);
+    if (!this.multiAngleResourceBuffOrbitEnabled()) return baseOffset;
+    const gauge = this.multiAngleResourceGaugeLayout();
+    return gauge.segments.length > 0 ? baseOffset + gauge.strokeWidth : baseOffset;
+  });
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
     return makeLabelOrbitTransform({

@@ -3,7 +3,7 @@ export type MultiAngleMotionMode = 'continuous' | 'quarter-turn' | 'piece-quarte
 export type MultiAngleOrbitMode = Exclude<MultiAngleMotionMode, 'piece-quarter-turn'>;
 
 export const DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS = 12;
-export const DEFAULT_MULTI_ANGLE_PAUSE_SECONDS = 2;
+export const DEFAULT_MULTI_ANGLE_PAUSE_SECONDS = 4;
 export const DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS = 60;
 export const DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND = 55;
 export const MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND = 20;

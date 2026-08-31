@@ -51,7 +51,6 @@ import {
   MapImageGridAdjusterResult,
 } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-grid-adjuster.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
-import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
@@ -61,15 +60,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
   host: { class: 'block', '[attr.inert]': "isReadOnly() ? '' : null" },
-  imports: [
-    NgClass,
-    FormsModule,
-    NgSelectComponent,
-    NgOptionComponent,
-    SafePipe,
-    TextTooltipDirective,
-    TranslocoModule,
-  ],
+  imports: [NgClass, FormsModule, NgSelectComponent, NgOptionComponent, SafePipe, TranslocoModule],
 })
 export class GameTableSettingComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
@@ -205,6 +196,15 @@ export class GameTableSettingComponent {
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
+  get tableTerrainRotationIn2dEnabled(): boolean {
+    return this.selectedTable?.terrainRotationIn2dEnabled ?? false;
+  }
+  set tableTerrainRotationIn2dEnabled(value: boolean) {
+    if (!this.selectedTable) return;
+    this.selectedTable.terrainRotationIn2dEnabled = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
   get tableRadialMenuEnabled(): boolean {
     return this.selectedTable?.radialMenuEnabled ?? false;
   }
@@ -234,6 +234,9 @@ export class GameTableSettingComponent {
   set tableMultiAngleEnabled(value: boolean) {
     if (!this.selectedTable) return;
     this.selectedTable.multiAngleEnabled = value;
+    if (value && asTableFacingMark(this.selectedTable.facingMark) === 'turn') {
+      this.selectedTable.facingMark = 'none';
+    }
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
@@ -252,8 +255,10 @@ export class GameTableSettingComponent {
   }
   set tableMultiAngleMotionMode(value: MultiAngleMotionMode) {
     if (!this.selectedTable) return;
-    this.selectedTable.multiAngleMotionMode =
-      value === 'quarter-turn' || value === 'piece-quarter-turn' ? value : 'continuous';
+    const motionMode = value === 'quarter-turn' || value === 'piece-quarter-turn' ? value : 'continuous';
+    this.selectedTable.multiAngleMotionMode = motionMode;
+    this.selectedTable.multiAnglePieceRevolutionSeconds =
+      motionMode === 'continuous' ? DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS : 5;
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
@@ -300,7 +305,9 @@ export class GameTableSettingComponent {
   }
   set tableFacingMark(value: TableFacingMark) {
     if (!this.selectedTable) return;
-    this.selectedTable.facingMark = asTableFacingMark(value);
+    const facingMark = asTableFacingMark(value);
+    this.selectedTable.facingMark = facingMark;
+    if (facingMark === 'turn') this.selectedTable.multiAngleEnabled = false;
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
