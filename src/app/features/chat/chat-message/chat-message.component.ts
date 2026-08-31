@@ -20,6 +20,7 @@ import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -61,6 +62,7 @@ export class ChatMessageComponent {
   private readonly language = inject(LanguageService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly rolePermission = inject(RolePermissionService);
+  private readonly tabletopService = inject(TabletopService);
   protected readonly theme = inject(ThemeService);
   private readonly systemAvatar = inject(SystemAvatarService);
   private readonly systemAvatarMenu = inject(SystemAvatarMenuService);
@@ -393,6 +395,7 @@ export class ChatMessageComponent {
     const width = Math.max(3, Math.min(8, Math.ceil(longest / 12)));
     const height = Math.max(2, Math.min(8, Math.ceil(lines.length / 3)));
     const note = TextNote.create(title, text, 14, width, height);
+    note.isUpright = !this.tabletopService.mode2d();
     note.location.x = Math.floor(Math.random() * 200 - 100);
     note.location.y = Math.floor(Math.random() * 200 - 100);
     SoundEffect.play(PresetSound.cardPut);

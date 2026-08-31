@@ -8,6 +8,7 @@ import {
 } from '@axe/application/chat/system-avatar.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { emitFileLoaded } from '@axe/core/event/domain-events';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -429,6 +430,28 @@ describe('ChatMessageComponent', () => {
         expect(created!.text).toBe('世界を救うのだ');
       } finally {
         const created = ObjectStore.instance.getObjects(TextNote).find((n) => !beforeNotes.includes(n));
+        created?.destroy();
+      }
+    });
+
+    it('lays a note shared from chat flat in 2D mode', () => {
+      const message = new ChatMessage();
+      message.initialize();
+      message.from = 'tester';
+      message.name = '勇者';
+      message.text = '地図に置くメモ';
+      fixture.componentRef.setInput('chatMessage', message);
+      const tabletop = TestBed.inject(TabletopService);
+      tabletop.currentTable.mode2d = true;
+      const beforeNotes = ObjectStore.instance.getObjects(TextNote);
+
+      try {
+        component.clickShareAsMemo();
+        const created = ObjectStore.instance.getObjects(TextNote).find((note) => !beforeNotes.includes(note));
+        expect(created?.isUpright).toBe(false);
+      } finally {
+        tabletop.currentTable.mode2d = false;
+        const created = ObjectStore.instance.getObjects(TextNote).find((note) => !beforeNotes.includes(note));
         created?.destroy();
       }
     });

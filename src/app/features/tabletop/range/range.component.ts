@@ -32,7 +32,7 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-context-menu';
+import { buildRangeContextMenuModel } from '@axe/features/tabletop/range/range-context-menu';
 import {
   ClipAreaCorn,
   ClipAreaHexagon,
@@ -362,7 +362,7 @@ export class RangeComponent {
     const menuPosition = this.pointerDeviceService.pointers[0];
     if (this.pieceContextMenu.openForSelection(this.range(), this.gridSize, menuPosition)) return;
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
-    const menuArray = buildRangeContextMenu(
+    const menu = buildRangeContextMenuModel(
       this.range()!,
       this.gridSize,
       objectPosition,
@@ -374,7 +374,19 @@ export class RangeComponent {
       this.translateFn,
       (r) => this.openCellEditor(r)
     );
-    this.contextMenuService.open(menuPosition, menuArray, this.name());
+    const table = this.tabletopService.currentTable;
+    if (table.mode2d) {
+      this.contextMenuService.openRadial(
+        menuPosition,
+        menu.actions,
+        menu.radialGroups,
+        this.name(),
+        table.radialMenuEnabled,
+        table.radialMenuRotationSpeed
+      );
+      return;
+    }
+    this.contextMenuService.open(menuPosition, menu.actions, this.name());
   }
 
   dockingWindowOpen() {

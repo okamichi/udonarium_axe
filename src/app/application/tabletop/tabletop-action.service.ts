@@ -160,6 +160,7 @@ export class TabletopActionService {
     textNote.location.x = position.x;
     textNote.location.y = position.y;
     textNote.posZ = position.z;
+    textNote.isUpright = !(this.getViewTable()?.mode2d ?? false);
     this.applyCreationDefaults(textNote);
     return textNote;
   }

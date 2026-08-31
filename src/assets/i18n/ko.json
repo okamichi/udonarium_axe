@@ -681,6 +681,12 @@
       }
     },
     "textNote": {
+      "contextMenu": {
+        "radialContent": "내용",
+        "radialDisplay": "표시",
+        "radialDisclosure": "공개·소유자",
+        "radialObject": "이동·조작"
+      },
       "section": {
         "layout": "레이아웃"
       },
@@ -1471,7 +1477,10 @@
         "unfollow": "따라가지 않기",
         "skin": "스킨",
         "skinFromLibrary": "이미지 보관함에서 선택",
-        "skinNone": "스킨 없음"
+        "skinNone": "스킨 없음",
+        "radialAppearance": "광원·외형",
+        "radialPosition": "위치·따라가기",
+        "radialObject": "오브젝트 조작"
       },
       "preset": {
         "custom": "커스텀",
@@ -1664,6 +1673,9 @@
         "radialAppearance": "외형·조명",
         "radialMoveCreate": "이동·만들기",
         "radialObject": "오브젝트 조작",
+        "radialRangePosition": "위치·따라가기",
+        "radialRangeShape": "형상",
+        "radialRangeEditCreate": "편집·만들기",
         "lightSection": "어둠(시야·발광)",
         "blocksSight": "시야를 막음",
         "blocksLight": "빛을 막음(창문이면 끔)",
