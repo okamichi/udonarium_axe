@@ -7,6 +7,7 @@
   [class.border]="!detachedItems()"
   [class.border-solid]="!detachedItems()"
   [class.py-1]="!detachedItems()"
+  [style.zIndex]="layer() > 0 ? layer() : null"
   [ngClass]="{
     'max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain': isSubmenu() && !subMenu(),
     'max-h-full max-w-full': !isSubmenu(),

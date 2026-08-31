@@ -58,6 +58,11 @@ export class ContextMenuComponent {
 
   readonly isSubmenu = input(false);
   readonly detachedItems = input(false);
+
+  /** Where this menu sits, for one opened by something that lives above where menus usually go. */
+  protected layer(): number {
+    return this.contextMenuService.layer;
+  }
   protected readonly titleInput = input('', { alias: 'title' });
   readonly titleColor = input('');
   readonly titleBold = input(false);

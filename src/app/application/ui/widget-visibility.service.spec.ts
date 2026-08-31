@@ -9,6 +9,8 @@ describe('parseWidgetVisibility', () => {
       miniPlayer: true,
       connectionQuality: false,
       recording: true,
+      renderStats: false,
+      hotbar: false,
     });
   });
 
@@ -20,6 +22,8 @@ describe('parseWidgetVisibility', () => {
       miniPlayer: false,
       connectionQuality: true,
       recording: false,
+      renderStats: false,
+      hotbar: false,
     });
   });
 
@@ -29,12 +33,16 @@ describe('parseWidgetVisibility', () => {
       miniPlayer: true,
       connectionQuality: false,
       recording: true,
+      renderStats: false,
+      hotbar: false,
     });
     expect(parseWidgetVisibility('null')).toEqual({
       clock: false,
       miniPlayer: true,
       connectionQuality: false,
       recording: true,
+      renderStats: false,
+      hotbar: false,
     });
   });
 
@@ -44,6 +52,8 @@ describe('parseWidgetVisibility', () => {
       miniPlayer: true,
       connectionQuality: false,
       recording: true,
+      renderStats: false,
+      hotbar: false,
     });
   });
 });
@@ -62,6 +72,8 @@ describe('WidgetVisibilityService', () => {
     expect(service.miniPlayer()).toBe(true);
     expect(service.connectionQuality()).toBe(false);
     expect(service.recording()).toBe(true);
+    expect(service.renderStats()).toBe(false);
+    expect(service.hotbar()).toBe(false);
   });
 
   it('toggles each one independently', () => {
@@ -77,5 +89,9 @@ describe('WidgetVisibilityService', () => {
     expect(service.connectionQuality()).toBe(true);
     expect(service.clock()).toBe(true);
     expect(service.miniPlayer()).toBe(false);
+
+    service.toggleHotbar();
+    expect(service.hotbar()).toBe(true);
+    expect(service.connectionQuality()).toBe(true);
   });
 });

@@ -35,6 +35,11 @@ export interface ContextMenuRadialGroup {
   actions: ContextMenuAction[];
 }
 
+export interface ContextMenuOpenOptions {
+  layer?: number;
+  parentViewContainerRef?: ViewContainerRef;
+}
+
 type ContextMenuComponentClass = { new (...args: unknown[]): unknown };
 
 @Injectable()
@@ -55,17 +60,14 @@ export class ContextMenuService {
   rotationDegrees: PanelRotationDegrees = 0;
   position: ContextMenuPoint = { x: 0, y: 0 };
   radialAnchorPosition: ContextMenuPoint | null = null;
+  /** Where the menu sits, for a caller that lives above where menus usually go. Zero is the usual place. */
+  layer: number = 0;
 
   get isShow(): boolean {
     return this.panelComponentRef !== null;
   }
 
-  open(
-    position: ContextMenuPoint,
-    actions: ContextMenuAction[],
-    title?: string,
-    parentViewContainerRef?: ViewContainerRef
-  ) {
+  open(position: ContextMenuPoint, actions: ContextMenuAction[], title?: string, options?: ContextMenuOpenOptions) {
     this.openComponent(
       ContextMenuService.ContextMenuComponentClass,
       position,
@@ -78,7 +80,8 @@ export class ContextMenuService {
       0,
       undefined,
       title,
-      parentViewContainerRef
+      options?.parentViewContainerRef,
+      options?.layer ?? 0
     );
   }
 
@@ -87,7 +90,8 @@ export class ContextMenuService {
     actions: ContextMenuAction[],
     rotationDegrees: PanelRotationDegrees,
     title?: string,
-    parentViewContainerRef?: ViewContainerRef
+    parentViewContainerRef?: ViewContainerRef,
+    layer = 0
   ) {
     this.openComponent(
       ContextMenuService.ContextMenuComponentClass,
@@ -101,7 +105,8 @@ export class ContextMenuService {
       0,
       undefined,
       title,
-      parentViewContainerRef
+      parentViewContainerRef,
+      layer
     );
   }
 
@@ -115,7 +120,8 @@ export class ContextMenuService {
     radialMenuClearanceRadius = 0,
     radialMenuOcclusionHalfExtent = 0,
     radialAnchorPosition?: ContextMenuPoint,
-    parentViewContainerRef?: ViewContainerRef
+    parentViewContainerRef?: ViewContainerRef,
+    layer = 0
   ) {
     this.openComponent(
       ContextMenuService.FourWayRadialMenuComponentClass,
@@ -129,7 +135,8 @@ export class ContextMenuService {
       radialMenuOcclusionHalfExtent,
       radialAnchorPosition,
       title,
-      parentViewContainerRef
+      parentViewContainerRef,
+      layer
     );
   }
 
@@ -145,17 +152,17 @@ export class ContextMenuService {
     radialMenuOcclusionHalfExtent: number,
     radialAnchorPosition?: ContextMenuPoint,
     title?: string,
-    parentViewContainerRef?: ViewContainerRef
+    parentViewContainerRef?: ViewContainerRef,
+    layer = 0
   ) {
     this.close();
     if (!this.rolePermission.canEditTabletop) return;
-    if (!parentViewContainerRef) {
-      parentViewContainerRef = ContextMenuService.defaultParentViewContainerRef;
-    }
-    const injector = parentViewContainerRef.injector;
 
-    const panelComponentRef = parentViewContainerRef.createComponent(componentClass, {
-      index: parentViewContainerRef.length,
+    const parent = parentViewContainerRef ?? ContextMenuService.defaultParentViewContainerRef;
+    const injector = parent.injector;
+
+    const panelComponentRef = parent.createComponent(componentClass, {
+      index: parent.length,
       injector,
     });
 
@@ -180,6 +187,7 @@ export class ContextMenuService {
       : null;
 
     childPanelService.title = title != null ? title : '';
+    childPanelService.layer = layer;
 
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null;

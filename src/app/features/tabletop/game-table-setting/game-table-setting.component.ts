@@ -44,6 +44,7 @@ import {
   DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS,
   MultiAngleMotionMode,
 } from '@axe/domain/tabletop/multi-angle';
+import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
   MapImageGridAdjusterComponent,
@@ -289,6 +290,17 @@ export class GameTableSettingComponent {
     this.selectedTable.multiAnglePieceRevolutionSeconds = Number.isFinite(number)
       ? Math.min(300, Math.max(5, number))
       : DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  readonly facingMarks = TABLE_FACING_MARKS;
+
+  get tableFacingMark(): TableFacingMark {
+    return asTableFacingMark(this.selectedTable?.facingMark);
+  }
+  set tableFacingMark(value: TableFacingMark) {
+    if (!this.selectedTable) return;
+    this.selectedTable.facingMark = asTableFacingMark(value);
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

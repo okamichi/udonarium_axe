@@ -26,6 +26,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -42,6 +43,7 @@ import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffBadge, toBuffBadges } from '@axe/domain/character/buff-badge';
+import { BUFF_VIEW_LABEL_KEYS, type BuffViewMode, nextBuffViewMode } from '@axe/domain/character/buff-view-mode';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { isInternalResource } from '@axe/domain/character/internal-resource';
 import { isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
@@ -52,6 +54,7 @@ import {
   resourceChangeSeverity,
   ResourceSnapshot,
 } from '@axe/domain/character/resource-change';
+import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
 import { DataElement } from '@axe/domain/data/data-element';
 import { collectDataElements } from '@axe/domain/data/data-element-tree';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -65,6 +68,7 @@ import {
   multiAnglePieceMotionMode,
   multiAngleRotationPhase,
 } from '@axe/domain/tabletop/multi-angle';
+import { asTableFacingMark, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { buildGameCharacterContextMenuModel } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -98,7 +102,6 @@ const DECOR_BASE_FONT_PX = 10;
 const NAME_BASE_FONT_PX = 15;
 const GAUGE_ROW_HEIGHT_PX = 13;
 const MULTI_ANGLE_RESOURCE_BUFF_DURATION_FACTOR = 1.25;
-type BuffViewMode = 'icon' | 'detail' | 'count';
 
 function resourceChangeSound(kind: 'damage' | 'heal', ratio: number): string {
   const severity = resourceChangeSeverity(ratio);
@@ -119,7 +122,7 @@ const BUFF_STACK_GAP_PX = 40;
 const TARGET_STACK_GAP_PX = 52;
 const BUFF_DETAIL_ROW_HEIGHT_PX = 12;
 const BUFF_BADGE_ROW_HEIGHT_PX = 22;
-const BUFF_BADGES_PER_ROW = 6;
+const BUFF_BADGES_PER_ROW = 5;
 const ROLL_HANDLE_MIN_PX = 20;
 const ROLL_HANDLE_MAX_PX = 56;
 const ROLL_HANDLE_SIZE_RATIO = 0.56;
@@ -167,6 +170,7 @@ export class GameCharacterComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly buffViewPreference = inject(BuffViewPreferenceService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
   private readonly tabletopOverlap = inject(TabletopOverlapService);
@@ -393,8 +397,17 @@ export class GameCharacterComponent {
     this.entryBounce.set(false);
   }
 
-  protected readonly buffViewMode = signal<BuffViewMode>('icon');
+  protected readonly buffViewMode = linkedSignal<BuffViewMode>(() => this.buffViewPreference.mode());
   protected readonly foldingBuff = computed(() => this.buffViewMode() !== 'detail');
+  protected readonly buffViewLabelKey = computed(() => BUFF_VIEW_LABEL_KEYS[this.buffViewMode()]);
+
+  protected cycleBuffView(event: MouseEvent): void {
+    const fromPress = event.type === 'mousedown';
+    if (fromPress && event.button !== 0) return;
+    if (!fromPress && event.detail !== 0) return;
+    event.stopPropagation();
+    this.buffViewMode.update(nextBuffViewMode);
+  }
 
   get gridSize(): number {
     return this.tabletopService.gridSize();
@@ -417,7 +430,9 @@ export class GameCharacterComponent {
     this.isPoster() ? '' : this.makeBillboardTransform(BUFF_STACK_GAP_PX + this.gaugePanelHeightEstimate())
   );
 
-  readonly billboardTransformImage = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(0)));
+  readonly billboardTransformImage = computed(() =>
+    this.isPoster() ? '' : this.makeBillboardTransform(0, this.imageTurnsWithPiece())
+  );
 
   readonly imageBillboardEnabled = computed(() => {
     if (this.isPoster()) return true;
@@ -506,9 +521,7 @@ export class GameCharacterComponent {
 
   private readonly rollHandleGapPx = computed(() => Math.round(this.rollHandleSizePx() * ROLL_HANDLE_GAP_RATIO));
 
-  readonly rollHandleHeadTransform = computed(
-    () => `${this.pieceCenterShift()} translateY(-100%) translateY(${-this.rollHandleGapPx()}px)`
-  );
+  readonly rollHandleHeadTransform = computed(() => this.pieceCenterShift());
 
   readonly rollHandleFootTransform = computed(
     () => `${this.pieceCenterShift()} translateY(100%) translateY(${this.rollHandleGapPx()}px)`
@@ -521,6 +534,40 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     return table.mode2d;
   });
+
+  /** What the table asks of a piece that has to show which way it faces. */
+  readonly facingMark = computed<TableFacingMark>(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return asTableFacingMark(table.facingMark);
+  });
+
+  /**
+   * Whether the piece may be turned at all.
+   *
+   * Seen from above there was nothing turning it would show, so it was held still. A table
+   * that shows facing has something to show, and hands the handles back.
+   */
+  readonly canTurn = computed(() => {
+    if (this.isPoster()) return false;
+    return !this.mode2dEnabled() || this.facingMark() !== 'none';
+  });
+
+  /** The picture itself turns with the piece, rather than staying square to the reader. */
+  readonly imageTurnsWithPiece = computed(() => this.mode2dEnabled() && this.facingMark() === 'turn');
+
+  readonly showFacingArrow = computed(() => !this.isPoster() && this.facingMark() === 'arrow');
+
+  /**
+   * The mark sits just outside the piece, pointing the way the picture's own head points.
+   *
+   * It is drawn as boldly as the target marker: a piece's facing is read at a glance across
+   * the whole table, and a faint mark on a painted floor is read at none.
+   */
+  readonly facingArrowSizePx = computed(() => Math.max(16, Math.round(this.gridSize * 0.44)));
+
+  readonly facingArrowOffsetPx = computed(() => Math.round(this.gridSize * 0.06));
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
     return makeLabelOrbitTransform({
@@ -572,6 +619,8 @@ export class GameCharacterComponent {
         current: Number(element.currentValue),
         max: Number(element.value),
         inverted: isGaugeInverted(element),
+        playsEffect: playsEffectOnChange(element),
+        playsSound: playsSoundOnChange(element),
         changedBySelf: this.objectStore.localChangeCountOf(element.identifier),
       });
     }
@@ -797,10 +846,28 @@ export class GameCharacterComponent {
     });
   }
 
-  private makeBillboardTransform(verticalOffset3D: number): string {
+  /**
+   * The frame everything above the pedestal hangs from.
+   *
+   * Seen from above, the piece's own turn is taken back out here, once, so that the name, the
+   * bars and the balloon keep the side of the piece they were on however it is turned. The
+   * picture puts the turn back on itself where the table asks the picture to turn.
+   */
+  readonly standTransform = computed(() => {
+    if (this.isPoster()) return 'translateY(-50%)';
+    const held = this.mode2dEnabled() ? `rotateZ(${-this.rotateSignal()}deg) ` : '';
+    return (
+      `${held}rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) ` +
+      `translateY(-50%) translateY(${-this.altitude() * this.gridSize}px)`
+    );
+  });
+
+  private makeBillboardTransform(verticalOffset3D: number, turnsWithPiece = false): string {
+    // Above the pedestal in plan there is no turn left to take out; only the picture puts one back.
+    const pieceRotate = this.mode2dEnabled() ? (turnsWithPiece ? -this.rotateSignal() : 0) : this.rotateSignal();
     return makeBillboardTransform({
       rotation: this.uiSignalService.tableViewRotation(),
-      pieceRotate: this.rotateSignal(),
+      pieceRotate,
       pieceRoll: this.rollSignal(),
       parentInverseRotation: 'rotateY(90deg) rotateZ(90deg) rotateY(-90deg)',
       verticalOffset3D,
@@ -1140,10 +1207,16 @@ export class GameCharacterComponent {
 
     const kind = entries.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
     this.hitFlash.set(kind);
-    SoundEffect.playLocal(resourceChangeSound(kind, loudestChangeRatio(entries)));
 
+    const heard = entries.filter((entry) => entry.playsSound);
+    if (heard.length > 0) {
+      const heardKind = heard.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
+      SoundEffect.playLocal(resourceChangeSound(heardKind, loudestChangeRatio(heard)));
+    }
+
+    const shown = entries.filter((entry) => entry.playsEffect);
     const char = this.gameCharacter();
-    if (char) this.effectAutoPlay.play(char, entries);
+    if (char && shown.length > 0) this.effectAutoPlay.play(char, shown);
 
     const flashTimer = setTimeout(
       () => {

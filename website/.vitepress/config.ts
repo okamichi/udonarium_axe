@@ -181,6 +181,7 @@ export default defineConfig({
           items: [
             { text: 'ロール（GM / PL / 見学）', link: '/manual/roles' },
             { text: 'PL ツールバー', link: '/manual/pl-tools' },
+            { text: 'ホットバー', link: '/manual/hotbar' },
             { text: '情報の公開範囲', link: '/manual/disclosure' },
             { text: 'オブジェクト一覧（GM）', link: '/manual/gm-object-list' },
             { text: 'マップエディター', link: '/manual/map-editor' },
@@ -252,6 +253,9 @@ export default defineConfig({
           text: 'リリースノート',
           items: [
             { text: '一覧', link: '/release-notes/' },
+            { text: 'v1.46.1', link: '/release-notes/v1.46.1' },
+            { text: 'v1.46.0', link: '/release-notes/v1.46.0' },
+            { text: 'v1.45.0', link: '/release-notes/v1.45.0' },
             { text: 'v1.44.1', link: '/release-notes/v1.44.1' },
             { text: 'v1.44.0', link: '/release-notes/v1.44.0' },
             { text: 'v1.43.1', link: '/release-notes/v1.43.1' },

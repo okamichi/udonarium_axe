@@ -118,6 +118,9 @@ interface BeamWallGrid {
   dataUrl: string;
 }
 
+const NO_BEAM_TOP_GRIDS: readonly BeamTopGrid[] = [];
+const NO_BEAM_WALL_GRIDS: readonly BeamWallGrid[] = [];
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table',
@@ -603,7 +606,7 @@ export class GameTableComponent {
     const table = this.currentTable;
     this.objectChangeService.versionOf(table.identifier)();
     this.objectChangeService.versionOf(this.tableSelecter.identifier)();
-    if (!table.gridShow) return [];
+    if (!table.gridShow) return NO_BEAM_TOP_GRIDS;
     const grid = table.gridSize;
     const dims: SurfaceDims = {
       widthPx: table.width * grid,
@@ -621,7 +624,7 @@ export class GameTableComponent {
         dataUrl: this.beamTopGridDataUrl(geo.width, geo.height, geo.left, geo.top, table),
       });
     }
-    return result;
+    return result.length > 0 ? result : NO_BEAM_TOP_GRIDS;
   });
 
   private beamTopGridDataUrl(
@@ -638,7 +641,7 @@ export class GameTableComponent {
     const table = this.currentTable;
     this.objectChangeService.versionOf(table.identifier)();
     this.objectChangeService.versionOf(this.tableSelecter.identifier)();
-    if (!table.gridShow) return [];
+    if (!table.gridShow) return NO_BEAM_WALL_GRIDS;
     const grid = table.gridSize;
     const dims: SurfaceDims = {
       widthPx: table.width * grid,
@@ -658,7 +661,7 @@ export class GameTableComponent {
         dataUrl: this.gridFaceDataUrl(face.width, face.height, face.offsetLeft, face.offsetTop, table, face.prefix),
       });
     }
-    return result;
+    return result.length > 0 ? result : NO_BEAM_WALL_GRIDS;
   });
 
   private gridFaceDataUrl(

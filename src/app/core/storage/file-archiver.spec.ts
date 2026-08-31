@@ -57,6 +57,9 @@ describe('FileArchiver', () => {
   });
 
   afterEach(() => {
+    // The listeners are on the page itself, and the page outlives this file: left on, they
+    // answer drops made up by every spec that runs after this one in the same worker.
+    FileArchiver.instance.destroy();
     (FileArchiver as unknown as { _instance: FileArchiver | undefined })._instance = undefined;
     vi.restoreAllMocks();
   });
@@ -75,6 +78,15 @@ describe('FileArchiver', () => {
       expect(true).toBe(true);
     });
 
+    it('survives a drop carrying no list of types', () => {
+      FileArchiver.instance.initialize();
+
+      const drop = new Event('drop', { bubbles: true, cancelable: true });
+      Object.defineProperty(drop, 'dataTransfer', { value: { effectAllowed: '', setData: vi.fn() } });
+
+      expect(() => document.body.dispatchEvent(drop)).not.toThrow();
+    });
+
     it('survives a drop before the guard exists', () => {
       // A drop can arrive before startup finishes, or where no guard exists at all.
       vi.spyOn(ObjectStore.instance, 'get').mockReturnValue(
@@ -84,6 +96,50 @@ describe('FileArchiver', () => {
 
       const drop = new Event('drop', { bubbles: true, cancelable: true });
       expect(() => document.body.dispatchEvent(drop)).not.toThrow();
+    });
+  });
+
+  describe('a drop that began on the page', () => {
+    const INTERNAL_DRAG_TYPE = 'application/x-axe-internal-drag';
+
+    function dragStart(): { setData: ReturnType<typeof vi.fn> } {
+      const dataTransfer = { setData: vi.fn(), types: [] as string[], files: [] as File[] };
+      const event = new Event('dragstart', { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
+      document.body.dispatchEvent(event);
+      return dataTransfer;
+    }
+
+    function drop(types: string[], files: File[]): void {
+      const event = new Event('drop', { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: { types, files } });
+      document.body.dispatchEvent(event);
+    }
+
+    it('marks what a drag begun on the page carries', () => {
+      FileArchiver.instance.initialize();
+
+      expect(dragStart().setData).toHaveBeenCalledWith(INTERNAL_DRAG_TYPE, '1');
+    });
+
+    it('lays out nothing from a picture the page was already showing', () => {
+      const addAsync = vi.spyOn(ImageStorage.instance, 'addAsync');
+      FileArchiver.instance.initialize();
+
+      drop(['Files', INTERNAL_DRAG_TYPE], [new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })]);
+
+      expect(addAsync).not.toHaveBeenCalled();
+    });
+
+    it('still lays out a picture brought in from outside', async () => {
+      const addAsync = vi
+        .spyOn(ImageStorage.instance, 'addAsync')
+        .mockImplementation(() => Promise.resolve(ImageFile.createEmpty('image-a.png')));
+      FileArchiver.instance.initialize();
+
+      drop(['Files'], [new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })]);
+
+      await vi.waitFor(() => expect(addAsync).toHaveBeenCalled());
     });
   });
 
