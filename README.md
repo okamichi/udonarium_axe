@@ -1,6 +1,6 @@
 # Udonarium Axe with Table-Top Display
 
-> このリポジトリは [Udonarium Axe](https://github.com/Xelltis/udonarium_axe) のフォークで、卓上ディスプレイに特化した機能を追加しています。追加機能の詳細は [2D多方向閲覧・回転メニュー・外周ティッカー](./docs/multi-angle.md) を参照してください。
+> **おことわり** : このリポジトリは [Udonarium Axe](https://github.com/Xelltis/udonarium_axe) のフォークで、卓上ディスプレイに特化した機能を追加しています。このドキュメントはほぼフォーク元の内容なので、特化した追加機能の詳細は [2D多方向閲覧・回転メニュー・外周ティッカー](./docs/multi-angle.md) を参照してください。
 
 [![Latest release](https://img.shields.io/github/v/release/Xelltis/udonarium_axe?logo=github)](https://github.com/Xelltis/udonarium_axe/releases/latest)
 [![Release](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml/badge.svg)](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml)
@@ -141,9 +141,9 @@ Lycoris はコードの継承元ではなく、ホットバーの着想を得た
 | **Udonarium**         | TK11235                   | <https://github.com/TK11235/udonarium>          | オリジナル                                   |
 | **Udonarium Lily**    | entyu（円柱）             | <https://github.com/entyu/udonarium_lily>       | 派生・機能拡張版（画像タグ等のコードを継承） |
 | **Udonarium Lycoris** | oron1208                  | <https://github.com/oron1208/udonarium-lycoris> | 着想元（ホットバー）。コードの継承はなし     |
-| **Udonarium Axe**     | SavageChieftain / Xelltis | <https://github.com/Xelltis/udonarium_axe>      | 本リポジトリ                                 |
+| **Udonarium Axe**     | SavageChieftain / Xelltis | <https://github.com/Xelltis/udonarium_axe>      | 本リポジトリのフォーク元                                 |
 
-> 注: 上記の機能の切り分けは本リポジトリの LICENSE・コード・公開情報を根拠にした暫定整理です。
+> 注: 上記の機能の切り分けは本リポジトリのフォーク元の LICENSE・コード・公開情報を根拠にした暫定整理です。
 
 ## 開発
 
