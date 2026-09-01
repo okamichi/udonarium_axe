@@ -73,6 +73,7 @@ const SECTOR_GAP_PX = 3;
 const MENU_VIEWPORT_MARGIN_PX = 12;
 const PARENT_CLICK_PAUSE_MS = 3000;
 const FULL_ROTATION_DEGREES = 360;
+const FORCED_ROTATION_STEP_DEGREES = 45;
 const ROTATION_EPSILON = 1e-9;
 
 @Component({
@@ -208,7 +209,7 @@ export class FourWayRadialMenuComponent {
     event.stopPropagation();
     if (this.contextMenuService.radialMenuEnabled) {
       this.closeFlyout();
-      this.rotateMenuOneItem();
+      this.rotateMenuByFixedStep();
     }
   }
 
@@ -293,10 +294,9 @@ export class FourWayRadialMenuComponent {
     );
   }
 
-  protected rotateMenuOneItem(): void {
-    const step = FULL_ROTATION_DEGREES / Math.max(1, this.ringItemCount());
+  protected rotateMenuByFixedStep(): void {
     this.manualRotationDegrees.update((degrees) => {
-      const next = degrees + step;
+      const next = degrees + FORCED_ROTATION_STEP_DEGREES;
       const fullTurn = Math.round(next / FULL_ROTATION_DEGREES) * FULL_ROTATION_DEGREES;
       return Math.abs(next - fullTurn) < ROTATION_EPSILON ? fullTurn : next;
     });

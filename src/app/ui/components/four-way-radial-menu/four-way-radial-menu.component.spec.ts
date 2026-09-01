@@ -294,7 +294,7 @@ describe('FourWayRadialMenuComponent', () => {
     expect(root.querySelector('[aria-label="すべての項目を一覧表示"]')).toBeNull();
   });
 
-  it('turns the existing rotating menu by one displayed item when it is right-clicked again', () => {
+  it('turns the existing rotating menu by 45 degrees when it is right-clicked again', () => {
     const close = vi.spyOn(service, 'close').mockImplementation(() => undefined);
     createWithGroups([
       { name: 'Display', icon: 'visibility', actions: [{ name: 'Action', action: vi.fn() }] },
@@ -312,17 +312,19 @@ describe('FourWayRadialMenuComponent', () => {
     fixture.detectChanges();
 
     expect(close).not.toHaveBeenCalled();
-    expect(ring.style.rotate).toBe('120deg');
+    expect(ring.style.rotate).toBe('45deg');
 
     root.dispatchEvent(
       new MouseEvent('contextmenu', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
     );
     fixture.detectChanges();
-    expect(ring.style.rotate).toBe('240deg');
+    expect(ring.style.rotate).toBe('90deg');
 
-    root.dispatchEvent(
-      new MouseEvent('contextmenu', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
-    );
+    for (let index = 0; index < 6; index++) {
+      root.dispatchEvent(
+        new MouseEvent('contextmenu', { button: 2, clientX: 300, clientY: 300, bubbles: true, cancelable: true })
+      );
+    }
     fixture.detectChanges();
     expect(ring.style.rotate).toBe('360deg');
     expect(ring.classList.contains('transition-[rotate]')).toBe(true);
@@ -343,8 +345,19 @@ describe('FourWayRadialMenuComponent', () => {
     requestAnimationFrame.mockRestore();
   });
 
-  it('completes an exact forward turn when the item angle is fractional', () => {
-    const groups = Array.from({ length: 6 }, (_, index) => ({
+  it('keeps the forced turn at 45 degrees when the ring has only two displayed items', () => {
+    createWithGroups([{ name: 'Only group', icon: 'category', actions: [{ name: 'Action', action: vi.fn() }] }]);
+    const root = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="dialog"]')!;
+    const ring = root.querySelector<HTMLElement>('[data-radial-ring]')!;
+
+    root.dispatchEvent(new MouseEvent('contextmenu', { button: 2, bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    expect(ring.style.rotate).toBe('45deg');
+  });
+
+  it('keeps the forced turn at 45 degrees when the ring has eight displayed items', () => {
+    const groups = Array.from({ length: 7 }, (_, index) => ({
       name: `Group ${index + 1}`,
       icon: 'category',
       actions: [{ name: 'Action', action: vi.fn() }],
@@ -353,7 +366,11 @@ describe('FourWayRadialMenuComponent', () => {
     const root = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="dialog"]')!;
     const ring = root.querySelector<HTMLElement>('[data-radial-ring]')!;
 
-    for (let index = 0; index < 7; index++) {
+    root.dispatchEvent(new MouseEvent('contextmenu', { button: 2, bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+    expect(ring.style.rotate).toBe('45deg');
+
+    for (let index = 1; index < 8; index++) {
       root.dispatchEvent(new MouseEvent('contextmenu', { button: 2, bubbles: true, cancelable: true }));
     }
     fixture.detectChanges();
