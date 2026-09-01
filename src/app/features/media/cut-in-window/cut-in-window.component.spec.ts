@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CutInSoundService } from '@axe/application/media/cut-in-sound.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
@@ -180,6 +181,21 @@ describe('CutInWindowComponent', () => {
     vi.useRealTimers();
   });
 
+  it('keeps a prepared YouTube face paused until the coordinated start', () => {
+    const cutIn = new CutIn('prepared-video-test');
+    cutIn.initialize();
+    cutIn.isVideoCutIn = true;
+    cutIn.videoUrl = 'https://youtu.be/abcdefghijk?t=12';
+    component.cutIn = cutIn;
+    const target = { setVolume: vi.fn(), seekTo: vi.fn(), playVideo: vi.fn() };
+
+    component.onPlayerReady({ target });
+    expect(target.playVideo).not.toHaveBeenCalled();
+
+    component.startCutIn();
+    expect(target.playVideo).toHaveBeenCalledTimes(1);
+  });
+
   describe('ngOnDestroy', () => {
     it('clears the cut-in timer on teardown', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
@@ -272,6 +288,20 @@ describe('CutInWindowComponent', () => {
 
       vi.advanceTimersByTime(2);
       expect(close).toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('starts the primary scene sound at zero after coordinated preparation', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(10_000);
+      const cutIn = makeCutIn();
+      const scene = giveScene(cutIn, true);
+      const sound = TestBed.inject(CutInSoundService);
+      const play = vi.spyOn(sound, 'play').mockReturnValue({ stop: vi.fn() });
+
+      component.startCutIn(9_950, 0);
+
+      expect(play).toHaveBeenCalledWith(scene, 0, false);
       vi.useRealTimers();
     });
   });

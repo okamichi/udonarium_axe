@@ -11,6 +11,8 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { makeCutInMultiDirectionLayout } from '@axe/features/media/cut-in-multi-direction-layout';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 
+export const CUT_IN_MULTI_DIRECTION_PREPARE_TIMEOUT_MS = 500;
+
 @Injectable({ providedIn: 'root' })
 export class CutInEventHandlerService {
   private readonly destroyRef = inject(DestroyRef);
@@ -61,7 +63,7 @@ export class CutInEventHandlerService {
       cutInHeight: cutIn.height,
       chromeHeight: chrome,
     });
-    const startedAtMs = Date.now();
+    const panels: { component: CutInWindowComponent; primary: boolean }[] = [];
 
     for (const face of faces) {
       const option: PanelOption = {
@@ -80,8 +82,37 @@ export class CutInEventHandlerService {
       component.cutIn = cutIn;
       component.audioEnabled = face.primary;
       component.panelLayout = face;
-      component.startCutIn(startedAtMs);
+      panels.push({ component, primary: face.primary });
     }
+
+    void this.startPreparedPanels(panels);
+  }
+
+  private async startPreparedPanels(panels: readonly { component: CutInWindowComponent; primary: boolean }[]) {
+    await this.waitForPanelPreparation(panels.map(({ component }) => component.prepareCutIn()));
+
+    const startedAtMs = Date.now();
+    // South is opened last so that it is drawn on top, but it starts first here so its
+    // one audio session owns the exact zero of the shared clock. Signals raised in this
+    // loop are rendered together after the current task, so every face starts as one frame.
+    const primaryFirst = [...panels].sort((left, right) => Number(right.primary) - Number(left.primary));
+    for (const { component, primary } of primaryFirst) {
+      component.startCutIn(startedAtMs, primary ? 0 : undefined);
+    }
+  }
+
+  private waitForPanelPreparation(preparations: readonly Promise<void>[]): Promise<void> {
+    return new Promise((resolve) => {
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        resolve();
+      };
+      const timeout = setTimeout(finish, CUT_IN_MULTI_DIRECTION_PREPARE_TIMEOUT_MS);
+      void Promise.allSettled(preparations).then(finish);
+    });
   }
 
   private openSingleCutInPanel(cutIn: CutIn, invisible: boolean): void {

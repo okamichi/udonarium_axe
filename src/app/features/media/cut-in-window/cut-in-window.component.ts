@@ -29,6 +29,12 @@ import { CutInScene } from '@axe/domain/media/cut-in-scene';
 import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
+interface CutInVideoTarget {
+  setVolume: (volume: number) => void;
+  playVideo: () => void;
+  seekTo?: (seconds: number, allowSeekAhead: boolean) => void;
+}
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-window',
@@ -58,6 +64,12 @@ export class CutInWindowComponent {
   private sceneSound: CutInSoundHandle | null = null;
   private cutInTimeOut: ReturnType<typeof setTimeout> | null = null;
   timerCheckWindowSize: ReturnType<typeof setTimeout> | null = null;
+  private resolveFirstRender: (() => void) | null = null;
+  private readonly firstRender = new Promise<void>((resolve) => {
+    this.resolveFirstRender = resolve;
+  });
+  private readyVideoTarget: CutInVideoTarget | null = null;
+  private destroyed = false;
 
   constructor() {
     this.objectChange.startCutIn$.subscribe((event) => {
@@ -93,6 +105,8 @@ export class CutInWindowComponent {
       }
     }, this.destroyRef);
     afterNextRender(() => {
+      this.resolveFirstRender?.();
+      this.resolveFirstRender = null;
       if (this.cutIn) {
         setTimeout(() => {
           this.moveCutInPos();
@@ -104,6 +118,10 @@ export class CutInWindowComponent {
       this.videoPlayer()?.setVolume(vol);
     });
     this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      this.resolveFirstRender?.();
+      this.resolveFirstRender = null;
+      this.readyVideoTarget = null;
       if (this.cutInTimeOut) {
         clearTimeout(this.cutInTimeOut);
         this.cutInTimeOut = null;
@@ -143,6 +161,7 @@ export class CutInWindowComponent {
   panelLayout: { left: number; top: number; width: number; height: number } | null = null;
   playbackStartedAtMs: number | null = null;
   playbackOffsetMs = 0;
+  protected readonly playbackStarted = signal(false);
 
   cutIn: CutIn | null = null;
   playListId = '';
@@ -180,8 +199,23 @@ export class CutInWindowComponent {
     return this.objectStore.getObjects(CutIn);
   }
 
-  startCutIn(startedAtMs?: number) {
-    if (!this.cutIn) return;
+  /**
+   * Waits for this face to have a DOM and for its ordinary images to be decoded.
+   * YouTube readiness is deliberately not part of this barrier; it joins the shared
+   * clock when its iframe says it is ready.
+   */
+  async prepareCutIn(): Promise<void> {
+    await this.firstRender;
+    if (this.destroyed) return;
+
+    const images = Array.from(this.cutInArea()?.nativeElement.querySelectorAll('img') ?? []);
+    await Promise.allSettled(
+      images.map((image) => (typeof image.decode === 'function' ? image.decode() : Promise.resolve()))
+    );
+  }
+
+  startCutIn(startedAtMs?: number, sceneSoundOffsetMs?: number) {
+    if (!this.cutIn || this.destroyed) return;
     this.playbackStartedAtMs = startedAtMs ?? null;
     this.playbackOffsetMs = startedAtMs === undefined ? 0 : Math.max(0, Date.now() - startedAtMs);
 
@@ -203,8 +237,11 @@ export class CutInWindowComponent {
 
     const scene = this.cutIn.scene;
     if (scene && scene.layers.length > 0 && this.audioEnabled) {
-      this.sceneSound = this.cutInSound.play(scene, this.playbackOffsetMs, scene.sceneLoop);
+      this.sceneSound = this.cutInSound.play(scene, sceneSoundOffsetMs ?? this.playbackOffsetMs, scene.sceneLoop);
     }
+
+    this.playbackStarted.set(true);
+    if (this.readyVideoTarget) this.startVideo(this.readyVideoTarget);
 
     const playbackMs = cutInPlaybackMs(this.cutIn, this.cutIn.scene);
     if (playbackMs > 0) {
@@ -289,19 +326,22 @@ export class CutInWindowComponent {
     return +(this.cutIn?.videoStart ?? 0) + this.playbackOffsetMs / 1000;
   }
 
-  onPlayerReady($event: {
-    target: {
-      setVolume: (v: number) => void;
-      playVideo: () => void;
-      seekTo?: (seconds: number, allowSeekAhead: boolean) => void;
-    };
-  }) {
-    $event.target.setVolume(this.videoVolume);
-    if (this.playbackStartedAtMs !== null && $event.target.seekTo) {
-      const elapsedSeconds = Math.max(0, Date.now() - this.playbackStartedAtMs) / 1000;
-      $event.target.seekTo(+(this.cutIn?.videoStart ?? 0) + elapsedSeconds, true);
+  onPlayerReady($event: { target: CutInVideoTarget }) {
+    this.readyVideoTarget = $event.target;
+    if (this.playbackStarted()) {
+      this.startVideo($event.target);
+    } else {
+      $event.target.setVolume(this.videoVolume);
     }
-    $event.target.playVideo();
+  }
+
+  private startVideo(target: CutInVideoTarget): void {
+    target.setVolume(this.videoVolume);
+    if (this.playbackStartedAtMs !== null && target.seekTo) {
+      const elapsedSeconds = Math.max(0, Date.now() - this.playbackStartedAtMs) / 1000;
+      target.seekTo(+(this.cutIn?.videoStart ?? 0) + elapsedSeconds, true);
+    }
+    target.playVideo();
   }
 
   onPlayerStateChange($event: {

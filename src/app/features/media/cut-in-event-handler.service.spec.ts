@@ -8,7 +8,10 @@ import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handler.service';
+import {
+  CUT_IN_MULTI_DIRECTION_PREPARE_TIMEOUT_MS,
+  CutInEventHandlerService,
+} from '@axe/features/media/cut-in-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 function makeCutIn(overrides: Partial<CutIn> = {}): CutIn {
@@ -41,7 +44,14 @@ describe('CutInEventHandlerService', () => {
   }
 
   beforeEach(() => {
-    panelStub = { open: vi.fn().mockReturnValue({ cutIn: null, forceNoLoop: false, startCutIn: vi.fn() }) };
+    panelStub = {
+      open: vi.fn().mockReturnValue({
+        cutIn: null,
+        forceNoLoop: false,
+        prepareCutIn: vi.fn().mockResolvedValue(undefined),
+        startCutIn: vi.fn(),
+      }),
+    };
     audioStub = { get: vi.fn() };
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
     TestBed.overrideProvider(PanelService, { useValue: panelStub });
@@ -50,6 +60,7 @@ describe('CutInEventHandlerService', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     const store = ObjectStore.instance;
     store.getObjects().forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
@@ -105,6 +116,7 @@ describe('CutInEventHandlerService', () => {
       cutIn: null,
       audioEnabled: true,
       panelLayout: null,
+      prepareCutIn: vi.fn().mockResolvedValue(undefined),
       startCutIn: vi.fn(),
     }));
     panelStub.open.mockImplementation(() => components.shift());
@@ -114,12 +126,13 @@ describe('CutInEventHandlerService', () => {
     expect(panelStub.open).toHaveBeenCalledTimes(count);
   });
 
-  it('places two-way panels in the existing cardinal directions and gives audio only to south', () => {
+  it('places two-way panels in the existing cardinal directions and gives audio only to south', async () => {
     useTable('vertical');
     const components = Array.from({ length: 2 }, () => ({
       cutIn: null,
       audioEnabled: true,
       panelLayout: null,
+      prepareCutIn: vi.fn().mockResolvedValue(undefined),
       startCutIn: vi.fn(),
     }));
     panelStub.open.mockImplementation(() => components[panelStub.open.mock.calls.length - 1]);
@@ -131,8 +144,64 @@ describe('CutInEventHandlerService', () => {
     expect(panelStub.open.mock.calls.every((call) => call[1].frameless === false)).toBe(true);
     expect(components.map((component) => component.audioEnabled)).toEqual([false, true]);
     expect(components.every((component) => component.cutIn === cutIn)).toBe(true);
+    await vi.waitFor(() =>
+      expect(components.every((component) => component.startCutIn.mock.calls.length === 1)).toBe(true)
+    );
     const startedAt = components.map((component) => component.startCutIn.mock.calls[0][0]);
     expect(new Set(startedAt).size).toBe(1);
+    expect(components[0].startCutIn).toHaveBeenCalledWith(startedAt[0], undefined);
+    expect(components[1].startCutIn).toHaveBeenCalledWith(startedAt[0], 0);
+    expect(components[1].startCutIn.mock.invocationCallOrder[0]).toBeLessThan(
+      components[0].startCutIn.mock.invocationCallOrder[0]
+    );
+  });
+
+  it('starts no multi-direction face until every face is prepared', async () => {
+    useTable('vertical');
+    let releaseNorth!: () => void;
+    let releaseSouth!: () => void;
+    const northReady = new Promise<void>((resolve) => (releaseNorth = resolve));
+    const southReady = new Promise<void>((resolve) => (releaseSouth = resolve));
+    const components = [northReady, southReady].map((ready) => ({
+      cutIn: null,
+      audioEnabled: true,
+      panelLayout: null,
+      prepareCutIn: vi.fn().mockReturnValue(ready),
+      startCutIn: vi.fn(),
+    }));
+    panelStub.open.mockImplementation(() => components[panelStub.open.mock.calls.length - 1]);
+
+    emitStartCutIn({ cutIn: makeCutIn() });
+    releaseNorth();
+    await Promise.resolve();
+
+    expect(components.every((component) => component.startCutIn.mock.calls.length === 0)).toBe(true);
+
+    releaseSouth();
+    await vi.waitFor(() =>
+      expect(components.every((component) => component.startCutIn.mock.calls.length === 1)).toBe(true)
+    );
+  });
+
+  it('starts prepared faces after the shared preparation timeout', async () => {
+    vi.useFakeTimers();
+    useTable('vertical');
+    const components = Array.from({ length: 2 }, () => ({
+      cutIn: null,
+      audioEnabled: true,
+      panelLayout: null,
+      prepareCutIn: vi.fn().mockReturnValue(new Promise<void>(() => {})),
+      startCutIn: vi.fn(),
+    }));
+    panelStub.open.mockImplementation(() => components[panelStub.open.mock.calls.length - 1]);
+
+    emitStartCutIn({ cutIn: makeCutIn() });
+    await vi.advanceTimersByTimeAsync(CUT_IN_MULTI_DIRECTION_PREPARE_TIMEOUT_MS - 1);
+    expect(components.every((component) => component.startCutIn.mock.calls.length === 0)).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(components.every((component) => component.startCutIn.mock.calls.length === 1)).toBe(true);
+    vi.useRealTimers();
   });
 
   it('uses one ordinary panel outside 2D mode', () => {
