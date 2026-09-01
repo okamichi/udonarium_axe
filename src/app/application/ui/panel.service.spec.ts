@@ -273,6 +273,28 @@ describe('PanelService', () => {
       expect(adjusted.left).toBeUndefined();
       expect(adjusted.top).toBeUndefined();
     });
+
+    it('clamps a sideways panel by its rotated outer bounds', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport(
+        { left: -100, top: 250, width: 400, height: 200, rotationDegrees: 90 },
+        fallback
+      );
+
+      expect(adjusted.left).toBe(-100);
+      expect(adjusted.top).toBe(250);
+    });
+
+    it('moves a sideways panel only when its rotated bounds leave the viewport', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport(
+        { left: -250, top: 650, width: 400, height: 200, rotationDegrees: 270 },
+        fallback
+      );
+
+      expect(adjusted.left).toBe(-100);
+      expect(adjusted.top).toBe(420);
+    });
   });
 
   describe('a panel still on its way', () => {

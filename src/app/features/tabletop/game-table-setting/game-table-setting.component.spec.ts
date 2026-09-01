@@ -305,6 +305,54 @@ describe('GameTableSettingComponent', () => {
     }
   });
 
+  it('stores and validates the multi-direction cut-in setting on the table', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      expect(component.tableCutInMultiDirectionMode).toBe('none');
+      component.tableCutInMultiDirectionMode = 'vertical-right';
+      expect(table.cutInMultiDirectionMode).toBe('vertical-right');
+
+      table.cutInMultiDirectionMode = 'diagonal' as never;
+      expect(component.tableCutInMultiDirectionMode).toBe('none');
+    } finally {
+      table.destroy();
+    }
+  });
+
+  it('shows the multi-direction cut-in setting only inside 2D mode', async () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('select[name="tableCutInMultiDirectionMode"]')).toBeNull();
+
+      table.mode2d = true;
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const select = fixture.nativeElement.querySelector(
+        'select[name="tableCutInMultiDirectionMode"]'
+      ) as HTMLSelectElement;
+      expect(select).toBeTruthy();
+      expect(select.closest('label')?.textContent).toContain('カットインの多方向表示');
+      expect([...select.options].map((option) => option.textContent?.trim())).toEqual([
+        'しない',
+        '上下',
+        '上下右',
+        '上下左',
+        '上下左右',
+      ]);
+    } finally {
+      table.destroy();
+    }
+  });
+
   it('shows projection and rotating menu checkboxes inside 2D mode settings', async () => {
     const table = new GameTable();
     table.initialize();

@@ -239,6 +239,24 @@ export class PanelService {
     const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
     const adjusted: PanelOption = { ...option };
+    const sideways = option.rotationDegrees === 90 || option.rotationDegrees === 270;
+    if (sideways && option.left !== undefined && option.top !== undefined) {
+      const visualWidth = height;
+      const visualHeight = width;
+      const centerX = option.left + width / 2;
+      const centerY = option.top + height / 2;
+      const clampedCenterX =
+        visualWidth >= viewportW
+          ? viewportW / 2
+          : Math.max(visualWidth / 2, Math.min(centerX, viewportW - visualWidth / 2));
+      const clampedCenterY =
+        visualHeight >= viewportH
+          ? viewportH / 2
+          : Math.max(visualHeight / 2, Math.min(centerY, viewportH - visualHeight / 2));
+      adjusted.left = clampedCenterX - width / 2;
+      adjusted.top = clampedCenterY - height / 2;
+      return adjusted;
+    }
     if (option.left !== undefined) {
       const maxLeft = Math.max(0, viewportW - width);
       adjusted.left = Math.max(0, Math.min(option.left, maxLeft));

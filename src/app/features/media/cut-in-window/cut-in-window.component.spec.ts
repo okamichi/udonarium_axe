@@ -71,6 +71,16 @@ describe('CutInWindowComponent', () => {
 
       expect(component.videoVolume).toBe(50);
     });
+
+    it('mutes a replicated face that does not own the audio', () => {
+      const cutIn = new CutIn('muted-replica-test');
+      cutIn.initialize();
+      cutIn.videoVolume = 75;
+      component.cutIn = cutIn;
+      component.audioEnabled = false;
+
+      expect(component.videoVolume).toBe(0);
+    });
   });
 
   describe('which volume a cut-in plays through', () => {
@@ -105,6 +115,69 @@ describe('CutInWindowComponent', () => {
 
       expect(component.audioPlayer.volumeType).toBe(VolumeType.MASTER);
     });
+
+    it('does not play attached audio on a replicated face', () => {
+      const play = vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
+      vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
+      AudioStorage.instance.add(makeReadyAudio('replica-audio'));
+
+      const cutIn = new CutIn('replica-audio-test');
+      cutIn.initialize();
+      cutIn.audioIdentifier = 'replica-audio';
+      component.cutIn = cutIn;
+      component.audioEnabled = false;
+
+      component.startCutIn();
+
+      expect(play).not.toHaveBeenCalled();
+    });
+  });
+
+  it('keeps a supplied multi-direction panel layout', () => {
+    const cutIn = new CutIn('layout-test');
+    cutIn.initialize();
+    component.cutIn = cutIn;
+    component.panelLayout = { left: -40, top: 120, width: 300, height: 220 };
+
+    component.moveCutInPos();
+
+    expect(component.left).toBe(-40);
+    expect(component.top).toBe(120);
+    expect(component.width).toBe(300);
+    expect(component.height).toBe(220);
+  });
+
+  it('keeps ordinary YouTube playback at its configured start', () => {
+    const cutIn = new CutIn('ordinary-video-test');
+    cutIn.initialize();
+    cutIn.isVideoCutIn = true;
+    cutIn.videoUrl = 'https://youtu.be/abcdefghijk?t=12';
+    component.cutIn = cutIn;
+    const target = { setVolume: vi.fn(), seekTo: vi.fn(), playVideo: vi.fn() };
+
+    component.startCutIn();
+    component.onPlayerReady({ target });
+
+    expect(target.seekTo).not.toHaveBeenCalled();
+    expect(target.playVideo).toHaveBeenCalled();
+  });
+
+  it('seeks a replicated YouTube face to the shared playback clock', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(10_000);
+    const cutIn = new CutIn('replicated-video-test');
+    cutIn.initialize();
+    cutIn.isVideoCutIn = true;
+    cutIn.videoUrl = 'https://youtu.be/abcdefghijk?t=12';
+    component.cutIn = cutIn;
+    const target = { setVolume: vi.fn(), seekTo: vi.fn(), playVideo: vi.fn() };
+
+    component.startCutIn(9_500);
+    vi.setSystemTime(10_500);
+    component.onPlayerReady({ target });
+
+    expect(target.seekTo).toHaveBeenCalledWith(13, true);
+    vi.useRealTimers();
   });
 
   describe('ngOnDestroy', () => {

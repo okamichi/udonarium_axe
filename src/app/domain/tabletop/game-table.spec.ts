@@ -132,6 +132,7 @@ describe('GameTable', () => {
       table.initialize();
       expect(table.orthographicProjection).toBe(false);
       expect(table.terrainRotationIn2dEnabled).toBe(false);
+      expect(table.cutInMultiDirectionMode).toBe('none');
       expect(table.radialMenuEnabled).toBe(false);
       expect(table.radialMenuRotationSpeed).toBe(5);
       expect(table.multiAngleEnabled).toBe(false);

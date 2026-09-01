@@ -6,6 +6,8 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
+import { GameTable } from '@axe/domain/tabletop/game-table';
+import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -28,6 +30,15 @@ describe('CutInEventHandlerService', () => {
   let panelStub: { open: ReturnType<typeof vi.fn> };
   let audioStub: { get: ReturnType<typeof vi.fn> };
   let service: CutInEventHandlerService;
+
+  function useTable(mode: GameTable['cutInMultiDirectionMode'], mode2d = true): GameTable {
+    const table = new GameTable('cut-in-layout-table');
+    table.initialize();
+    table.mode2d = mode2d;
+    table.cutInMultiDirectionMode = mode;
+    TestBed.inject(TableSelecter).viewTableIdentifier = table.identifier;
+    return table;
+  }
 
   beforeEach(() => {
     panelStub = { open: vi.fn().mockReturnValue({ cutIn: null, forceNoLoop: false, startCutIn: vi.fn() }) };
@@ -78,6 +89,65 @@ describe('CutInEventHandlerService', () => {
     panelStub.open.mockReturnValue({ cutIn: null, forceNoLoop: false, startCutIn: vi.fn() });
 
     emitSoundOnlyCutIn({ cutIn });
+
+    expect(panelStub.open).toHaveBeenCalledTimes(1);
+    expect(panelStub.open.mock.calls[0][1].invisible).toBe(true);
+  });
+
+  it.each([
+    ['vertical', 2],
+    ['vertical-right', 3],
+    ['vertical-left', 3],
+    ['four-directions', 4],
+  ] as const)('opens the requested number of panels for %s', (mode, count) => {
+    useTable(mode);
+    const components = Array.from({ length: count }, () => ({
+      cutIn: null,
+      audioEnabled: true,
+      panelLayout: null,
+      startCutIn: vi.fn(),
+    }));
+    panelStub.open.mockImplementation(() => components.shift());
+
+    emitStartCutIn({ cutIn: makeCutIn() });
+
+    expect(panelStub.open).toHaveBeenCalledTimes(count);
+  });
+
+  it('places two-way panels in the existing cardinal directions and gives audio only to south', () => {
+    useTable('vertical');
+    const components = Array.from({ length: 2 }, () => ({
+      cutIn: null,
+      audioEnabled: true,
+      panelLayout: null,
+      startCutIn: vi.fn(),
+    }));
+    panelStub.open.mockImplementation(() => components[panelStub.open.mock.calls.length - 1]);
+    const cutIn = makeCutIn({ frameless: false });
+
+    emitStartCutIn({ cutIn });
+
+    expect(panelStub.open.mock.calls.map((call) => call[1].rotationDegrees)).toEqual([180, 0]);
+    expect(panelStub.open.mock.calls.every((call) => call[1].frameless === false)).toBe(true);
+    expect(components.map((component) => component.audioEnabled)).toEqual([false, true]);
+    expect(components.every((component) => component.cutIn === cutIn)).toBe(true);
+    const startedAt = components.map((component) => component.startCutIn.mock.calls[0][0]);
+    expect(new Set(startedAt).size).toBe(1);
+  });
+
+  it('uses one ordinary panel outside 2D mode', () => {
+    useTable('four-directions', false);
+
+    emitStartCutIn({ cutIn: makeCutIn() });
+
+    expect(panelStub.open).toHaveBeenCalledTimes(1);
+    expect(panelStub.open.mock.calls[0][1].rotationDegrees).toBeUndefined();
+  });
+
+  it('keeps a sound-only video to one invisible panel in multi-direction mode', () => {
+    useTable('four-directions');
+
+    emitSoundOnlyCutIn({ cutIn: makeCutIn({ videoId: 'youtube123' }) });
 
     expect(panelStub.open).toHaveBeenCalledTimes(1);
     expect(panelStub.open.mock.calls[0][1].invisible).toBe(true);

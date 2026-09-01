@@ -30,6 +30,11 @@ import { encodeCutInIdentifiers, parseCutInIdentifiers } from '@axe/domain/media
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
+  asCutInMultiDirectionMode,
+  CUT_IN_MULTI_DIRECTION_MODES,
+  CutInMultiDirectionMode,
+} from '@axe/domain/tabletop/cut-in-multi-direction';
+import {
   DEFAULT_RADIAL_MENU_ROTATION_SPEED,
   FilterType,
   GameTable,
@@ -202,6 +207,17 @@ export class GameTableSettingComponent {
   set tableTerrainRotationIn2dEnabled(value: boolean) {
     if (!this.selectedTable) return;
     this.selectedTable.terrainRotationIn2dEnabled = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  readonly cutInMultiDirectionModes = CUT_IN_MULTI_DIRECTION_MODES;
+
+  get tableCutInMultiDirectionMode(): CutInMultiDirectionMode {
+    return asCutInMultiDirectionMode(this.selectedTable?.cutInMultiDirectionMode);
+  }
+  set tableCutInMultiDirectionMode(value: CutInMultiDirectionMode) {
+    if (!this.selectedTable) return;
+    this.selectedTable.cutInMultiDirectionMode = asCutInMultiDirectionMode(value);
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

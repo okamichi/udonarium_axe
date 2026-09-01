@@ -133,6 +133,16 @@ export class CutInWindowComponent {
 
   isTest = false;
   forceNoLoop = false;
+  private readonly audioEnabledState = signal(true);
+  get audioEnabled(): boolean {
+    return this.audioEnabledState();
+  }
+  set audioEnabled(value: boolean) {
+    this.audioEnabledState.set(value);
+  }
+  panelLayout: { left: number; top: number; width: number; height: number } | null = null;
+  playbackStartedAtMs: number | null = null;
+  playbackOffsetMs = 0;
 
   cutIn: CutIn | null = null;
   playListId = '';
@@ -170,8 +180,10 @@ export class CutInWindowComponent {
     return this.objectStore.getObjects(CutIn);
   }
 
-  startCutIn() {
+  startCutIn(startedAtMs?: number) {
     if (!this.cutIn) return;
+    this.playbackStartedAtMs = startedAtMs ?? null;
+    this.playbackOffsetMs = startedAtMs === undefined ? 0 : Math.max(0, Date.now() - startedAtMs);
 
     if (this.cutIn.videoId) {
       this._videoId = this.cutIn.videoId;
@@ -179,24 +191,30 @@ export class CutInWindowComponent {
     }
 
     const audio = this.cutIn.audio;
-    if (audio) {
+    if (audio && this.audioEnabled) {
       const isSE = AudioTag.get(this.cutIn.audioIdentifier)?.tag === 'SE';
       this.audioPlayer.volumeType = isSE ? VolumeType.SE : VolumeType.MASTER;
       this.audioPlayer.loop = this.cutIn.isLoop;
       if (!this.cutIn.videoId) {
         this.audioPlayer.play(audio);
+        if (this.playbackOffsetMs > 0) this.audioPlayer.seekTo(this.playbackOffsetMs / 1000);
       }
     }
 
     const scene = this.cutIn.scene;
-    if (scene && scene.layers.length > 0) this.sceneSound = this.cutInSound.play(scene, 0, scene.sceneLoop);
+    if (scene && scene.layers.length > 0 && this.audioEnabled) {
+      this.sceneSound = this.cutInSound.play(scene, this.playbackOffsetMs, scene.sceneLoop);
+    }
 
     const playbackMs = cutInPlaybackMs(this.cutIn, this.cutIn.scene);
     if (playbackMs > 0) {
-      this.cutInTimeOut = setTimeout(() => {
-        this.cutInTimeOut = null;
-        this.panelService.close();
-      }, playbackMs);
+      this.cutInTimeOut = setTimeout(
+        () => {
+          this.cutInTimeOut = null;
+          this.panelService.close();
+        },
+        Math.max(0, playbackMs - this.playbackOffsetMs)
+      );
     }
   }
 
@@ -207,7 +225,12 @@ export class CutInWindowComponent {
   }
 
   moveCutInPos() {
-    if (this.cutIn) {
+    if (this.panelLayout) {
+      this.width = this.panelLayout.width;
+      this.height = this.panelLayout.height;
+      this.left = this.panelLayout.left;
+      this.top = this.panelLayout.top;
+    } else if (this.cutIn) {
       const chrome = cutInPanelChrome(this.cutIn);
       const cutin_w = this.cutIn.width;
       const cutin_h = this.cutIn.height;
@@ -247,7 +270,7 @@ export class CutInWindowComponent {
 
   readonly videoVolumeSig = computed(() => {
     if (this.cutIn) this.objectChange.versionOf(this.cutIn.identifier)();
-    return this.cutIn?.videoVolume ?? 50;
+    return this.audioEnabledState() ? (this.cutIn?.videoVolume ?? 50) : 0;
   });
 
   get videoVolume(): number {
@@ -262,8 +285,22 @@ export class CutInWindowComponent {
     return this.cutInArea()?.nativeElement.clientHeight ?? 340;
   }
 
-  onPlayerReady($event: { target: { setVolume: (v: number) => void; playVideo: () => void } }) {
+  get videoStartSeconds(): number {
+    return +(this.cutIn?.videoStart ?? 0) + this.playbackOffsetMs / 1000;
+  }
+
+  onPlayerReady($event: {
+    target: {
+      setVolume: (v: number) => void;
+      playVideo: () => void;
+      seekTo?: (seconds: number, allowSeekAhead: boolean) => void;
+    };
+  }) {
     $event.target.setVolume(this.videoVolume);
+    if (this.playbackStartedAtMs !== null && $event.target.seekTo) {
+      const elapsedSeconds = Math.max(0, Date.now() - this.playbackStartedAtMs) / 1000;
+      $event.target.seekTo(+(this.cutIn?.videoStart ?? 0) + elapsedSeconds, true);
+    }
     $event.target.playVideo();
   }
 

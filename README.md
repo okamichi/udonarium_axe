@@ -140,7 +140,7 @@ Lycoris はコードの継承元ではなく、ホットバーの着想を得た
 | **Udonarium**         | TK11235                   | <https://github.com/TK11235/udonarium>          | オリジナル                                   |
 | **Udonarium Lily**    | entyu（円柱）             | <https://github.com/entyu/udonarium_lily>       | 派生・機能拡張版（画像タグ等のコードを継承） |
 | **Udonarium Lycoris** | oron1208                  | <https://github.com/oron1208/udonarium-lycoris> | 着想元（ホットバー）。コードの継承はなし     |
-| **Udonarium Axe**     | SavageChieftain / Xelltis | <https://github.com/Xelltis/udonarium_axe>      | 本リポジトリのフォーク元                                 |
+| **Udonarium Axe**     | SavageChieftain / Xelltis | <https://github.com/Xelltis/udonarium_axe>      | 本リポジトリのフォーク元                     |
 
 > 注: 上記の機能の切り分けは本リポジトリのフォーク元の LICENSE・コード・公開情報を根拠にした暫定整理です。
 

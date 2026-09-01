@@ -7,6 +7,7 @@ import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@ang
 import { Logger, LogLevel } from '@axe/core/logging/logger';
 import { resetPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 
@@ -259,8 +260,18 @@ function emptyObjectStore(): void {
   store.clearDeleteHistory();
 }
 
+// PeerCursor.myCursor is a static of the same kind, and `ng test` runs without --isolate, so one
+// file's cursor is the next file's cursor. createMyCursor() hands back whatever is already there
+// rather than a fresh player, which leaves a spec that made itself the game master deciding what
+// the following file sees - a player-only view then renders nothing and the lookups come back null.
+// Forget the cursor with the store so every test starts as nobody.
+function forgetMyCursor(): void {
+  PeerCursor.myCursor = null!;
+}
+
 beforeEach(async () => {
   emptyObjectStore();
+  forgetMyCursor();
   resetPeerContextProvider();
   await resolveComponentResources(resourceResolver as Parameters<typeof resolveComponentResources>[0]);
   applyConfigureTestingModuleWrapper();

@@ -2,6 +2,10 @@ import { emitSelectGameTable } from '@axe/core/event/domain-events';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { DEFAULT_AMBIENCE_DENSITY } from '@axe/domain/effect/ambience/ambience-kind';
+import {
+  CutInMultiDirectionMode,
+  DEFAULT_CUT_IN_MULTI_DIRECTION_MODE,
+} from '@axe/domain/tabletop/cut-in-multi-direction';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
@@ -63,6 +67,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() mode2d: boolean = false;
   @SyncVar() orthographicProjection: boolean = false;
   @SyncVar() terrainRotationIn2dEnabled: boolean = false;
+  @SyncVar() cutInMultiDirectionMode: CutInMultiDirectionMode = DEFAULT_CUT_IN_MULTI_DIRECTION_MODE;
   @SyncVar() radialMenuEnabled: boolean = false;
   @SyncVar() radialMenuRotationSpeed: number = DEFAULT_RADIAL_MENU_ROTATION_SPEED;
   @SyncVar() multiAngleEnabled: boolean = false;

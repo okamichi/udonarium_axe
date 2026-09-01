@@ -6,6 +6,9 @@ import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn, cutInPanelChrome } from '@axe/domain/media/cut-in';
+import { asCutInMultiDirectionMode } from '@axe/domain/tabletop/cut-in-multi-direction';
+import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { makeCutInMultiDirectionLayout } from '@axe/features/media/cut-in-multi-direction-layout';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 
 @Injectable({ providedIn: 'root' })
@@ -14,6 +17,7 @@ export class CutInEventHandlerService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly audioStorage = inject(AudioStorage);
   private readonly panelService = inject(PanelService);
+  private readonly tableSelecter = inject(TableSelecter);
   private readonly t = inject(TRANSLATE_FN);
 
   private readonly soundOnlyPlayer = new AudioPlayer();
@@ -41,6 +45,46 @@ export class CutInEventHandlerService {
 
   private openCutInPanel(cutIn: CutIn, invisible = false): void {
     if (!cutIn) return;
+    const table = this.tableSelecter.viewTable;
+    const mode = table?.mode2d ? asCutInMultiDirectionMode(table.cutInMultiDirectionMode) : 'none';
+    if (invisible || mode === 'none') {
+      this.openSingleCutInPanel(cutIn, invisible);
+      return;
+    }
+
+    const chrome = cutInPanelChrome(cutIn);
+    const faces = makeCutInMultiDirectionLayout({
+      mode,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      cutInWidth: cutIn.width,
+      cutInHeight: cutIn.height,
+      chromeHeight: chrome,
+    });
+    const startedAtMs = Date.now();
+
+    for (const face of faces) {
+      const option: PanelOption = {
+        title: this.t('feature.media.cutIn.panelTitleWith', { name: cutIn.name }),
+        width: face.width,
+        height: face.height,
+        left: face.left,
+        top: face.top,
+        rotationDegrees: face.rotationDegrees,
+        isCutIn: true,
+        cutInIdentifier: cutIn.identifier,
+        frameless: cutIn.frameless,
+      };
+
+      const component = this.panelService.open(CutInWindowComponent, option);
+      component.cutIn = cutIn;
+      component.audioEnabled = face.primary;
+      component.panelLayout = face;
+      component.startCutIn(startedAtMs);
+    }
+  }
+
+  private openSingleCutInPanel(cutIn: CutIn, invisible: boolean): void {
     const chrome = cutInPanelChrome(cutIn);
     const marginW = Math.max(0, window.innerWidth - cutIn.width);
     const marginH = Math.max(0, window.innerHeight - cutIn.height - chrome);
