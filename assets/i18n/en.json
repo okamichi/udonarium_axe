@@ -681,6 +681,12 @@
       }
     },
     "textNote": {
+      "contextMenu": {
+        "radialContent": "Content",
+        "radialDisplay": "Display",
+        "radialDisclosure": "Access & owner",
+        "radialObject": "Move & actions"
+      },
       "section": {
         "layout": "Layout"
       },
@@ -1471,7 +1477,10 @@
         "unfollow": "Stop following",
         "skin": "Skin",
         "skinFromLibrary": "Choose from the library",
-        "skinNone": "No skin"
+        "skinNone": "No skin",
+        "radialAppearance": "Light & appearance",
+        "radialPosition": "Position & following",
+        "radialObject": "Object actions"
       },
       "preset": {
         "custom": "Custom",
@@ -1664,6 +1673,9 @@
         "radialAppearance": "Appearance & lighting",
         "radialMoveCreate": "Move & create",
         "radialObject": "Object actions",
+        "radialRangePosition": "Position & following",
+        "radialRangeShape": "Shape",
+        "radialRangeEditCreate": "Edit & create",
         "lightSection": "Darkness (vision & glow)",
         "blocksSight": "Blocks sight",
         "blocksLight": "Blocks light (off = window)",

@@ -681,6 +681,12 @@
       }
     },
     "textNote": {
+      "contextMenu": {
+        "radialContent": "内容",
+        "radialDisplay": "表示",
+        "radialDisclosure": "公開・所有",
+        "radialObject": "移動・操作"
+      },
       "section": {
         "layout": "レイアウト"
       },
@@ -1471,7 +1477,10 @@
         "unfollow": "追従しない",
         "skin": "スキン",
         "skinFromLibrary": "画像保管庫から選ぶ",
-        "skinNone": "スキンなし"
+        "skinNone": "スキンなし",
+        "radialAppearance": "光源・見た目",
+        "radialPosition": "位置・追従",
+        "radialObject": "オブジェクト操作"
       },
       "preset": {
         "custom": "カスタム",
@@ -1664,6 +1673,9 @@
         "radialAppearance": "見た目・照明",
         "radialMoveCreate": "移動・作成",
         "radialObject": "オブジェクト操作",
+        "radialRangePosition": "位置・追従",
+        "radialRangeShape": "形状",
+        "radialRangeEditCreate": "編集・作成",
         "lightSection": "暗闇（視界・発光）",
         "blocksSight": "視界を遮る",
         "blocksLight": "光を遮る（窓ならOFF）",
