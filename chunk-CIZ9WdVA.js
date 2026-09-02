@@ -1,0 +1,1 @@
+import{yi as le}from"./chunk-C1BWe2q6.js";var s=le.instance;export{s as t};
