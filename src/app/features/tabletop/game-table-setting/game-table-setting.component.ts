@@ -44,6 +44,11 @@ import {
   MIN_RADIAL_MENU_ROTATION_SPEED,
 } from '@axe/domain/tabletop/game-table';
 import {
+  asHoverDetailPlacement,
+  HOVER_DETAIL_PLACEMENTS,
+  HoverDetailPlacement,
+} from '@axe/domain/tabletop/hover-detail-placement';
+import {
   DEFAULT_MULTI_ANGLE_PAUSE_SECONDS,
   DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS,
   DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS,
@@ -223,6 +228,17 @@ export class GameTableSettingComponent {
   set tableCutInMultiDirectionMode(value: CutInMultiDirectionMode) {
     if (!this.selectedTable) return;
     this.selectedTable.cutInMultiDirectionMode = asCutInMultiDirectionMode(value);
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  readonly hoverDetailPlacements = HOVER_DETAIL_PLACEMENTS;
+
+  get tableHoverDetailPlacement(): HoverDetailPlacement {
+    return asHoverDetailPlacement(this.selectedTable?.hoverDetailPlacement);
+  }
+  set tableHoverDetailPlacement(value: HoverDetailPlacement) {
+    if (!this.selectedTable) return;
+    this.selectedTable.hoverDetailPlacement = asHoverDetailPlacement(value);
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

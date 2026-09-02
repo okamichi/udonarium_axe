@@ -353,6 +353,63 @@ describe('GameTableSettingComponent', () => {
     }
   });
 
+  it('stores and validates the hover detail placement on the table', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      expect(component.tableHoverDetailPlacement).toBe('piece');
+      component.tableHoverDetailPlacement = 'screen-edges';
+      expect(table.hoverDetailPlacement).toBe('screen-edges');
+
+      table.hoverDetailPlacement = 'corners' as never;
+      expect(component.tableHoverDetailPlacement).toBe('piece');
+
+      component.tableHoverDetailPlacement = 'anywhere' as never;
+      expect(table.hoverDetailPlacement).toBe('piece');
+    } finally {
+      table.destroy();
+    }
+  });
+
+  it('shows the hover detail placement only inside 2D mode', async () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('select[name="tableHoverDetailPlacement"]')).toBeNull();
+
+      table.mode2d = true;
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const select = fixture.nativeElement.querySelector(
+        'select[name="tableHoverDetailPlacement"]'
+      ) as HTMLSelectElement;
+      expect(select).toBeTruthy();
+      expect(select.closest('label')?.textContent).toContain('コマの詳細表示');
+      expect([...select.options].map((option) => option.textContent?.trim())).toEqual([
+        'コマの近くに表示（従来）',
+        '画面の端に4方向表示（編集不可）',
+      ]);
+
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(select.value).toBe('piece');
+
+      select.value = 'screen-edges';
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+      expect(table.hoverDetailPlacement).toBe('screen-edges');
+    } finally {
+      table.destroy();
+    }
+  });
+
   it('stores and validates the menu font scale on the table', () => {
     const table = new GameTable();
     table.initialize();

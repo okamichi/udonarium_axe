@@ -443,6 +443,23 @@
               </label>
               <label
                 class="text-ui-text flex items-center gap-1.5 text-[13px] select-none"
+                data-testid="hover-detail-placement-label"
+              >
+                <span class="flex-1">{{ 'feature.tabletop.tableSetting.hoverDetailPlacement' | transloco }}</span>
+                <select
+                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[13px]"
+                  [(ngModel)]="tableHoverDetailPlacement"
+                  name="tableHoverDetailPlacement"
+                >
+                  @for (placement of hoverDetailPlacements; track placement) {
+                    <option [value]="placement">
+                      {{ 'feature.tabletop.tableSetting.hoverDetailPlacement_' + placement | transloco }}
+                    </option>
+                  }
+                </select>
+              </label>
+              <label
+                class="text-ui-text flex items-center gap-1.5 text-[13px] select-none"
                 data-testid="multi-angle-font-scale-label"
               >
                 <span class="flex-1">{{ 'feature.tabletop.tableSetting.multiAngleFontScale' | transloco }}</span>

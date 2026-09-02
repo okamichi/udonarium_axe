@@ -8,6 +8,7 @@ import {
 } from '@axe/domain/tabletop/cut-in-multi-direction';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { DEFAULT_HOVER_DETAIL_PLACEMENT, HoverDetailPlacement } from '@axe/domain/tabletop/hover-detail-placement';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import {
   DEFAULT_MULTI_ANGLE_PAUSE_SECONDS,
@@ -81,6 +82,8 @@ export class GameTable extends ObjectNode {
   @SyncVar() multiAngleTickerPixelsPerSecond: number = DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND;
   /** Text size shared by the 2D menus and the edge ticker; see {@link MultiAngleFontScale}. */
   @SyncVar() multiAngleFontScale: MultiAngleFontScale = DEFAULT_MULTI_ANGLE_FONT_SCALE;
+  /** Where a hovered piece shows its detail in 2D mode; see {@link HoverDetailPlacement}. */
+  @SyncVar() hoverDetailPlacement: HoverDetailPlacement = DEFAULT_HOVER_DETAIL_PLACEMENT;
   /** How a piece shows which way it faces; see {@link TableFacingMark}. */
   @SyncVar() facingMark: TableFacingMark = DEFAULT_TABLE_FACING_MARK;
   @SyncVar() wallHeight: number = 10;
