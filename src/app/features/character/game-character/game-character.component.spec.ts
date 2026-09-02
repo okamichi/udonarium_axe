@@ -137,6 +137,7 @@ describe('GameCharacterComponent', () => {
           'menu-piece',
           enabled,
           7,
+          1,
           0,
           25
         );
@@ -151,7 +152,7 @@ describe('GameCharacterComponent', () => {
       const character = openMenu(true, true, 3, showRotatingName);
 
       try {
-        const clearanceRadius = openRadial.mock.calls[0]?.[6];
+        const clearanceRadius = openRadial.mock.calls[0]?.[7];
         expect(clearanceRadius).toBeCloseTo(100.05);
       } finally {
         character.destroy();
@@ -164,8 +165,8 @@ describe('GameCharacterComponent', () => {
       const character = openMenu(true, true, 1, true);
 
       try {
-        expect(openRadial.mock.calls[0]?.[6]).toBe(0);
-        expect(openRadial.mock.calls[0]?.[7]).toBe(25);
+        expect(openRadial.mock.calls[0]?.[7]).toBe(0);
+        expect(openRadial.mock.calls[0]?.[8]).toBe(25);
       } finally {
         character.destroy();
       }
@@ -216,6 +217,7 @@ describe('GameCharacterComponent', () => {
           'drag-menu-piece',
           false,
           expect.any(Number),
+          1,
           0,
           25,
           { x: 125, y: 125 }
@@ -264,6 +266,7 @@ describe('GameCharacterComponent', () => {
           'click-menu-piece',
           table.radialMenuEnabled,
           table.radialMenuRotationSpeed,
+          1,
           0,
           25
         );

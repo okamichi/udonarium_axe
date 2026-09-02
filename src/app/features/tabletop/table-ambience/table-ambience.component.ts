@@ -18,6 +18,7 @@ import {
 } from '@axe/domain/effect/ambience/ambience-ground';
 import { EffectParticleLayer } from '@axe/domain/effect/effect-particles';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { EffectCanvasComponent } from '@axe/features/effect/effect-canvas/effect-canvas.component';
 import { buildTableAmbienceContextMenuModel } from '@axe/features/tabletop/table-ambience/table-ambience-context-menu';
@@ -205,7 +206,8 @@ export class TableAmbienceComponent {
         menu.radialGroups,
         area.name,
         table.radialMenuEnabled,
-        table.radialMenuRotationSpeed
+        table.radialMenuRotationSpeed,
+        multiAngleFontScaleFactor(table.multiAngleFontScale)
       );
       return;
     }

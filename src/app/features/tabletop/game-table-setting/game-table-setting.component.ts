@@ -49,6 +49,11 @@ import {
   DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS,
   MultiAngleMotionMode,
 } from '@axe/domain/tabletop/multi-angle';
+import {
+  asMultiAngleFontScale,
+  MULTI_ANGLE_FONT_SCALES,
+  MultiAngleFontScale,
+} from '@axe/domain/tabletop/multi-angle-font-scale';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
@@ -218,6 +223,17 @@ export class GameTableSettingComponent {
   set tableCutInMultiDirectionMode(value: CutInMultiDirectionMode) {
     if (!this.selectedTable) return;
     this.selectedTable.cutInMultiDirectionMode = asCutInMultiDirectionMode(value);
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  readonly multiAngleFontScales = MULTI_ANGLE_FONT_SCALES;
+
+  get tableMultiAngleFontScale(): MultiAngleFontScale {
+    return asMultiAngleFontScale(this.selectedTable?.multiAngleFontScale);
+  }
+  set tableMultiAngleFontScale(value: MultiAngleFontScale) {
+    if (!this.selectedTable) return;
+    this.selectedTable.multiAngleFontScale = asMultiAngleFontScale(value);
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

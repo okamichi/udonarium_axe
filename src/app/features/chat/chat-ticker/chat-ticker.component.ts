@@ -24,6 +24,7 @@ import {
   MAX_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
   MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
 } from '@axe/domain/tabletop/multi-angle';
+import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
 import {
   formatChatTickerMessage,
   makeChatTickerPath,
@@ -32,7 +33,7 @@ import {
 } from '@axe/features/chat/chat-ticker/chat-ticker-layout';
 
 const TICKER_FONT_SIZE_PX = 18;
-const TICKER_FONT = `700 ${TICKER_FONT_SIZE_PX}px system-ui, sans-serif`;
+const TICKER_OUTLINE_WIDTH_PX = 4;
 const TICKER_LETTER_GAP_PX = 1;
 const TICKER_COPY_MINIMUM_GAP_PX = 48;
 const MAX_DEVICE_PIXEL_RATIO = 2;
@@ -153,7 +154,8 @@ export class ChatTickerComponent {
     }
 
     const context = canvas.getContext('2d');
-    const path = makeChatTickerPath(width, height, TICKER_FONT_SIZE_PX);
+    const fontSize = this.fontSizePx();
+    const path = makeChatTickerPath(width, height, fontSize);
     if (!context || !path) {
       this.startAnimation();
       return;
@@ -168,8 +170,13 @@ export class ChatTickerComponent {
     }
 
     const travelled = (timestamp - this.cycleStartedAt) * (speed / 1000);
-    this.drawText(context, path, this.currentText(), travelled);
+    this.drawText(context, path, this.currentText(), travelled, fontSize);
     this.startAnimation();
+  }
+
+  /** The table setting scales the text, and the path margin follows it. */
+  private fontSizePx(): number {
+    return TICKER_FONT_SIZE_PX * multiAngleFontScaleFactor(this.tabletopService.currentTable.multiAngleFontScale);
   }
 
   private pixelsPerSecond(): number {
@@ -183,13 +190,14 @@ export class ChatTickerComponent {
     context: CanvasRenderingContext2D,
     path: NonNullable<ReturnType<typeof makeChatTickerPath>>,
     text: string,
-    travelled: number
+    travelled: number,
+    fontSize: number
   ): void {
-    context.font = TICKER_FONT;
+    context.font = `700 ${fontSize}px system-ui, sans-serif`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.lineJoin = 'round';
-    context.lineWidth = 4;
+    context.lineWidth = (TICKER_OUTLINE_WIDTH_PX * fontSize) / TICKER_FONT_SIZE_PX;
     context.strokeStyle = 'rgba(0, 0, 0, 0.92)';
     context.fillStyle = '#fff';
 

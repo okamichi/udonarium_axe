@@ -68,6 +68,7 @@ import {
   multiAnglePieceMotionMode,
   multiAngleRotationPhase,
 } from '@axe/domain/tabletop/multi-angle';
+import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
 import { asTableFacingMark, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { buildGameCharacterContextMenuModel } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
@@ -1165,6 +1166,7 @@ export class GameCharacterComponent {
       this.name(),
       table.radialMenuEnabled,
       table.radialMenuRotationSpeed,
+      multiAngleFontScaleFactor(table.multiAngleFontScale),
       menuClearanceRadius,
       menuOcclusionHalfExtent,
     ] as const;

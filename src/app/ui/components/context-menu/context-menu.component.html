@@ -8,6 +8,7 @@
   [class.border-solid]="!detachedItems()"
   [class.py-1]="!detachedItems()"
   [style.zIndex]="layer() > 0 ? layer() : null"
+  [style.--menu-font-scale]="fontScale()"
   [ngClass]="{
     'max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain': isSubmenu() && !subMenu(),
     'max-h-full max-w-full': !isSubmenu(),
@@ -30,7 +31,7 @@
   @if (title) {
     <div
       data-context-menu-title
-      class="border-ui-border-separator text-ui-muted m-0 max-w-[18em] truncate px-4 pt-1 pb-1.5 text-center text-[11px] font-semibold tracking-[0.04em]"
+      class="border-ui-border-separator text-ui-muted m-0 max-w-[18em] truncate px-4 pt-1 pb-1.5 text-center text-[calc(11px*var(--menu-font-scale,1))] font-semibold tracking-[0.04em]"
       [class.context-menu-detached-title]="detachedItems()"
       [class.border-b]="!detachedItems()"
       [class.border-solid]="!detachedItems()"
@@ -137,7 +138,7 @@
 <ng-template #indexMenu let-action="action">
   <li
     data-context-menu-item
-    class="rounded-ui-sm text-ui-text hover:text-ui-accent relative my-0 cursor-default px-5 py-1.25 text-[12px] transition-colors"
+    class="rounded-ui-sm text-ui-text hover:text-ui-accent relative my-0 cursor-default px-5 py-1.25 text-[calc(12px*var(--menu-font-scale,1))] transition-colors"
     [class.context-menu-detached-item]="detachedItems()"
     [class.border-ui-border-menu]="detachedItems()"
     [class.bg-ui-menu]="detachedItems()"
@@ -154,7 +155,7 @@
 <ng-template #actionMenu let-action="action">
   <li
     data-context-menu-item
-    class="rounded-ui-sm text-ui-text hover:text-ui-accent relative my-0 cursor-default px-5 py-1.25 text-[12px] transition-colors"
+    class="rounded-ui-sm text-ui-text hover:text-ui-accent relative my-0 cursor-default px-5 py-1.25 text-[calc(12px*var(--menu-font-scale,1))] transition-colors"
     [class.context-menu-detached-item]="detachedItems()"
     [class.border-ui-border-menu]="detachedItems()"
     [class.bg-ui-menu]="detachedItems()"

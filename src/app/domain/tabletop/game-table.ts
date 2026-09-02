@@ -16,6 +16,7 @@ import {
   DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
   MultiAngleMotionMode,
 } from '@axe/domain/tabletop/multi-angle';
+import { DEFAULT_MULTI_ANGLE_FONT_SCALE, MultiAngleFontScale } from '@axe/domain/tabletop/multi-angle-font-scale';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DEFAULT_TABLE_FACING_MARK, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -78,6 +79,8 @@ export class GameTable extends ObjectNode {
   @SyncVar() multiAnglePieceRevolutionSeconds: number = DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
   @SyncVar() multiAngleTickerEnabled: boolean = false;
   @SyncVar() multiAngleTickerPixelsPerSecond: number = DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND;
+  /** Text size shared by the 2D menus and the edge ticker; see {@link MultiAngleFontScale}. */
+  @SyncVar() multiAngleFontScale: MultiAngleFontScale = DEFAULT_MULTI_ANGLE_FONT_SCALE;
   /** How a piece shows which way it faces; see {@link TableFacingMark}. */
   @SyncVar() facingMark: TableFacingMark = DEFAULT_TABLE_FACING_MARK;
   @SyncVar() wallHeight: number = 10;

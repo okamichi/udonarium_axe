@@ -162,7 +162,8 @@ describe('TextNoteComponent', () => {
         expect.any(Array),
         'メモメニュー',
         enabled,
-        9
+        9,
+        1
       );
       expect(openRadial.mock.calls[0]?.[2].map((group) => group.name)).toEqual([
         '内容',

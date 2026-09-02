@@ -30,6 +30,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { cellPatternBoundingBox, parseCellPattern } from '@axe/domain/tabletop/cell-pattern';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { buildRangeContextMenuModel } from '@axe/features/tabletop/range/range-context-menu';
@@ -382,7 +383,8 @@ export class RangeComponent {
         menu.radialGroups,
         this.name(),
         table.radialMenuEnabled,
-        table.radialMenuRotationSpeed
+        table.radialMenuRotationSpeed,
+        multiAngleFontScaleFactor(table.multiAngleFontScale)
       );
       return;
     }

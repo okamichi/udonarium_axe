@@ -72,7 +72,8 @@ describe('LightSourceComponent', () => {
         expect.any(Array),
         'lantern',
         enabled,
-        9
+        9,
+        1
       );
       expect(openRadial.mock.calls[0]?.[2].map((group) => group.name)).toEqual([
         '光源・見た目',

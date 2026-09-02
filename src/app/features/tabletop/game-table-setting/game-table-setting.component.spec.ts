@@ -353,6 +353,60 @@ describe('GameTableSettingComponent', () => {
     }
   });
 
+  it('stores and validates the menu font scale on the table', () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      expect(component.tableMultiAngleFontScale).toBe('small');
+      component.tableMultiAngleFontScale = 'large';
+      expect(table.multiAngleFontScale).toBe('large');
+
+      table.multiAngleFontScale = 'huge' as never;
+      expect(component.tableMultiAngleFontScale).toBe('small');
+
+      component.tableMultiAngleFontScale = 'gigantic' as never;
+      expect(table.multiAngleFontScale).toBe('small');
+    } finally {
+      table.destroy();
+    }
+  });
+
+  it('shows the menu font scale setting only inside 2D mode', async () => {
+    const table = new GameTable();
+    table.initialize();
+    component.selectedTable = table;
+
+    try {
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('select[name="tableMultiAngleFontScale"]')).toBeNull();
+
+      table.mode2d = true;
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const select = fixture.nativeElement.querySelector(
+        'select[name="tableMultiAngleFontScale"]'
+      ) as HTMLSelectElement;
+      expect(select).toBeTruthy();
+      expect(select.closest('label')?.textContent).toContain('メニュー・ティッカーの文字サイズ');
+      expect([...select.options].map((option) => option.textContent?.trim())).toEqual(['小', '中', '大']);
+
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(select.value).toBe('small');
+
+      select.value = 'medium';
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+      expect(table.multiAngleFontScale).toBe('medium');
+    } finally {
+      table.destroy();
+    }
+  });
+
   it('shows projection and rotating menu checkboxes inside 2D mode settings', async () => {
     const table = new GameTable();
     table.initialize();

@@ -151,7 +151,8 @@ describe('TerrainComponent', () => {
           expect.any(Array),
           '地形メニュー',
           enabled,
-          9
+          9,
+          1
         );
         expect(openRadial.mock.calls[0]?.[2].map((group) => group.name)).toEqual([
           '地形・扉',

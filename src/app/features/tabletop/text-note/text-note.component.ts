@@ -30,6 +30,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenuModel } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
@@ -384,7 +385,8 @@ export class TextNoteComponent {
         menu.radialGroups,
         this.title(),
         table.radialMenuEnabled,
-        table.radialMenuRotationSpeed
+        table.radialMenuRotationSpeed,
+        multiAngleFontScaleFactor(table.multiAngleFontScale)
       );
       return;
     }

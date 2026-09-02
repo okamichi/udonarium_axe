@@ -63,6 +63,11 @@ export class ContextMenuComponent {
   protected layer(): number {
     return this.contextMenuService.layer;
   }
+
+  /** How much larger than usual this menu draws its text; see {@link ContextMenuService.fontScale}. */
+  protected fontScale(): number {
+    return this.contextMenuService.fontScale;
+  }
   protected readonly titleInput = input('', { alias: 'title' });
   readonly titleColor = input('');
   readonly titleBold = input(false);

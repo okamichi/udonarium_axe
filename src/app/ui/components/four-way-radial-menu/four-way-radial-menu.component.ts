@@ -66,6 +66,7 @@ const ROOT_BAND_HALF_DEPTH_PX = 28;
 const CHILD_LIST_GAP_PX = 8;
 const CHILD_LIST_WIDTH_PX = 128;
 const CHILD_ITEM_HEIGHT_PX = 28;
+const ROOT_LABEL_HEIGHT_PX = 28;
 const CHILD_ITEM_GAP_PX = 2;
 const CHILD_LIST_VERTICAL_PADDING_PX = 8;
 const DETACHED_BRANCH_ITEMS_ENABLED = true;
@@ -140,12 +141,12 @@ export class FourWayRadialMenuComponent {
     if (childCount < 1) return this.rootOuterRadius() + MENU_VIEWPORT_MARGIN_PX;
 
     const listHeight =
-      childCount * CHILD_ITEM_HEIGHT_PX +
+      childCount * this.childItemHeight() +
       (DETACHED_BRANCH_ITEMS_ENABLED
         ? Math.max(0, childCount - 1) * CHILD_ITEM_GAP_PX
         : CHILD_LIST_VERTICAL_PADDING_PX);
     const farEdge = this.childListAnchorRadius() + listHeight;
-    return Math.hypot(farEdge, CHILD_LIST_WIDTH_PX / 2) + MENU_VIEWPORT_MARGIN_PX;
+    return Math.hypot(farEdge, this.childListWidth() / 2) + MENU_VIEWPORT_MARGIN_PX;
   });
   protected readonly center = computed(() =>
     clampRadialCenter(this.contextMenuService.position, this.viewport(), this.menuExtent())
@@ -362,8 +363,26 @@ export class FourWayRadialMenuComponent {
     return annularSectorLabelWidth(this.ringRadius(), this.ringItemCount(), SECTOR_GAP_PX);
   }
 
+  /** Larger text needs a wider list, but never wider than the gap to the neighbouring branch. */
   protected childListWidth(): number {
-    return CHILD_LIST_WIDTH_PX;
+    const scaled = CHILD_LIST_WIDTH_PX * this.fontScale();
+    const neighbourSpacing =
+      2 * this.childListAnchorRadius() * Math.sin(Math.PI / Math.max(1, this.ringItemCount())) - CHILD_LIST_GAP_PX;
+    return Math.round(Math.min(scaled, Math.max(CHILD_LIST_WIDTH_PX, neighbourSpacing)));
+  }
+
+  protected childItemHeight(): number {
+    return Math.round(CHILD_ITEM_HEIGHT_PX * this.fontScale());
+  }
+
+  protected rootLabelHeight(): number {
+    return Math.round(ROOT_LABEL_HEIGHT_PX * this.fontScale());
+  }
+
+  /** How much larger than usual the menu draws its text; see {@link ContextMenuService.fontScale}. */
+  protected fontScale(): number {
+    const scale = Number(this.contextMenuService.fontScale);
+    return Number.isFinite(scale) && scale > 0 ? scale : 1;
   }
 
   protected childListAnchorPoint(parentIndex: number): RadialPoint {

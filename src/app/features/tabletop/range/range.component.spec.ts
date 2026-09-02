@@ -183,7 +183,8 @@ describe('RangeComponent', () => {
         expect.any(Array),
         '射程メニュー',
         enabled,
-        9
+        9,
+        1
       );
       expect(openRadial.mock.calls[0]?.[2].map((group) => group.name)).toEqual([
         '位置・追従',

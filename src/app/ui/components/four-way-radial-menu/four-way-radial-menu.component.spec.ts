@@ -636,4 +636,54 @@ describe('FourWayRadialMenuComponent', () => {
 
     expect(open).toHaveBeenCalledWith({ x: 300, y: 172 }, service.actions, 180, 'Hero');
   });
+
+  it('grows the item boxes together with the font scale', () => {
+    createWithGroups([{ name: '表示', icon: 'visibility', actions: [{ name: '詳細', action: vi.fn() }] }]);
+    const root = fixture.nativeElement as HTMLElement;
+    const smallLabelHeight = root.querySelector<HTMLElement>('[data-radial-parent-label]')!.style.height;
+    const smallItemHeight = root.querySelector<HTMLElement>('[data-radial-child]')!.style.minHeight;
+
+    service.fontScale = 1.3;
+    createWithGroups([{ name: '表示', icon: 'visibility', actions: [{ name: '詳細', action: vi.fn() }] }]);
+    const largeRoot = fixture.nativeElement as HTMLElement;
+
+    expect(largeRoot.firstElementChild!.getAttribute('style')).toContain('--menu-font-scale: 1.3');
+    expect(
+      parseFloat(largeRoot.querySelector<HTMLElement>('[data-radial-parent-label]')!.style.height)
+    ).toBeGreaterThan(parseFloat(smallLabelHeight));
+    expect(parseFloat(largeRoot.querySelector<HTMLElement>('[data-radial-child]')!.style.minHeight)).toBeGreaterThan(
+      parseFloat(smallItemHeight)
+    );
+  });
+
+  function branchListWidth(groupNames: string[]): number {
+    createWithGroups(
+      groupNames.map((name) => ({
+        name,
+        icon: 'menu',
+        actions: [{ name: `${name} action`, action: vi.fn() }],
+      }))
+    );
+    const list = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-radial-child-items]')!;
+    return parseFloat(list.style.width);
+  }
+
+  it('widens a branch list with the font scale while the ring has room', () => {
+    expect(branchListWidth(['A', 'B'])).toBe(128);
+
+    service.fontScale = 1.3;
+
+    expect(branchListWidth(['A', 'B'])).toBe(Math.round(128 * 1.3));
+  });
+
+  it('never widens a branch list into its neighbour on a crowded ring', () => {
+    // Seven groups plus the return item fill the ring, the most items a rotating menu page holds.
+    const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+    expect(branchListWidth(groups)).toBe(128);
+
+    service.fontScale = 1.3;
+
+    // That leaves less than the unscaled width between neighbours, so the scale cannot apply at all.
+    expect(branchListWidth(groups)).toBe(128);
+  });
 });

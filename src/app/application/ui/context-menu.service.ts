@@ -58,6 +58,8 @@ export class ContextMenuService {
   radialMenuClearanceRadius: number = 0;
   radialMenuOcclusionHalfExtent: number = 0;
   rotationDegrees: PanelRotationDegrees = 0;
+  /** Multiplies the menu text size. One keeps the sizes a menu outside the 2D table uses. */
+  fontScale: number = 1;
   position: ContextMenuPoint = { x: 0, y: 0 };
   radialAnchorPosition: ContextMenuPoint | null = null;
   /** Where the menu sits, for a caller that lives above where menus usually go. Zero is the usual place. */
@@ -76,6 +78,7 @@ export class ContextMenuService {
       0,
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+      1,
       0,
       0,
       undefined,
@@ -101,6 +104,7 @@ export class ContextMenuService {
       rotationDegrees,
       true,
       DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+      this.fontScale,
       0,
       0,
       undefined,
@@ -117,6 +121,7 @@ export class ContextMenuService {
     title?: string,
     radialMenuEnabled = false,
     radialMenuRotationSpeed = DEFAULT_RADIAL_MENU_ROTATION_SPEED,
+    fontScale = 1,
     radialMenuClearanceRadius = 0,
     radialMenuOcclusionHalfExtent = 0,
     radialAnchorPosition?: ContextMenuPoint,
@@ -131,6 +136,7 @@ export class ContextMenuService {
       0,
       radialMenuEnabled,
       radialMenuRotationSpeed,
+      fontScale,
       radialMenuClearanceRadius,
       radialMenuOcclusionHalfExtent,
       radialAnchorPosition,
@@ -148,6 +154,7 @@ export class ContextMenuService {
     rotationDegrees: PanelRotationDegrees,
     radialMenuEnabled: boolean,
     radialMenuRotationSpeed: number,
+    fontScale: number,
     radialMenuClearanceRadius: number,
     radialMenuOcclusionHalfExtent: number,
     radialAnchorPosition?: ContextMenuPoint,
@@ -178,6 +185,7 @@ export class ContextMenuService {
     childPanelService.radialMenuClearanceRadius = radialMenuClearanceRadius;
     childPanelService.radialMenuOcclusionHalfExtent = radialMenuOcclusionHalfExtent;
     childPanelService.rotationDegrees = rotationDegrees;
+    childPanelService.fontScale = Number.isFinite(fontScale) && fontScale > 0 ? fontScale : 1;
     if (position) {
       childPanelService.position.x = position.x;
       childPanelService.position.y = position.y;

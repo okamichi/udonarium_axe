@@ -202,7 +202,8 @@ describe('GameTableComponent', () => {
         expect.any(Array),
         component.currentTable.name,
         true,
-        8
+        8,
+        1
       );
       expect(openLegacy).not.toHaveBeenCalled();
     });
@@ -223,7 +224,8 @@ describe('GameTableComponent', () => {
         expect.any(Array),
         component.currentTable.name,
         false,
-        6
+        6,
+        1
       );
       expect(openLegacy).not.toHaveBeenCalled();
     });

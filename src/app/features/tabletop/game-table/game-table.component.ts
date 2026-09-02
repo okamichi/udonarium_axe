@@ -40,6 +40,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { boardSurfaceOf, surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -786,7 +787,8 @@ export class GameTableComponent {
         menu.rotatingGroups,
         table.name,
         table.radialMenuEnabled,
-        table.radialMenuRotationSpeed
+        table.radialMenuRotationSpeed,
+        multiAngleFontScaleFactor(table.multiAngleFontScale)
       );
       return;
     }

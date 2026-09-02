@@ -158,4 +158,19 @@ describe('ContextMenuComponent', () => {
     expect(nestedRoot.querySelectorAll('[data-context-menu-item]')).toHaveLength(2);
     expect(nestedRoot.querySelectorAll('[data-context-menu-item-gap]')).toHaveLength(1);
   });
+
+  it('draws at the original size unless the table asks for larger text', () => {
+    component.contextMenuService.actions = [{ name: 'Action 1', action: vi.fn() }];
+    fixture.detectChanges();
+
+    expect(component.rootElementRef().nativeElement.style.getPropertyValue('--menu-font-scale')).toBe('1');
+  });
+
+  it('passes the table font scale to the items as a custom property', () => {
+    component.contextMenuService.actions = [{ name: 'Action 1', action: vi.fn() }];
+    component.contextMenuService.fontScale = 1.3;
+    fixture.detectChanges();
+
+    expect(component.rootElementRef().nativeElement.style.getPropertyValue('--menu-font-scale')).toBe('1.3');
+  });
 });

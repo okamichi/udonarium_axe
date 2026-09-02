@@ -109,4 +109,15 @@ describe('ChatTickerComponent', () => {
     const internal = component as unknown as { pixelsPerSecond: () => number };
     expect(internal.pixelsPerSecond()).toBe(88);
   });
+
+  it('draws larger text when the table asks for a larger font scale', () => {
+    const table = TestBed.inject(TabletopService).currentTable;
+    const internal = component as unknown as { fontSizePx: () => number };
+    table.multiAngleFontScale = 'small';
+    const small = internal.fontSizePx();
+    expect(small).toBe(18);
+
+    table.multiAngleFontScale = 'large';
+    expect(internal.fontSizePx()).toBeGreaterThan(small);
+  });
 });

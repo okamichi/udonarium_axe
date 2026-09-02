@@ -1,5 +1,6 @@
 <div
   class="fixed inset-0 z-9900 bg-black/15 select-none"
+  [style.--menu-font-scale]="fontScale()"
   role="dialog"
   aria-modal="true"
   [attr.aria-label]="title || ('ui.contextMenu.radial.menuTitle' | transloco)"
@@ -178,13 +179,16 @@
         >
           <span
             data-radial-parent-label
-            class="pointer-events-none absolute flex h-7 items-center justify-center gap-1 overflow-hidden px-1 text-[11px] font-semibold whitespace-nowrap"
+            class="pointer-events-none absolute flex items-center justify-center gap-1 overflow-hidden px-1 text-[calc(11px*var(--menu-font-scale,1))] font-semibold whitespace-nowrap"
+            [style.height.px]="rootLabelHeight()"
             [style.left.px]="rootLabelPoint(parentIndex).x"
             [style.top.px]="rootLabelPoint(parentIndex).y"
             [style.width.px]="rootLabelWidth()"
             [style.transform]="itemTransform(parentIndex)"
           >
-            <i class="material-icons shrink-0 text-[18px]!" aria-hidden="true">{{ group.icon }}</i>
+            <i class="material-icons shrink-0 text-[calc(18px*var(--menu-font-scale,1))]!" aria-hidden="true">{{
+              group.icon
+            }}</i>
             <span class="min-w-0 truncate">{{ group.name }}</span>
           </span>
         </button>
@@ -225,7 +229,8 @@
                 type="button"
                 data-radial-control
                 data-radial-child
-                class="radial-child-menu-item text-ui-text hover:text-ui-accent relative flex min-h-7 w-full items-center gap-1 px-2 text-left text-[11px] font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                class="radial-child-menu-item text-ui-text hover:text-ui-accent relative flex w-full items-center gap-1 px-2 text-left text-[calc(11px*var(--menu-font-scale,1))] font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                [style.min-height.px]="childItemHeight()"
                 [class.rounded-ui-sm]="detachedBranchItemsEnabled"
                 [class.radial-child-menu-item-detached]="detachedBranchItemsEnabled"
                 [class.border-ui-border-menu]="detachedBranchItemsEnabled"
@@ -246,13 +251,19 @@
                 (click)="chooseAction(action, parentIndex, $event)"
               >
                 @if (presentation.icon) {
-                  <i data-radial-state-icon class="material-icons shrink-0 text-[15px]!" aria-hidden="true">{{
-                    presentation.icon
-                  }}</i>
+                  <i
+                    data-radial-state-icon
+                    class="material-icons shrink-0 text-[calc(15px*var(--menu-font-scale,1))]!"
+                    aria-hidden="true"
+                    >{{ presentation.icon }}</i
+                  >
                 }
                 <span class="min-w-0 grow truncate">{{ presentation.label }}</span>
                 @if (hasSubActions(action)) {
-                  <i data-radial-submenu-icon class="material-icons shrink-0 text-[13px]!" aria-hidden="true"
+                  <i
+                    data-radial-submenu-icon
+                    class="material-icons shrink-0 text-[calc(13px*var(--menu-font-scale,1))]!"
+                    aria-hidden="true"
                     >arrow_forward_ios</i
                   >
                 }
@@ -280,13 +291,14 @@
       >
         <span
           data-radial-parent-label
-          class="pointer-events-none absolute flex h-7 items-center justify-center gap-1 overflow-hidden px-1 text-[11px] font-semibold whitespace-nowrap"
+          class="pointer-events-none absolute flex items-center justify-center gap-1 overflow-hidden px-1 text-[calc(11px*var(--menu-font-scale,1))] font-semibold whitespace-nowrap"
+          [style.height.px]="rootLabelHeight()"
           [style.left.px]="rootLabelPoint(ringItemCount() - 1).x"
           [style.top.px]="rootLabelPoint(ringItemCount() - 1).y"
           [style.width.px]="rootLabelWidth()"
           [style.transform]="itemTransform(ringItemCount() - 1)"
         >
-          <i class="material-icons shrink-0 text-[18px]!" aria-hidden="true">close</i>
+          <i class="material-icons shrink-0 text-[calc(18px*var(--menu-font-scale,1))]!" aria-hidden="true">close</i>
           <span class="min-w-0 truncate">{{ 'common.button.close' | transloco }}</span>
         </span>
       </button>

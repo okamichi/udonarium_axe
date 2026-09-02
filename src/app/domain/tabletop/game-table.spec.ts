@@ -143,6 +143,7 @@ describe('GameTable', () => {
       expect(table.multiAnglePieceRevolutionSeconds).toBe(60);
       expect(table.multiAngleTickerEnabled).toBe(false);
       expect(table.multiAngleTickerPixelsPerSecond).toBe(55);
+      expect(table.multiAngleFontScale).toBe('small');
     });
 
     it('starts snapping to it', () => {

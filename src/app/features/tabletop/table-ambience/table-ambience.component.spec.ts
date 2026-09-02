@@ -129,7 +129,8 @@ describe('TableAmbienceComponent', () => {
         expect.any(Array),
         '毒沼',
         enabled,
-        9
+        9,
+        1
       );
       expect(openRadial.mock.calls[0]?.[2].map((group) => group.name)).toEqual(['見た目', 'オブジェクト操作']);
       expect(openOrdinary).not.toHaveBeenCalled();

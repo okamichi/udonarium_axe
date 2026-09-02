@@ -37,6 +37,7 @@ import { PERF_TERRAIN_GRID_RASTER, perfCounters } from '@axe/core/util/perf-coun
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 import { DoorStyle, SlopeDirection, Terrain, TerrainFace } from '@axe/domain/tabletop/terrain';
@@ -621,7 +622,8 @@ export class TerrainComponent {
         menu.radialGroups,
         this.name(),
         table.radialMenuEnabled,
-        table.radialMenuRotationSpeed
+        table.radialMenuRotationSpeed,
+        multiAngleFontScaleFactor(table.multiAngleFontScale)
       );
       return;
     }
