@@ -20,6 +20,7 @@ import { ChatSpeakerService } from '@axe/application/chat/chat-speaker.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { triggerUpdateGameObject } from '@axe/core/event/domain-events';
@@ -42,8 +43,10 @@ import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.com
 import { editsTextInPlace } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
 import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-portrait.component';
+import { ChatStreamPanelService } from '@axe/features/chat/chat-stream/chat-stream-panel.service';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
+import { buildChatTabContextMenu } from '@axe/features/chat/chat-window/chat-tab-context-menu';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -100,6 +103,8 @@ export class ChatWindowComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly chatStreamPanel = inject(ChatStreamPanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly chatPrefs = inject(ChatPreferencesService);
   private readonly activeChatTab = inject(ActiveChatTabService);
@@ -275,7 +280,7 @@ export class ChatWindowComponent {
 
   readonly visibleChatTabs = computed(() => {
     const tabs = this.chatTabsVersion();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const role = PeerCursor.myRole;
     return tabs.filter((tab) => canRoleViewTab(tab, role));
   });
@@ -283,7 +288,7 @@ export class ChatWindowComponent {
   readonly canSpeakCurrentTab = computed(() => {
     const tab = this.chatTab();
     if (!tab) return false;
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     this.objectChange.versionOf(tab.identifier)();
     return canRoleSpeakTab(tab, PeerCursor.myRole);
   });
@@ -676,6 +681,22 @@ export class ChatWindowComponent {
 
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;
+  }
+
+  /** A tab can be sent to a window of its own, to be watched while another one is written in. */
+  onChatTabContextMenu(event: Event, chatTab: ChatTab): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.contextMenuService.open(
+      this.pointerDeviceService.pointers[0],
+      buildChatTabContextMenu(
+        chatTab,
+        this.chatStreamPanel.isOpen(chatTab),
+        { onToggleStream: () => this.chatStreamPanel.toggle(chatTab) },
+        this.t
+      ),
+      chatTab.name
+    );
   }
 }
 

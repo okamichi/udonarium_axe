@@ -249,22 +249,19 @@ try {
   /* already initialized */
 }
 
-// ObjectStore is a static singleton and the runner shares it across spec files, so whatever the
-// previous file left behind is still in it. Specs that count what they put in - the effect presets,
-// a vote registered under a fixed identifier - then read someone else's leftovers, or fail to
-// register at all because the identifier is taken. Empty it before every test rather than trusting
-// each file to clean up after itself.
+// ObjectStore is a static singleton and every spec in a file shares it. Specs that count what
+// they put in - the effect presets, a vote registered under a fixed identifier - then read the
+// leftovers of the test before them, or fail to register at all because the identifier is taken.
+// Empty it before every test rather than trusting each one to clean up after itself.
 function emptyObjectStore(): void {
   const store = ObjectStore.instance;
   for (const object of store.getObjects()) store.delete(object, false);
   store.clearDeleteHistory();
 }
 
-// PeerCursor.myCursor is a static of the same kind, and `ng test` runs without --isolate, so one
-// file's cursor is the next file's cursor. createMyCursor() hands back whatever is already there
-// rather than a fresh player, which leaves a spec that made itself the game master deciding what
-// the following file sees - a player-only view then renders nothing and the lookups come back null.
-// Forget the cursor with the store so every test starts as nobody.
+// The cursor of whoever is reading is a static as well, and it decides what a role is allowed to
+// see. A test that leaves a game master behind hands the next one a game master, which is how a
+// toolbar meant for a player comes out missing. Nothing is anybody until a test says so.
 function forgetMyCursor(): void {
   PeerCursor.myCursor = null!;
 }

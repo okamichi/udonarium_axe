@@ -193,6 +193,10 @@ export function buildGameCharacterContextMenuModel(
       name: t('feature.character.contextMenu.lightSettings'),
       action: () => callbacks.onShowLightSettings(),
     },
+    {
+      name: (char.showVisionRange ? '✔ ' : '') + t('feature.character.contextMenu.showVisionRange'),
+      action: () => (char.showVisionRange = !char.showVisionRange),
+    },
   ];
   const openActions = [...basicActions, ...chatActions, ...buffEffectActions, ...lightActions];
 

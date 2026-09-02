@@ -6,6 +6,7 @@ import {
   CutInMultiDirectionMode,
   DEFAULT_CUT_IN_MULTI_DIRECTION_MODE,
 } from '@axe/domain/tabletop/cut-in-multi-direction';
+import { DEFAULT_FOG_COLOR, DEFAULT_FOG_MODE, FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { DEFAULT_HOVER_DETAIL_PLACEMENT, HoverDetailPlacement } from '@axe/domain/tabletop/hover-detail-placement';
@@ -100,6 +101,10 @@ export class GameTable extends ObjectNode {
   @SyncVar() darknessLevel: number = 0.92;
   @SyncVar() ambientColor: string = DEFAULT_AMBIENT_COLOR;
   @SyncVar() globalIllumination: number = 0;
+
+  @SyncVar() fogEnabled: boolean = false;
+  @SyncVar() fogMode: FogMode = DEFAULT_FOG_MODE;
+  @SyncVar() fogColor: string = DEFAULT_FOG_COLOR;
 
   /** The weather over the whole map. Empty for none. */
   @SyncVar() weatherKind: string = '';
