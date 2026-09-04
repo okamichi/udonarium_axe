@@ -145,6 +145,7 @@ describe('GameTable', () => {
       expect(table.multiAngleTickerPixelsPerSecond).toBe(55);
       expect(table.multiAngleFontScale).toBe('small');
       expect(table.hoverDetailPlacement).toBe('piece');
+      expect(table.cellMm).toBe(25.4);
     });
 
     it('starts snapping to it', () => {

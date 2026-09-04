@@ -475,6 +475,131 @@
                   }
                 </select>
               </label>
+
+              <div class="mt-1 flex flex-col gap-1.5">
+                <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+                  <input
+                    type="checkbox"
+                    class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                    [(ngModel)]="viewLocked"
+                    name="viewLocked"
+                  />
+                  {{ 'feature.tabletop.tableSetting.viewLock' | transloco }}
+                </label>
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+                    <input
+                      type="checkbox"
+                      class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                      [(ngModel)]="realSizeEnabled"
+                      name="realSizeEnabled"
+                    />
+                    {{ 'feature.tabletop.tableSetting.realSize' | transloco }}
+                  </label>
+                  <button
+                    class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-2 py-0.5 text-[12px]"
+                    type="button"
+                    (click)="openCalibration()"
+                  >
+                    {{ 'feature.tabletop.tableSetting.realSizeCalibrate' | transloco }}
+                  </button>
+                </div>
+                <div class="ml-5 flex flex-col gap-1.5">
+                  <label class="text-ui-text flex items-center gap-1.5 text-[13px] select-none">
+                    <span class="flex-1">{{ 'feature.tabletop.tableSetting.cellDistance' | transloco }}</span>
+                    <input
+                      type="number"
+                      class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-18 border border-solid px-1 py-0.5 text-[13px]"
+                      min="0.01"
+                      max="1000"
+                      step="0.5"
+                      [(ngModel)]="cellDistanceValue"
+                      name="cellDistanceValue"
+                    />
+                    <select
+                      class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[13px]"
+                      [(ngModel)]="cellDistanceUnit"
+                      name="cellDistanceUnit"
+                    >
+                      @for (unit of cellDistanceUnits; track unit) {
+                        <option [value]="unit">
+                          {{ 'feature.tabletop.tableSetting.cellDistanceUnit_' + unit | transloco }}
+                        </option>
+                      }
+                    </select>
+                  </label>
+                  @if (isCalibrated()) {
+                    <label class="text-ui-text flex items-center gap-1.5 text-[13px] select-none">
+                      <span class="flex-1">{{ 'feature.tabletop.tableSetting.realSizeCellMm' | transloco }}</span>
+                      <input
+                        type="number"
+                        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-18 border border-solid px-1 py-0.5 text-[13px]"
+                        min="5"
+                        max="200"
+                        step="0.1"
+                        [(ngModel)]="cellMm"
+                        name="realSizeCellMm"
+                      />
+                      <span class="text-ui-muted text-[12px]">mm</span>
+                    </label>
+                    <span class="text-ui-accent text-[12px]">
+                      @if (cellSummary().unit === 'cell') {
+                        {{
+                          'feature.tabletop.tableSetting.realSizeSummaryPlain'
+                            | transloco: { mm: cellSummary().mm, inches: cellSummary().inches }
+                        }}
+                      } @else {
+                        {{
+                          'feature.tabletop.tableSetting.realSizeSummary'
+                            | transloco
+                              : {
+                                  mm: cellSummary().mm,
+                                  inches: cellSummary().inches,
+                                  distance: cellSummary().distance,
+                                  unit:
+                                    'feature.tabletop.tableSetting.cellDistanceUnit_' + cellSummary().unit | transloco,
+                                }
+                        }}
+                      }
+                    </span>
+                    <div class="flex flex-wrap items-center gap-1.5 text-[13px]">
+                      <span class="text-ui-muted flex-1 text-[12px]">
+                        {{ 'feature.tabletop.tableSetting.realSizeDpi' | transloco: { dpi: calibrationDpi() } }}
+                      </span>
+                      <button
+                        class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-1.5 py-0.5 text-[12px]"
+                        type="button"
+                        (click)="nudgeScale(-1)"
+                      >
+                        {{ 'feature.tabletop.tableSetting.realSizeSmaller' | transloco }}
+                      </button>
+                      <button
+                        class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-1.5 py-0.5 text-[12px]"
+                        type="button"
+                        (click)="nudgeScale(1)"
+                      >
+                        {{ 'feature.tabletop.tableSetting.realSizeLarger' | transloco }}
+                      </button>
+                    </div>
+                  }
+                  @if (needsRecalibration()) {
+                    <span class="text-[12px] text-amber-400">
+                      {{ 'feature.tabletop.tableSetting.realSizeStale' | transloco }}
+                    </span>
+                  }
+                  <span class="text-ui-dim text-[11px] leading-relaxed">
+                    {{ 'feature.tabletop.tableSetting.realSizeHelp' | transloco }}
+                  </span>
+                  <button
+                    class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover self-start border border-solid px-2 py-0.5 text-[12px]"
+                    type="button"
+                    (click)="resetCalibration()"
+                    data-testid="reset-calibration"
+                  >
+                    {{ 'feature.tabletop.tableSetting.realSizeReset' | transloco }}
+                  </button>
+                </div>
+              </div>
               <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <label
                   class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none"

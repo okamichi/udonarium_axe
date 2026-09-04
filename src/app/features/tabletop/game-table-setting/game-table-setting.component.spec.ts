@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CutInService } from '@axe/application/media/cut-in.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { DisplayCalibrationService } from '@axe/application/ui/display-calibration.service';
+import { ViewLockService } from '@axe/application/ui/view-lock.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { Config } from '@axe/domain/peer/config';
@@ -72,6 +74,121 @@ describe('GameTableSettingComponent', () => {
         component.tableGridSnapStyle = GridSnapStyle.VERTEX;
         component.tableDistanceviewFilter = FilterType.WHITE;
       }).not.toThrow();
+    });
+  });
+
+  describe('what this screen measures', () => {
+    it('has nothing to offer until the screen has been measured', () => {
+      expect(component.isCalibrated()).toBe(false);
+      expect(component.calibrationDpi()).toBeNull();
+      expect(component.realSizeEnabled).toBe(false);
+    });
+
+    it('keeps real size on the device rather than on the table', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+      TestBed.inject(DisplayCalibrationService).calibrateFromCardRun(274, 1);
+
+      component.realSizeEnabled = true;
+
+      expect(component.realSizeEnabled).toBe(true);
+      expect(component.calibrationDpi()).toBe(81);
+      // Nothing about the screen belongs in what the room shares.
+      expect(JSON.stringify(table.toContext())).not.toContain('pxPerMm');
+      table.destroy();
+    });
+
+    it('reads and writes the same lock the two 2D menus carry', () => {
+      const lock = TestBed.inject(ViewLockService);
+      expect(component.viewLocked).toBe(false);
+
+      component.viewLocked = true;
+
+      expect(lock.locked()).toBe(true);
+
+      // And it shows what the menus did, so neither way in contradicts the other.
+      lock.set(false);
+      expect(component.viewLocked).toBe(false);
+    });
+
+    it('keeps the lock on the device, out of what the room shares', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+
+      component.viewLocked = true;
+
+      expect(JSON.stringify(table.toContext())).not.toContain('viewLock');
+      table.destroy();
+    });
+
+    it('keeps the game distance on the device, out of what the room shares', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+
+      component.cellDistanceValue = 1.5;
+      component.cellDistanceUnit = 'm';
+
+      expect(component.cellDistanceValue).toBe(1.5);
+      expect(component.cellDistanceUnit).toBe('m');
+      // Nothing about it may reach the table, which is what the other clients read.
+      const shared = JSON.stringify(table.toContext());
+      expect(shared).not.toContain('cellDistance');
+      expect(shared).not.toContain('distanceValue');
+      table.destroy();
+    });
+
+    it('keeps the width of a square on the table, where the map is shared from', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+
+      component.cellMm = 30;
+
+      expect(table.cellMm).toBe(30);
+      expect(component.cellMm).toBe(30);
+      table.destroy();
+    });
+
+    it('reads a square back in inches, which is what a base is sold in', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+      TestBed.inject(DisplayCalibrationService).calibrateFromCardRun(274, 1);
+
+      expect(component.cellSummary()).toEqual({ mm: 25.4, inches: 1, distance: 5, unit: 'ft' });
+      table.destroy();
+    });
+
+    it('leaves the table alone when the device settings are reset', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+      component.cellMm = 30;
+      const calibration = TestBed.inject(DisplayCalibrationService);
+      calibration.calibrateFromCardRun(274, 1);
+      component.realSizeEnabled = true;
+
+      component.resetCalibration();
+
+      expect(calibration.isCalibrated()).toBe(false);
+      expect(component.realSizeEnabled).toBe(false);
+      expect(component.viewLocked).toBe(false);
+      // The map still asks for a 30mm square, whatever this screen has forgotten.
+      expect(table.cellMm).toBe(30);
+      table.destroy();
+    });
+
+    it('moves the scale a step at a time once there is something to move', () => {
+      const calibration = TestBed.inject(DisplayCalibrationService);
+      calibration.calibrateFromCardRun(274, 1);
+      const measured = calibration.pxPerMm() as number;
+
+      component.nudgeScale(1);
+
+      expect(calibration.pxPerMm()).toBeCloseTo(measured * 1.002, 6);
     });
   });
 

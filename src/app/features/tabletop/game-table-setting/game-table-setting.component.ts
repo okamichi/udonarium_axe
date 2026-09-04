@@ -8,8 +8,10 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { DisplayCalibrationService } from '@axe/application/ui/display-calibration.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewLockService } from '@axe/application/ui/view-lock.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/core/event/domain-events';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -29,6 +31,7 @@ import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInIdentifiers, parseCutInIdentifiers } from '@axe/domain/media/table-cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { CELL_DISTANCE_UNITS, CellDistanceUnit } from '@axe/domain/tabletop/cell-distance';
 import {
   asCutInMultiDirectionMode,
   CUT_IN_MULTI_DIRECTION_MODES,
@@ -61,8 +64,10 @@ import {
   MULTI_ANGLE_FONT_SCALES,
   MultiAngleFontScale,
 } from '@axe/domain/tabletop/multi-angle-font-scale';
+import { cellWidthInches, clampCellMm, DEFAULT_CELL_MM } from '@axe/domain/tabletop/physical-scale';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { DisplayCalibrationComponent } from '@axe/features/tabletop/display-calibration/display-calibration.component';
 import {
   MapImageGridAdjusterComponent,
   MapImageGridAdjusterResult,
@@ -89,6 +94,8 @@ export class GameTableSettingComponent {
     return !this.rolePermission.canEditTabletop;
   });
   private readonly modalService = inject(ModalService);
+  private readonly displayCalibration = inject(DisplayCalibrationService);
+  private readonly viewLock = inject(ViewLockService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly imageService = inject(ImageService);
   private readonly panelService = inject(PanelService);
@@ -253,6 +260,87 @@ export class GameTableSettingComponent {
     if (!this.selectedTable) return;
     this.selectedTable.multiAngleFontScale = asMultiAngleFontScale(value);
     triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  /**
+   * Real size belongs to the screen rather than to the room, so it sits here without being
+   * saved with the table: the display under the miniatures is calibrated, the laptops are not.
+   */
+  readonly isCalibrated = this.displayCalibration.isCalibrated;
+  readonly calibrationDpi = this.displayCalibration.dpi;
+  readonly needsRecalibration = this.displayCalibration.needsRecalibration;
+
+  /** The same lock the two 2D menus carry, so either way in shows the other's state. */
+  get viewLocked(): boolean {
+    return this.viewLock.locked();
+  }
+  set viewLocked(value: boolean) {
+    this.viewLock.set(value);
+  }
+
+  get realSizeEnabled(): boolean {
+    return this.displayCalibration.realSizeEnabled();
+  }
+  set realSizeEnabled(value: boolean) {
+    // Real size means nothing until the screen has been measured, so asking for it asks for that.
+    if (value && !this.displayCalibration.isCalibrated()) {
+      this.openCalibration();
+      return;
+    }
+    this.displayCalibration.setRealSizeEnabled(value);
+  }
+
+  /** The width of a square belongs to the map, so it is kept on the table with the grid size. */
+  get cellMm(): number {
+    return clampCellMm(this.selectedTable?.cellMm ?? DEFAULT_CELL_MM);
+  }
+  set cellMm(value: number) {
+    if (!this.selectedTable) return;
+    this.selectedTable.cellMm = clampCellMm(value);
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  readonly cellDistanceUnits = CELL_DISTANCE_UNITS;
+
+  /** The rule the table counts by, which the room never sees; see {@link DisplayCalibrationService}. */
+  get cellDistanceValue(): number {
+    return this.displayCalibration.distanceValue();
+  }
+  set cellDistanceValue(value: number) {
+    this.displayCalibration.setDistance(value, this.displayCalibration.distanceUnit());
+  }
+
+  get cellDistanceUnit(): CellDistanceUnit {
+    return this.displayCalibration.distanceUnit();
+  }
+  set cellDistanceUnit(value: CellDistanceUnit) {
+    this.displayCalibration.setDistance(this.displayCalibration.distanceValue(), value);
+  }
+
+  /** What a square comes to on this screen, read at a glance rather than worked out. */
+  readonly cellSummary = computed(() => {
+    this.objectChange.versionOf(this.selectedTable?.identifier ?? '')();
+    const mm = clampCellMm(this.selectedTable?.cellMm ?? DEFAULT_CELL_MM);
+    return {
+      mm: round1(mm),
+      inches: round2(cellWidthInches(mm)),
+      distance: this.displayCalibration.distanceValue(),
+      unit: this.displayCalibration.distanceUnit(),
+    };
+  });
+
+  openCalibration(): void {
+    // Without this the shell holds a fixed 800px and clips the frame the card is matched against.
+    void this.modalService.open(DisplayCalibrationComponent, { fitWidth: true });
+  }
+
+  nudgeScale(steps: number): void {
+    this.displayCalibration.nudge(steps);
+  }
+
+  /** Back to an unmeasured screen. The width of a square stays, since the map still asks for it. */
+  resetCalibration(): void {
+    this.displayCalibration.reset();
   }
 
   get tableRadialMenuEnabled(): boolean {
@@ -820,4 +908,12 @@ export class GameTableSettingComponent {
   onSelectGameTable(event: Event): void {
     this.chooseGameTable((event.target as HTMLInputElement).value);
   }
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
 }

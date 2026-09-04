@@ -19,6 +19,7 @@ import {
   MultiAngleMotionMode,
 } from '@axe/domain/tabletop/multi-angle';
 import { DEFAULT_MULTI_ANGLE_FONT_SCALE, MultiAngleFontScale } from '@axe/domain/tabletop/multi-angle-font-scale';
+import { DEFAULT_CELL_MM } from '@axe/domain/tabletop/physical-scale';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DEFAULT_TABLE_FACING_MARK, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -87,6 +88,8 @@ export class GameTable extends ObjectNode {
   @SyncVar() hoverDetailPlacement: HoverDetailPlacement = DEFAULT_HOVER_DETAIL_PLACEMENT;
   /** How a piece shows which way it faces; see {@link TableFacingMark}. */
   @SyncVar() facingMark: TableFacingMark = DEFAULT_TABLE_FACING_MARK;
+  /** How wide one square is meant to measure on the glass, for a screen laid flat under miniatures. */
+  @SyncVar() cellMm: number = DEFAULT_CELL_MM;
   @SyncVar() wallHeight: number = 10;
   @SyncVar() northWallImageIdentifier: string = 'imageIdentifier';
   @SyncVar() eastWallImageIdentifier: string = 'imageIdentifier';
