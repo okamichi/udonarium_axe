@@ -63,6 +63,12 @@ export class NetworkEventHandlerService {
         return;
       }
 
+      // Any error can repeat without end - a token the cloud will not accept fails again the
+      // moment it is retried - so the same limit that bounds a server error bounds these too.
+      // Without it the chat fills with the same pair of lines and the reconnects become traffic.
+      if (this.serverErrorReconnectAttempts >= NetworkEventHandlerService.MAX_SERVER_ERROR_RECONNECTS) return;
+      this.serverErrorReconnectAttempts++;
+
       this.chatMessageService.sendSystemMessage(this.resolveNetworkErrorMessage(errorType, errorMessage));
       this.chatMessageService.sendSystemMessage(encodeI18nMessage('feature.lobby.errors.reconnecting'));
       Network.openStandby(loadIdentity()?.userId);
