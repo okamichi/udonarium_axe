@@ -17,6 +17,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -73,6 +74,7 @@ import { VoteWidgetComponent } from '@axe/features/vote/vote-widget/vote-widget.
 import { ConnectionQualityComponent } from '@axe/features/widgets/connection-quality/connection-quality.component';
 import { DigitalClockComponent } from '@axe/features/widgets/digital-clock/digital-clock.component';
 import { RenderStatsComponent } from '@axe/features/widgets/render-stats/render-stats.component';
+import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
 import { FourWayRadialMenuComponent } from '@axe/ui/components/four-way-radial-menu/four-way-radial-menu.component';
 import { ModalComponent } from '@axe/ui/components/modal/modal.component';
@@ -244,4 +246,5 @@ PanelService.cardStackListComponentClass = CardStackListImageComponent;
 ContextMenuService.ContextMenuComponentClass = ContextMenuComponent;
 ContextMenuService.FourWayRadialMenuComponentClass = FourWayRadialMenuComponent;
 ModalService.ModalComponentClass = ModalComponent;
+ConfirmService.dialogComponentClass = ConfirmDialogComponent;
 TooltipDirective.TooltipPanelComponentClass = OverviewPanelComponent;

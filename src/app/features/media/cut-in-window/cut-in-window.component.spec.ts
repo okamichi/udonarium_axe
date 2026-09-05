@@ -4,7 +4,6 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
@@ -23,7 +22,6 @@ function makeReadyAudio(identifier: string): AudioFile {
 describe('CutInWindowComponent', () => {
   let component: CutInWindowComponent;
   let fixture: ComponentFixture<CutInWindowComponent>;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -33,18 +31,11 @@ describe('CutInWindowComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     fixture = TestBed.createComponent(CutInWindowComponent);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     AudioStorage.instance.audios.forEach((a) => AudioStorage.instance.delete(a.identifier));
     vi.restoreAllMocks();
   });

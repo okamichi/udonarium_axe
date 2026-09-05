@@ -1,20 +1,25 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
+import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
 
 describe('GameCharacterComponent', () => {
   let component: GameCharacterComponent;
@@ -64,6 +69,119 @@ describe('GameCharacterComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).style.zIndex).toBe('4');
+  });
+
+  describe('showing where the piece could walk', () => {
+    function pieceThatWalks(walk: number): GameCharacter {
+      const character = GameCharacter.create('コマ', 1, '');
+      DataElement.findElementByReference(character.rootDataElement!, '移動')!.value = walk;
+      return character;
+    }
+
+    function movableOf(): MovableDirective {
+      return fixture.debugElement.query(By.directive(MovableDirective)).injector.get(MovableDirective);
+    }
+
+    let table: GameTable;
+
+    beforeEach(() => {
+      table = new GameTable();
+      table.width = 12;
+      table.height = 12;
+      table.gridSize = 50;
+      table.initialize();
+    });
+
+    afterEach(() => {
+      table.destroy();
+    });
+
+    it('shows the reach when the piece is picked up and takes it away when it is put down', () => {
+      const moveRange = TestBed.inject(MoveRangeService);
+      fixture.componentRef.setInput('gameCharacter', pieceThatWalks(2));
+      fixture.detectChanges();
+
+      movableOf().ondragstart.emit({} as PointerEvent);
+      expect(moveRange.range()).not.toBeNull();
+
+      movableOf().ondragend.emit({} as PointerEvent);
+      expect(moveRange.range()).toBeNull();
+    });
+
+    it('takes it away when the pointer is let go without a drop', () => {
+      const moveRange = TestBed.inject(MoveRangeService);
+      fixture.componentRef.setInput('gameCharacter', pieceThatWalks(2));
+      fixture.detectChanges();
+      movableOf().ondragstart.emit({} as PointerEvent);
+
+      movableOf().onend.emit({} as PointerEvent);
+
+      expect(moveRange.range()).toBeNull();
+    });
+
+    it('shows nothing when the table has the range turned off', () => {
+      table.moveRangeEnabled = false;
+      const moveRange = TestBed.inject(MoveRangeService);
+      fixture.componentRef.setInput('gameCharacter', pieceThatWalks(2));
+      fixture.detectChanges();
+
+      movableOf().ondragstart.emit({} as PointerEvent);
+
+      expect(moveRange.range()).toBeNull();
+    });
+
+    it('shows nothing for a piece whose sheet says nothing about walking', () => {
+      const moveRange = TestBed.inject(MoveRangeService);
+      const character = GameCharacter.create('コマ', 1, '');
+      DataElement.findElementByReference(character.rootDataElement!, '移動')!.destroy();
+      fixture.componentRef.setInput('gameCharacter', character);
+      fixture.detectChanges();
+
+      movableOf().ondragstart.emit({} as PointerEvent);
+
+      expect(moveRange.range()).toBeNull();
+    });
+  });
+
+  describe('the pedestal', () => {
+    type Pedestals = {
+      pedestalStyleShown(): Record<string, string>;
+      pedestalStyleHidden(): Record<string, string>;
+      pedestalStyleTargeted(): Record<string, string>;
+    };
+
+    it('wears a plain border on a square grid and hands the same style back each pass', () => {
+      fixture.componentRef.setInput('gameCharacter', GameCharacter.create('コマ', 1, ''));
+      fixture.detectChanges();
+      const pedestals = component as unknown as Pedestals;
+
+      expect(pedestals.pedestalStyleShown()).toEqual({ border: 'solid 6px #FFCC80' });
+      expect(pedestals.pedestalStyleShown()).toBe(pedestals.pedestalStyleShown());
+      expect(pedestals.pedestalStyleTargeted()).toEqual({ border: 'solid 6px #ff3b30' });
+    });
+
+    it('cuts one hex ring and colours it three ways', async () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.gridType = GridType.HEX_VERTICAL;
+      await Promise.resolve();
+      fixture.componentRef.setInput('gameCharacter', GameCharacter.create('コマ', 1, ''));
+      fixture.detectChanges();
+      const pedestals = component as unknown as Pedestals;
+
+      const shown = pedestals.pedestalStyleShown();
+      const hidden = pedestals.pedestalStyleHidden();
+      const targeted = pedestals.pedestalStyleTargeted();
+
+      expect(shown['clipPath']).toMatch(/^path\(/);
+      expect(hidden['clipPath']).toBe(shown['clipPath']);
+      expect(targeted['clipPath']).toBe(shown['clipPath']);
+      expect([shown['background'], hidden['background'], targeted['background']]).toEqual([
+        '#FFCC80',
+        '#A0E0FF',
+        '#ff3b30',
+      ]);
+      table.gridType = GridType.SQUARE;
+    });
   });
 
   it('registers its effect in the constructor, so nothing is set up outside an injection context', () => {
@@ -211,7 +329,7 @@ describe('GameCharacterComponent', () => {
         root.dispatchEvent(nativeMenu);
 
         expect(openRadial).toHaveBeenCalledWith(
-          { x: 360, y: 280 },
+          { x: 360, y: 280, z: 0 },
           expect.any(Array),
           expect.any(Array),
           'drag-menu-piece',
@@ -408,6 +526,33 @@ describe('GameCharacterComponent', () => {
       try {
         expect(component.pieceGauges().map((gauge) => gauge.name)).toEqual(['HP', 'MP']);
         expect(component.pieceGauges()[0]).toMatchObject({ initial: 'H', ratio: 1 });
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('keeps the readings back from whoever the piece is not open to', () => {
+      const character = GameCharacter.create('秘密', 1, '');
+      character.disclosureMode = DisclosureMode.GameMaster;
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.gaugeNumbersReadable()).toBe(false);
+        expect(component.gaugeRows().map((row) => row.numbers)).toEqual(['???/???', '???/???']);
+        // The bar itself still stands, since how full it is can be guessed at anyway.
+        expect(component.gaugeRows()[0].gauge.ratio).toBe(1);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('reads the numbers out for a piece the room may look at', () => {
+      const character = GameCharacter.create('公開', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.gaugeNumbersReadable()).toBe(true);
+        expect(component.gaugeRows()[0].numbers).toMatch(/^\d+\/\d+$/);
       } finally {
         character.destroy();
       }
@@ -1139,7 +1284,7 @@ describe('GameCharacterComponent', () => {
           expect(component.billboardTransformImage()).toContain(
             facingMark === 'turn' ? 'rotateZ(0deg)' : 'rotateZ(-90deg)'
           );
-          expect(component.pieceImageTransform()).toContain('rotateZ(var(--multi-angle-piece-angle, 0deg))');
+          expect(component.imageView.pieceTransform()).toContain('rotateZ(var(--multi-angle-piece-angle, 0deg))');
         } finally {
           character.destroy();
           ImageStorage.instance.delete(imageUrl);
@@ -1253,11 +1398,11 @@ describe('GameCharacterComponent', () => {
           'rotateZ(var(--multi-angle-piece-angle, 0deg))'
         );
         expect(component.multiAnglePieceImageRotation()).toBe('rotateZ(var(--multi-angle-piece-angle, 0deg))');
-        expect(component.pieceImageTransform()).toMatch(
+        expect(component.imageView.pieceTransform()).toMatch(
           /rotateY\(90deg\).*rotateZ\(var\(--multi-angle-piece-angle, 0deg\)\)$/
         );
-        expect(component.pieceImageTransform()).not.toContain('rotateX(var(--multi-angle-piece-angle');
-        expect(component.pieceImageTransform()).not.toContain('rotateY(var(--multi-angle-piece-angle');
+        expect(component.imageView.pieceTransform()).not.toContain('rotateX(var(--multi-angle-piece-angle');
+        expect(component.imageView.pieceTransform()).not.toContain('rotateY(var(--multi-angle-piece-angle');
         expect(root.querySelector<HTMLElement>('[data-testid="piece-gauge"]')?.style.transform ?? '').not.toContain(
           '--multi-angle-piece-angle'
         );

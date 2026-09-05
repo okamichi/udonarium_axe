@@ -288,6 +288,23 @@ export function buildGameCharacterContextMenuModel(
             SoundEffect.play(PresetSound.sweep);
           },
         },
+    char.noTurn
+      ? {
+          name: t('feature.character.contextMenu.noTurnOn'),
+          action: () => {
+            char.noTurn = false;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        }
+      : {
+          name: t('feature.character.contextMenu.noTurnOff'),
+          action: () => {
+            char.noTurn = true;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
     char.nonTalkFlag
       ? {
           name: t('feature.character.contextMenu.nonTalkOn'),

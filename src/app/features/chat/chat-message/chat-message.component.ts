@@ -214,7 +214,7 @@ export class ChatMessageComponent {
   }
 
   discloseMessage() {
-    this.chatMessage.tag = this.chatMessage.tag.replace('secret', '');
+    this.chatMessageService.discloseMessage(this.chatMessage);
   }
 
   readonly editDraft = signal<string | null>(null);

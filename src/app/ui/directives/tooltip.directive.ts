@@ -8,11 +8,11 @@ import {
   Type,
   ViewContainerRef,
 } from '@angular/core';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { observeTap, TapGestureHandle } from '@axe/core/input/tap-gesture';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { asHoverDetailPlacement } from '@axe/domain/tabletop/hover-detail-placement';

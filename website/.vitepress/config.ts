@@ -194,6 +194,7 @@ export default defineConfig({
             { text: '視点とテーブル操作', link: '/manual/tabletop' },
             { text: 'テーブル設定', link: '/manual/table-setting' },
             { text: '暗闇・視界・光源', link: '/manual/vision-lighting' },
+            { text: '移動範囲', link: '/manual/move-range' },
             { text: '同行（パーティ）', link: '/manual/party' },
             { text: '地形', link: '/manual/terrain' },
             { text: 'マップマスク', link: '/manual/map-mask' },
@@ -253,6 +254,7 @@ export default defineConfig({
           text: 'リリースノート',
           items: [
             { text: '一覧', link: '/release-notes/' },
+            { text: 'v1.48.0', link: '/release-notes/v1.48.0' },
             { text: 'v1.47.0', link: '/release-notes/v1.47.0' },
             { text: 'v1.46.1', link: '/release-notes/v1.46.1' },
             { text: 'v1.46.0', link: '/release-notes/v1.46.0' },

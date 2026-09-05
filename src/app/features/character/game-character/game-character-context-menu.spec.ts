@@ -15,6 +15,7 @@ interface MutableChar {
   isAltitudeIndicate: boolean;
   isDropShadow: boolean;
   hideInventory: boolean;
+  noTurn: boolean;
   nonTalkFlag: boolean;
   hideName: boolean;
   hideBuff: boolean;
@@ -34,6 +35,7 @@ function makeChar(overrides: Partial<MutableChar> = {}): MutableChar {
     isAltitudeIndicate: false,
     isDropShadow: false,
     hideInventory: false,
+    noTurn: false,
     nonTalkFlag: false,
     hideName: false,
     hideBuff: false,
@@ -132,6 +134,26 @@ describe('buildGameCharacterContextMenu()', () => {
       t
     );
     expect(names(hiddenMenu)).toContain('☑ インベントリ非表示');
+  });
+
+  it('ticks the item by whether it takes a turn', () => {
+    const acting = buildGameCharacterContextMenu(
+      makeChar({ noTurn: false }) as unknown as GameCharacter,
+      50,
+      makeService(),
+      callbacks(),
+      t
+    );
+    expect(names(acting)).toContain('☐ 手番をもたない');
+
+    const watching = buildGameCharacterContextMenu(
+      makeChar({ noTurn: true }) as unknown as GameCharacter,
+      50,
+      makeService(),
+      callbacks(),
+      t
+    );
+    expect(names(watching)).toContain('☑ 手番をもたない');
   });
 
   it('ticks the item by whether it may speak', () => {
