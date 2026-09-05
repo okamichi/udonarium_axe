@@ -1,0 +1,1 @@
+import{g as q}from"./chunk-DXnyLRTp2.js";import{t as h}from"./chunk-cAnhnju2.js";var t=class extends h{constructor(e,s=50){super(e,q,s)}};export{t};

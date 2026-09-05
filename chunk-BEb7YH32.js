@@ -1,1 +1,0 @@
-import{Ln as m,_r as vg,c as C}from"./chunk-IUiE_Dx9.js";var a=new C(`TRANSLATE_FN`,{providedIn:`root`,factory:()=>{let n=m(vg);return(e,c)=>n.translate(e,c)}});export{a as t};

@@ -1647,11 +1647,12 @@
     "tabletop": {
       "tabletopDisplaySetting": {
         "enabled": "테이블톱 디스플레이 모드 켜기",
-        "localHint": "이 브라우저에만 적용되며 다른 참가자와 동기화되지 않습니다.",
+        "localHint": "평행 투영으로 표시됩니다. 설정은 이 브라우저에만 적용되며 다른 참가자와 동기화되지 않습니다.",
         "menuAndDisplay": "메뉴 및 표시",
         "multiAngleDisplay": "말 다방향 표시",
         "multiAngleLocalHint": "이 브라우저에서는 원형 회전 표시가 말 전체 회전보다 우선합니다.",
-        "ticker": "외곽 티커"
+        "ticker": "외곽 티커",
+        "realSize": "실측 표시와 화면 고정"
       },
       "ccfoliaImport": {
         "tableName": "코코포리아 룸",
@@ -1741,6 +1742,9 @@
         "unlock": "고정 해제",
         "lockMarkShow": "고정 표시 보이기",
         "lockMarkHide": "고정 표시 지우기",
+        "viewLockOn": "☑ 화면 고정",
+        "viewLockOff": "☐ 화면 고정",
+        "snapToRealSize": "실제 크기로 되돌리기",
         "copy": "복제 만들기",
         "delete": "삭제하기",
         "createObject": "오브젝트 만들기",
@@ -1888,9 +1892,6 @@
         "sectionDisplay": "표시 모드",
         "imageBillboard": "이미지를 카메라를 향하게",
         "mode2d": "2D 모드(부감 고정)",
-        "tabletopDisplayRelated": "테이블톱 디스플레이 공유 설정",
-        "tabletopDisplayRelatedHint": "테이블별로 저장되며 모든 참가자에게 동기화됩니다.",
-        "orthographicProjection": "직교 투영",
         "terrainRotationIn2d": "지형 회전 허용(일반적으로 2D 모드에서는 고정)",
         "cutInMultiDirection": "컷인 다방향 표시",
         "cutInMultiDirection_none": "사용 안 함",
@@ -1905,11 +1906,23 @@
         "multiAngleFontScale_small": "작게",
         "multiAngleFontScale_medium": "보통",
         "multiAngleFontScale_large": "크게",
+        "cellDistance": "한 칸의 거리",
+        "realSizeSummary": "한 칸 = {{mm}}mm ({{inches}}인치) = {{distance}}{{unit}}",
+        "realSizeSummaryPlain": "한 칸 = {{mm}}mm ({{inches}}인치)",
+        "realSize": "한 칸을 실제 크기로 표시",
+        "viewLock": "화면 고정 (이동·확대·회전 정지)",
+        "realSizeCellMm": "한 칸의 실제 크기",
+        "realSizeDpi": "이 화면은 약 {{dpi}} dpi",
+        "realSizeSmaller": "한 칸을 작게",
+        "realSizeLarger": "한 칸을 크게",
+        "realSizeStale": "화면이 바뀌었습니다. 다시 맞춰 주세요.",
+        "realSizeUncalibrated": "이 기기는 아직 화면을 측정하지 않았습니다.",
+        "realSizeCalibrate": "실측 재조정",
+        "realSizeReset": "이 기기의 설정을 초기화",
         "radialMenu": "회전 메뉴 표시",
         "radialMenuHelp": "오른쪽 클릭으로 회전 메뉴를 열고, 연속 클릭으로 강제 회전하거나 오른쪽 드래그로 표시 위치를 옮길 수 있습니다. 각 메뉴 항목에서 여는 창은 중심을 기준으로 나눈 네 방향 중 하나를 향합니다.",
         "radialMenuSpeed": "회전 속도",
         "multiAngle": "말 이름을 원주를 따라 회전",
-        "multiAngleHint": "캐릭터의 방향에서 ‘말째로 회전’과 함께 사용할 수 없습니다.",
         "multiAngleResourceBuff": "리소스·버프 회전 표시(최대 4개)",
         "multiAngleMotionMode": "회전 방식",
         "multiAngleContinuous": "시계 방향으로 연속 회전",
@@ -1973,7 +1986,6 @@
         "moveDiagonally": "대각선 이동을 허용한다 (한 칸으로 계산)",
         "piecesShareCells": "같은 칸에 여러 말을 놓을 수 있음 (끄면 다른 말이 있는 칸은 이동 대상에서 제외)",
         "moveRangeElementNames": "참조할 항목",
-        "cellDistance": "한 칸의 거리",
         "cellDistanceUnit": "칸 단위",
         "moveRangeHint": "항목 이름은 쉼표로 구분하며 시트에서 먼저 찾은 것을 사용합니다. 시트의 값을 한 칸의 거리로 나누어 칸 수로 만듭니다(0이면 나누지 않음). 시트의 단위가 탁자와 다르면 피트와 미터를 환산하고, 시트가 칸이면 그대로 칸 수로 읽습니다.",
         "zocMode": "ZOC(지배 영역)",
@@ -1991,6 +2003,21 @@
           "metre": "미터",
           "foot": "피트"
         }
+      },
+      "displayCalibration": {
+        "title": "화면 실제 크기 맞추기",
+        "intro": "신용카드를 화면에 대고, 테두리가 정확히 맞을 때까지 폭을 조절해 주세요.",
+        "cards": "사용할 카드 수",
+        "cardsOne": "1장",
+        "cardsTwo": "2장 (가로로 나란히)",
+        "cardsTwoTooNarrow": "이 화면에는 2장 크기의 테두리가 들어가지 않습니다",
+        "frameHint": "여기에 카드를 대 주세요",
+        "frameWidth": "테두리 폭",
+        "cellMm": "한 칸의 실제 크기",
+        "result": "이 화면은 {{pxPerMm}} px/mm (약 {{dpi}} dpi)",
+        "cellPreview": "한 칸 {{mm}}mm ({{inches}}인치) 를 {{px}}px 로 표시합니다",
+        "hint": "카드 2장 쪽이 오차가 적습니다. 맞춘 뒤에는 미니어처 받침을 한 칸에 올려 확인하고, 어긋나면 테이블 설정의 \"한 칸을 크게 / 작게\"로 조정해 주세요.",
+        "confirm": "맞았습니다"
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -2230,6 +2257,7 @@
         "alarmMenuTitle": "알람 타이머",
         "tabSettingTitle": "채팅 탭 설정",
         "tickerEnabled": "가장자리 티커 표시",
+        "tickerTabletopDisplayOnly": "탁상 디스플레이 모드 전용",
         "tickerSpeed": "속도",
         "tickerSpeedUnit": "px/초",
         "noTarget": "대상이 선택되지 않았습니다",
@@ -3609,7 +3637,6 @@
     "panel": {
       "menuTitle": "메뉴",
       "rotate90": "시계 방향으로 90도 회전",
-      "transparency": "투명도",
       "transparency": "투명도",
       "ghost": "투명 모드"
     },
