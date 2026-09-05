@@ -1,1 +1,0 @@
-import{La as ym,ma as v,y as C}from"./chunk-NW3sv3LX.js";var a=new C(`TRANSLATE_FN`,{providedIn:`root`,factory:()=>{let n=v(ym);return(e,c)=>n.translate(e,c)}});export{a as t};

@@ -1,0 +1,1 @@
+import{Xn as q}from"./chunk-IUiE_Dx9.js";import{P as Pi,j as Oi,o as C}from"./chunk-61bbW6b8.js";var d=(()=>{class e{get myRole(){return C.myRole}get canEditTabletop(){return Oi(C.myRole)}get canSeeHidden(){return Pi(C.myRole)}static{this.ɵfac=function(i){return new(i||e)}}static{this.ɵprov=q({token:e,factory:e.ɵfac,providedIn:`root`})}}return e})();export{d as t};

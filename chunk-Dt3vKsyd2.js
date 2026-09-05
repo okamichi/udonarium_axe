@@ -1,1 +1,0 @@
-import{E as DU,ft as K,rn as Se,rt as IU}from"./chunk-NW3sv3LX.js";var d=(()=>{class e{get myRole(){return Se.myRole}get canEditTabletop(){return IU(Se.myRole)}get canSeeHidden(){return DU(Se.myRole)}static{this.ɵfac=function(i){return new(i||e)}}static{this.ɵprov=K({token:e,factory:e.ɵfac,providedIn:`root`})}}return e})();export{d as t};
