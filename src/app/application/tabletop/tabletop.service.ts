@@ -1,6 +1,7 @@
 import { computed, DestroyRef, inject, Injectable, Signal } from '@angular/core';
 import { CoordinateService } from '@axe/application/input/coordinate.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
@@ -46,6 +47,7 @@ export class TabletopService {
   private readonly chatTabList = inject(ChatTabList);
   readonly tableSelecter = inject(TableSelecter);
   private readonly objectChange = inject(ObjectChangeService);
+  readonly tabletopDisplaySettings = inject(TabletopDisplaySettingsService);
   private readonly destroyRef = inject(DestroyRef);
 
   private _emptyTable: GameTable = new GameTable('');
@@ -70,7 +72,9 @@ export class TabletopService {
     { equal: () => false }
   );
 
-  readonly mode2d: Signal<boolean> = computed(() => this.currentTableVersion().mode2d);
+  readonly sharedMode2d: Signal<boolean> = computed(() => this.currentTableVersion().mode2d);
+  readonly tabletopDisplayMode = this.tabletopDisplaySettings.enabled;
+  readonly mode2d: Signal<boolean> = computed(() => this.sharedMode2d() || this.tabletopDisplayMode());
   readonly orthographicProjection: Signal<boolean> = computed(() => this.currentTableVersion().orthographicProjection);
   readonly terrainRotationIn2dEnabled: Signal<boolean> = computed(
     () => this.currentTableVersion().terrainRotationIn2dEnabled

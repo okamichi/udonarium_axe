@@ -38,6 +38,7 @@
       "peerMenu": "접속 정보",
       "chatWindow": "채팅 창",
       "gameTableSetting": "테이블 설정",
+      "tabletopDisplaySetting": "테이블톱 디스플레이 설정",
       "fileStorage": "파일 목록",
       "jukebox": "주크박스",
       "cutInList": "컷인 목록",
@@ -1644,6 +1645,14 @@
       }
     },
     "tabletop": {
+      "tabletopDisplaySetting": {
+        "enabled": "테이블톱 디스플레이 모드 켜기",
+        "localHint": "이 브라우저에만 적용되며 다른 참가자와 동기화되지 않습니다.",
+        "menuAndDisplay": "메뉴 및 표시",
+        "multiAngleDisplay": "말 다방향 표시",
+        "multiAngleLocalHint": "이 브라우저에서는 원형 회전 표시가 말 전체 회전보다 우선합니다.",
+        "ticker": "외곽 티커"
+      },
       "ccfoliaImport": {
         "tableName": "코코포리아 룸",
         "imported": "코코포리아 룸을 가져왔습니다(테이블 {{tables}}개 / 패널 {{panels}}건 / 말 {{pieces}}체). \"{{table}}\"을(를) 표시하고 있습니다.",
@@ -1879,6 +1888,8 @@
         "sectionDisplay": "표시 모드",
         "imageBillboard": "이미지를 카메라를 향하게",
         "mode2d": "2D 모드(부감 고정)",
+        "tabletopDisplayRelated": "테이블톱 디스플레이 공유 설정",
+        "tabletopDisplayRelatedHint": "테이블별로 저장되며 모든 참가자에게 동기화됩니다.",
         "orthographicProjection": "직교 투영",
         "terrainRotationIn2d": "지형 회전 허용(일반적으로 2D 모드에서는 고정)",
         "cutInMultiDirection": "컷인 다방향 표시",
@@ -3523,6 +3534,7 @@
       "peerMenu": "접속",
       "chat": "채팅",
       "tableSetting": "테이블 설정",
+      "tabletopDisplaySetting": "테이블톱 디스플레이",
       "images": "이미지",
       "jukebox": "주크박스",
       "cutIn": "컷인",

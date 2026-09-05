@@ -1,5 +1,6 @@
 import { inject, TestBed } from '@angular/core/testing';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
@@ -73,6 +74,22 @@ describe('TabletopService', () => {
       expect(service.gridSize()).toBe(77);
       expect(service.mode2d()).toBe(true);
       expect(service.orthographicProjection()).toBe(true);
+    });
+
+    it.each([
+      [false, false, false],
+      [true, false, true],
+      [false, true, true],
+      [true, true, true],
+    ])('combines shared 2D %s and local tabletop display %s into effective 2D %s', async (shared, local, effective) => {
+      const service = TestBed.inject(TabletopService);
+      table.mode2d = shared;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: local });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(service.sharedMode2d()).toBe(shared);
+      expect(service.tabletopDisplayMode()).toBe(local);
+      expect(service.mode2d()).toBe(effective);
     });
   });
 });

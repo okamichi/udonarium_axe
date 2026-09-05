@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
 import { emitSoundOnlyCutIn, emitStartCutIn } from '@axe/core/event/domain-events';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
-import { GameTable } from '@axe/domain/tabletop/game-table';
-import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { CutInMultiDirectionMode } from '@axe/domain/tabletop/cut-in-multi-direction';
 import {
   CUT_IN_MULTI_DIRECTION_PREPARE_TIMEOUT_MS,
   CutInEventHandlerService,
@@ -33,13 +33,11 @@ describe('CutInEventHandlerService', () => {
   let audioStub: { get: ReturnType<typeof vi.fn> };
   let service: CutInEventHandlerService;
 
-  function useTable(mode: GameTable['cutInMultiDirectionMode'], mode2d = true): GameTable {
-    const table = new GameTable('cut-in-layout-table');
-    table.initialize();
-    table.mode2d = mode2d;
-    table.cutInMultiDirectionMode = mode;
-    TestBed.inject(TableSelecter).viewTableIdentifier = table.identifier;
-    return table;
+  function useTable(mode: CutInMultiDirectionMode, tabletopDisplayEnabled = true): void {
+    TestBed.inject(TabletopDisplaySettingsService).patch({
+      enabled: tabletopDisplayEnabled,
+      cutInMultiDirectionMode: mode,
+    });
   }
 
   beforeEach(() => {

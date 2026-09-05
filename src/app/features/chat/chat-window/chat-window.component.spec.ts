@@ -3,6 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ChatSpeakerService } from '@axe/application/chat/chat-speaker.service';
 import { ObjectChangeService, ObjectDeleteEvent } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -88,6 +90,20 @@ describe('ChatWindowComponent', () => {
       ticker.destroy();
       ordinary.destroy();
     }
+  });
+
+  it('changes ticker display only in the browser-local settings', () => {
+    const settings = TestBed.inject(TabletopDisplaySettingsService);
+    const table = TestBed.inject(TabletopService).currentTable;
+    settings.patch({ multiAngleTickerEnabled: false, multiAngleTickerPixelsPerSecond: 55 });
+    const tableVersion = table.version;
+
+    component.tickerEnabled = true;
+    component.tickerPixelsPerSecond = 88;
+
+    expect(settings.multiAngleTickerEnabled()).toBe(true);
+    expect(settings.multiAngleTickerPixelsPerSecond()).toBe(88);
+    expect(table.version).toBe(tableVersion);
   });
 
   describe('who is typing', () => {

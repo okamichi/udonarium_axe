@@ -21,7 +21,7 @@ import {
   DEFAULT_RADIAL_MENU_ROTATION_SPEED,
   MAX_RADIAL_MENU_ROTATION_SPEED,
   MIN_RADIAL_MENU_ROTATION_SPEED,
-} from '@axe/domain/tabletop/game-table';
+} from '@axe/domain/tabletop/radial-menu';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
 import {
   annularSectorLabelPoint,

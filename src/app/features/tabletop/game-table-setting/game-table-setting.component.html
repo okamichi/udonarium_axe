@@ -407,214 +407,32 @@
             {{ 'feature.tabletop.tableSetting.mode2d' | transloco }}
           </label>
 
-          @if (tableMode2d) {
-            <div class="ml-5 flex flex-col gap-2">
-              <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
-                <input
-                  type="checkbox"
-                  class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-                  [(ngModel)]="tableOrthographicProjection"
-                  name="tableOrthographicProjection"
-                />
-                {{ 'feature.tabletop.tableSetting.orthographicProjection' | transloco }}
-              </label>
-              <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
-                <input
-                  type="checkbox"
-                  class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-                  [(ngModel)]="tableTerrainRotationIn2dEnabled"
-                  name="tableTerrainRotationIn2dEnabled"
-                />
-                {{ 'feature.tabletop.tableSetting.terrainRotationIn2d' | transloco }}
-              </label>
-              <label class="text-ui-text flex items-center gap-1.5 text-[13px] select-none">
-                <span class="flex-1">{{ 'feature.tabletop.tableSetting.cutInMultiDirection' | transloco }}</span>
-                <select
-                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[13px]"
-                  [(ngModel)]="tableCutInMultiDirectionMode"
-                  name="tableCutInMultiDirectionMode"
-                >
-                  @for (mode of cutInMultiDirectionModes; track mode) {
-                    <option [value]="mode">
-                      {{ 'feature.tabletop.tableSetting.cutInMultiDirection_' + mode | transloco }}
-                    </option>
-                  }
-                </select>
-              </label>
-              <label
-                class="text-ui-text flex items-center gap-1.5 text-[13px] select-none"
-                data-testid="hover-detail-placement-label"
-              >
-                <span class="flex-1">{{ 'feature.tabletop.tableSetting.hoverDetailPlacement' | transloco }}</span>
-                <select
-                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[13px]"
-                  [(ngModel)]="tableHoverDetailPlacement"
-                  name="tableHoverDetailPlacement"
-                >
-                  @for (placement of hoverDetailPlacements; track placement) {
-                    <option [value]="placement">
-                      {{ 'feature.tabletop.tableSetting.hoverDetailPlacement_' + placement | transloco }}
-                    </option>
-                  }
-                </select>
-              </label>
-              <label
-                class="text-ui-text flex items-center gap-1.5 text-[13px] select-none"
-                data-testid="multi-angle-font-scale-label"
-              >
-                <span class="flex-1">{{ 'feature.tabletop.tableSetting.multiAngleFontScale' | transloco }}</span>
-                <select
-                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[13px]"
-                  [(ngModel)]="tableMultiAngleFontScale"
-                  name="tableMultiAngleFontScale"
-                >
-                  @for (scale of multiAngleFontScales; track scale) {
-                    <option [value]="scale">
-                      {{ 'feature.tabletop.tableSetting.multiAngleFontScale_' + scale | transloco }}
-                    </option>
-                  }
-                </select>
-              </label>
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <label
-                  class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none"
-                  data-testid="radial-menu-label"
-                >
-                  <input
-                    type="checkbox"
-                    class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-                    [(ngModel)]="tableRadialMenuEnabled"
-                    name="tableRadialMenuEnabled"
-                  />
-                  {{ 'feature.tabletop.tableSetting.radialMenu' | transloco }}
-                </label>
-                <label
-                  class="text-ui-muted flex items-center gap-1 text-[11px]"
-                  [class.opacity-45]="!tableRadialMenuEnabled"
-                  data-testid="radial-menu-speed-label"
-                >
-                  <span>{{ 'feature.tabletop.tableSetting.radialMenuSpeed' | transloco }}</span>
-                  <input
-                    type="range"
-                    class="h-1 w-24 cursor-pointer p-0 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed"
-                    min="1"
-                    max="24"
-                    step="1"
-                    [(ngModel)]="tableRadialMenuRotationSpeed"
-                    name="tableRadialMenuRotationSpeed"
-                    [disabled]="!tableRadialMenuEnabled"
-                  />
-                  <span class="min-w-9 text-right">{{ tableRadialMenuRotationSpeed }}°/s</span>
-                </label>
-              </div>
-              <p data-testid="radial-menu-help" class="text-ui-dim m-0 text-[11px]">
-                {{ 'feature.tabletop.tableSetting.radialMenuHelp' | transloco }}
-              </p>
-            </div>
-
-            <label class="text-ui-text ml-5 flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
-              <input
-                type="checkbox"
-                class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-                [(ngModel)]="tableMultiAngleEnabled"
-                name="tableMultiAngleEnabled"
-              />
-              {{ 'feature.tabletop.tableSetting.multiAngle' | transloco }}
-            </label>
-            <p data-testid="multi-angle-hint" class="text-ui-dim m-0 ml-5 text-[11px]">
-              {{ 'feature.tabletop.tableSetting.multiAngleHint' | transloco }}
-            </p>
-            @if (tableMultiAngleEnabled) {
-              <div
-                class="border-ui-border-panel bg-ui-input/35 ml-5 grid grid-cols-[8.5rem_1fr] items-center gap-2 rounded-md border border-solid p-2"
-              >
-                <label class="text-ui-text col-span-2 flex cursor-pointer items-center gap-1.5 text-[12px] select-none">
-                  <input
-                    type="checkbox"
-                    class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-                    [(ngModel)]="tableMultiAngleResourceBuffEnabled"
-                    name="tableMultiAngleResourceBuffEnabled"
-                  />
-                  {{ 'feature.tabletop.tableSetting.multiAngleResourceBuff' | transloco }}
-                </label>
-
-                <label class="text-ui-muted text-[11px]" for="tableMultiAngleMotionMode">{{
-                  'feature.tabletop.tableSetting.multiAngleMotionMode' | transloco
-                }}</label>
-                <select
-                  id="tableMultiAngleMotionMode"
-                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border min-w-0 border border-solid px-2 py-1 text-[12px] outline-none"
-                  [(ngModel)]="tableMultiAngleMotionMode"
-                  name="tableMultiAngleMotionMode"
-                >
-                  <option value="continuous">
-                    {{ 'feature.tabletop.tableSetting.multiAngleContinuous' | transloco }}
-                  </option>
-                  <option value="quarter-turn">
-                    {{ 'feature.tabletop.tableSetting.multiAngleQuarterTurn' | transloco }}
-                  </option>
-                  <option value="piece-quarter-turn">
-                    {{ 'feature.tabletop.tableSetting.multiAnglePieceQuarterTurn' | transloco }}
-                  </option>
-                </select>
-
-                <label class="text-ui-muted text-[11px]" for="tableMultiAngleRevolutionSeconds">{{
-                  'feature.tabletop.tableSetting.multiAngleRevolutionSeconds' | transloco
-                }}</label>
-                <div class="flex items-center gap-1.5">
-                  <input
-                    id="tableMultiAngleRevolutionSeconds"
-                    type="number"
-                    class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-20 border border-solid px-1.5 py-1 text-right text-[12px] outline-none"
-                    [(ngModel)]="tableMultiAngleRevolutionSeconds"
-                    name="tableMultiAngleRevolutionSeconds"
-                    min="1"
-                    max="120"
-                    step="1"
-                  />
-                  <span class="text-ui-dim text-[11px]">{{ 'feature.tabletop.tableSetting.seconds' | transloco }}</span>
-                </div>
-
-                <label class="text-ui-muted text-[11px]" for="tableMultiAnglePieceRevolutionSeconds">{{
-                  'feature.tabletop.tableSetting.multiAnglePieceRevolutionSeconds' | transloco
-                }}</label>
-                <div class="flex items-center gap-1.5">
-                  <input
-                    id="tableMultiAnglePieceRevolutionSeconds"
-                    type="number"
-                    class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-20 border border-solid px-1.5 py-1 text-right text-[12px] outline-none"
-                    [(ngModel)]="tableMultiAnglePieceRevolutionSeconds"
-                    name="tableMultiAnglePieceRevolutionSeconds"
-                    min="5"
-                    max="300"
-                    step="5"
-                  />
-                  <span class="text-ui-dim text-[11px]">{{ 'feature.tabletop.tableSetting.seconds' | transloco }}</span>
-                </div>
-
-                @if (tableMultiAngleMotionMode !== 'continuous') {
-                  <label class="text-ui-muted text-[11px]" for="tableMultiAnglePauseSeconds">{{
-                    'feature.tabletop.tableSetting.multiAnglePauseSeconds' | transloco
-                  }}</label>
-                  <div class="flex items-center gap-1.5">
-                    <input
-                      id="tableMultiAnglePauseSeconds"
-                      type="number"
-                      class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-20 border border-solid px-1.5 py-1 text-right text-[12px] outline-none"
-                      [(ngModel)]="tableMultiAnglePauseSeconds"
-                      name="tableMultiAnglePauseSeconds"
-                      min="0"
-                      max="30"
-                      step="0.5"
-                    />
-                    <span class="text-ui-dim text-[11px]">{{
-                      'feature.tabletop.tableSetting.seconds' | transloco
-                    }}</span>
-                  </div>
-                }
-              </div>
-            }
-          }
+          <div class="border-ui-accent mt-1 border-l-2 border-solid pl-2">
+            <span class="text-ui-text text-[12px] font-semibold tracking-wide">{{
+              'feature.tabletop.tableSetting.tabletopDisplayRelated' | transloco
+            }}</span>
+          </div>
+          <p class="text-ui-dim m-0 text-[11px]">
+            {{ 'feature.tabletop.tableSetting.tabletopDisplayRelatedHint' | transloco }}
+          </p>
+          <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+            <input
+              type="checkbox"
+              class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="tableOrthographicProjection"
+              name="tableOrthographicProjection"
+            />
+            {{ 'feature.tabletop.tableSetting.orthographicProjection' | transloco }}
+          </label>
+          <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+            <input
+              type="checkbox"
+              class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="tableTerrainRotationIn2dEnabled"
+              name="tableTerrainRotationIn2dEnabled"
+            />
+            {{ 'feature.tabletop.tableSetting.terrainRotationIn2d' | transloco }}
+          </label>
 
           <label class="text-ui-text flex items-center gap-1.5 text-[13px] select-none">
             <span class="flex-1">{{ 'feature.tabletop.tableSetting.facingMark' | transloco }}</span>

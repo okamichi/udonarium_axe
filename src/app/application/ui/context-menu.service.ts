@@ -1,7 +1,7 @@
 import { ComponentRef, inject, Injectable, ViewContainerRef } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { PanelRotationDegrees } from '@axe/application/ui/panel.service';
-import { DEFAULT_RADIAL_MENU_ROTATION_SPEED } from '@axe/domain/tabletop/game-table';
+import { DEFAULT_RADIAL_MENU_ROTATION_SPEED } from '@axe/domain/tabletop/radial-menu';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export interface ContextMenuPoint {

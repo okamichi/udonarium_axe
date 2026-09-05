@@ -38,6 +38,7 @@
       "peerMenu": "接続情報",
       "chatWindow": "チャットウィンドウ",
       "gameTableSetting": "テーブル設定",
+      "tabletopDisplaySetting": "卓上ディスプレイ設定",
       "fileStorage": "ファイル一覧",
       "jukebox": "ジュークボックス",
       "cutInList": "カットインリスト",
@@ -1644,6 +1645,14 @@
       }
     },
     "tabletop": {
+      "tabletopDisplaySetting": {
+        "enabled": "卓上ディスプレイモードをオンにする",
+        "localHint": "このブラウザだけに適用され、他の参加者には同期されません。",
+        "menuAndDisplay": "メニュー・表示",
+        "multiAngleDisplay": "コマの多方向表示",
+        "multiAngleLocalHint": "コマごと回す設定より、このブラウザの周回表示を優先します。",
+        "ticker": "外周ティッカー"
+      },
       "ccfoliaImport": {
         "tableName": "ココフォリアのルーム",
         "imported": "ココフォリアのルームを取り込みました（テーブル {{tables}} 枚 / パネル {{panels}} 件 / コマ {{pieces}} 体）。「{{table}}」を表示しています。",
@@ -1879,6 +1888,8 @@
         "sectionDisplay": "表示モード",
         "imageBillboard": "画像をカメラに追従",
         "mode2d": "2Dモード（俯瞰固定）",
+        "tabletopDisplayRelated": "卓上ディスプレイ関連設定",
+        "tabletopDisplayRelatedHint": "テーブルごとに保存され、参加者全員へ同期されます。",
         "orthographicProjection": "平行投影",
         "terrainRotationIn2d": "地形の回転を許可（通常は2Dモードでは固定）",
         "cutInMultiDirection": "カットインの多方向表示",
@@ -3288,6 +3299,7 @@
       "peerMenu": "接続",
       "chat": "チャット",
       "tableSetting": "テーブル設定",
+      "tabletopDisplaySetting": "卓上ディスプレイ設定",
       "images": "画像",
       "jukebox": "ジュークボックス",
       "cutIn": "カットイン",

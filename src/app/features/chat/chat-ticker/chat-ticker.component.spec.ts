@@ -3,8 +3,7 @@ import {
   CHAT_TICKER_SELECTION_EVENT_NAME,
   ChatTickerSelectionService,
 } from '@axe/application/chat/chat-ticker-selection.service';
-import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
 import { emitMessageAdded } from '@axe/core/event/domain-events';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -92,18 +91,14 @@ describe('ChatTickerComponent', () => {
   });
 
   it('keeps using the ticker tab visibility and speed settings for a manual selection', () => {
-    const table = TestBed.inject(TabletopService).currentTable;
-    const objectChange = TestBed.inject(ObjectChangeService);
-    table.mode2d = true;
-    table.multiAngleTickerEnabled = false;
-    table.multiAngleTickerPixelsPerSecond = 88;
+    const settings = TestBed.inject(TabletopDisplaySettingsService);
+    settings.patch({ enabled: true, multiAngleTickerEnabled: false, multiAngleTickerPixelsPerSecond: 88 });
 
     select('manual-while-hidden', 'GM', '待機してください');
     expect(currentText()).toBe('GM：待機してください　◆');
     expect(component.isVisible()).toBe(false);
 
-    table.multiAngleTickerEnabled = true;
-    objectChange.notifyChanged(table.identifier);
+    settings.patch({ multiAngleTickerEnabled: true });
 
     expect(component.isVisible()).toBe(true);
     const internal = component as unknown as { pixelsPerSecond: () => number };
@@ -111,13 +106,13 @@ describe('ChatTickerComponent', () => {
   });
 
   it('draws larger text when the table asks for a larger font scale', () => {
-    const table = TestBed.inject(TabletopService).currentTable;
+    const settings = TestBed.inject(TabletopDisplaySettingsService);
     const internal = component as unknown as { fontSizePx: () => number };
-    table.multiAngleFontScale = 'small';
+    settings.patch({ multiAngleFontScale: 'small' });
     const small = internal.fontSizePx();
     expect(small).toBe(18);
 
-    table.multiAngleFontScale = 'large';
+    settings.patch({ multiAngleFontScale: 'large' });
     expect(internal.fontSizePx()).toBeGreaterThan(small);
   });
 });

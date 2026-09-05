@@ -38,6 +38,7 @@
       "peerMenu": "Connection",
       "chatWindow": "Chat",
       "gameTableSetting": "Table settings",
+      "tabletopDisplaySetting": "Table-top display settings",
       "fileStorage": "Files",
       "jukebox": "Jukebox",
       "cutInList": "Cut-ins",
@@ -1644,6 +1645,14 @@
       }
     },
     "tabletop": {
+      "tabletopDisplaySetting": {
+        "enabled": "Enable table-top display mode",
+        "localHint": "This applies only in this browser and is not shared with other participants.",
+        "menuAndDisplay": "Menus and display",
+        "multiAngleDisplay": "Multi-direction piece display",
+        "multiAngleLocalHint": "In this browser, orbiting takes priority over rotating the whole piece.",
+        "ticker": "Edge ticker"
+      },
       "ccfoliaImport": {
         "tableName": "CCFOLIA room",
         "imported": "Imported the CCFOLIA room ({{tables}} tables / {{panels}} panels / {{pieces}} pieces). Now showing \"{{table}}\".",
@@ -1879,6 +1888,8 @@
         "sectionDisplay": "Display mode",
         "imageBillboard": "Billboard piece images",
         "mode2d": "2D mode (top-down)",
+        "tabletopDisplayRelated": "Table-top display shared settings",
+        "tabletopDisplayRelatedHint": "Saved per table and shared with every participant.",
         "orthographicProjection": "Orthographic projection",
         "terrainRotationIn2d": "Allow terrain rotation (normally fixed in 2D mode)",
         "cutInMultiDirection": "Multi-direction cut-ins",
@@ -3288,6 +3299,7 @@
       "peerMenu": "Connection",
       "chat": "Chat",
       "tableSetting": "Table",
+      "tabletopDisplaySetting": "Table-top display",
       "images": "Images",
       "jukebox": "Jukebox",
       "cutIn": "Cut-in",

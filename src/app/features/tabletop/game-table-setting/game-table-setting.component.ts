@@ -30,28 +30,10 @@ import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInIdentifiers, parseCutInIdentifiers } from '@axe/domain/media/table-cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import {
-  asCutInMultiDirectionMode,
-  CUT_IN_MULTI_DIRECTION_MODES,
-  CutInMultiDirectionMode,
-} from '@axe/domain/tabletop/cut-in-multi-direction';
 import { ensureFogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import { asFogMode, DEFAULT_FOG_COLOR, FOG_MODES, FogMode } from '@axe/domain/tabletop/fog/fog-mode';
-import {
-  DEFAULT_RADIAL_MENU_ROTATION_SPEED,
-  FilterType,
-  GameTable,
-  GridSnapStyle,
-  GridType,
-  MAX_RADIAL_MENU_ROTATION_SPEED,
-  MIN_RADIAL_MENU_ROTATION_SPEED,
-} from '@axe/domain/tabletop/game-table';
+import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
-import {
-  asHoverDetailPlacement,
-  HOVER_DETAIL_PLACEMENTS,
-  HoverDetailPlacement,
-} from '@axe/domain/tabletop/hover-detail-placement';
 import {
   DEFAULT_CELL_DISTANCE,
   DEFAULT_CELL_DISTANCE_UNIT,
@@ -65,17 +47,6 @@ import {
   ZOC_MODES,
   ZocMode,
 } from '@axe/domain/tabletop/move/zone-of-control';
-import {
-  DEFAULT_MULTI_ANGLE_PAUSE_SECONDS,
-  DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS,
-  DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS,
-  MultiAngleMotionMode,
-} from '@axe/domain/tabletop/multi-angle';
-import {
-  asMultiAngleFontScale,
-  MULTI_ANGLE_FONT_SCALES,
-  MultiAngleFontScale,
-} from '@axe/domain/tabletop/multi-angle-font-scale';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
@@ -239,132 +210,6 @@ export class GameTableSettingComponent {
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
-  readonly cutInMultiDirectionModes = CUT_IN_MULTI_DIRECTION_MODES;
-
-  get tableCutInMultiDirectionMode(): CutInMultiDirectionMode {
-    return asCutInMultiDirectionMode(this.selectedTable?.cutInMultiDirectionMode);
-  }
-  set tableCutInMultiDirectionMode(value: CutInMultiDirectionMode) {
-    if (!this.selectedTable) return;
-    this.selectedTable.cutInMultiDirectionMode = asCutInMultiDirectionMode(value);
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  readonly hoverDetailPlacements = HOVER_DETAIL_PLACEMENTS;
-
-  get tableHoverDetailPlacement(): HoverDetailPlacement {
-    return asHoverDetailPlacement(this.selectedTable?.hoverDetailPlacement);
-  }
-  set tableHoverDetailPlacement(value: HoverDetailPlacement) {
-    if (!this.selectedTable) return;
-    this.selectedTable.hoverDetailPlacement = asHoverDetailPlacement(value);
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  readonly multiAngleFontScales = MULTI_ANGLE_FONT_SCALES;
-
-  get tableMultiAngleFontScale(): MultiAngleFontScale {
-    return asMultiAngleFontScale(this.selectedTable?.multiAngleFontScale);
-  }
-  set tableMultiAngleFontScale(value: MultiAngleFontScale) {
-    if (!this.selectedTable) return;
-    this.selectedTable.multiAngleFontScale = asMultiAngleFontScale(value);
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableRadialMenuEnabled(): boolean {
-    return this.selectedTable?.radialMenuEnabled ?? false;
-  }
-  set tableRadialMenuEnabled(value: boolean) {
-    if (!this.selectedTable) return;
-    this.selectedTable.radialMenuEnabled = value;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableRadialMenuRotationSpeed(): number {
-    const configured = Number(this.selectedTable?.radialMenuRotationSpeed);
-    if (!Number.isFinite(configured)) return DEFAULT_RADIAL_MENU_ROTATION_SPEED;
-    return Math.max(MIN_RADIAL_MENU_ROTATION_SPEED, Math.min(Math.round(configured), MAX_RADIAL_MENU_ROTATION_SPEED));
-  }
-  set tableRadialMenuRotationSpeed(value: number) {
-    if (!this.selectedTable) return;
-    const configured = Number(value);
-    this.selectedTable.radialMenuRotationSpeed = Number.isFinite(configured)
-      ? Math.max(MIN_RADIAL_MENU_ROTATION_SPEED, Math.min(Math.round(configured), MAX_RADIAL_MENU_ROTATION_SPEED))
-      : DEFAULT_RADIAL_MENU_ROTATION_SPEED;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableMultiAngleEnabled(): boolean {
-    return this.selectedTable?.multiAngleEnabled ?? false;
-  }
-  set tableMultiAngleEnabled(value: boolean) {
-    if (!this.selectedTable) return;
-    this.selectedTable.multiAngleEnabled = value;
-    if (value && asTableFacingMark(this.selectedTable.facingMark) === 'turn') {
-      this.selectedTable.facingMark = 'none';
-    }
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableMultiAngleResourceBuffEnabled(): boolean {
-    return this.selectedTable?.multiAngleResourceBuffEnabled ?? false;
-  }
-  set tableMultiAngleResourceBuffEnabled(value: boolean) {
-    if (!this.selectedTable) return;
-    this.selectedTable.multiAngleResourceBuffEnabled = value;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableMultiAngleMotionMode(): MultiAngleMotionMode {
-    const mode = this.selectedTable?.multiAngleMotionMode;
-    return mode === 'quarter-turn' || mode === 'piece-quarter-turn' ? mode : 'continuous';
-  }
-  set tableMultiAngleMotionMode(value: MultiAngleMotionMode) {
-    if (!this.selectedTable) return;
-    const motionMode = value === 'quarter-turn' || value === 'piece-quarter-turn' ? value : 'continuous';
-    this.selectedTable.multiAngleMotionMode = motionMode;
-    this.selectedTable.multiAnglePieceRevolutionSeconds =
-      motionMode === 'continuous' ? DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS : 5;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableMultiAngleRevolutionSeconds(): number {
-    return this.selectedTable?.multiAngleRevolutionSeconds ?? DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS;
-  }
-  set tableMultiAngleRevolutionSeconds(value: number) {
-    if (!this.selectedTable) return;
-    const number = Number(value);
-    this.selectedTable.multiAngleRevolutionSeconds = Number.isFinite(number)
-      ? Math.min(120, Math.max(1, number))
-      : DEFAULT_MULTI_ANGLE_REVOLUTION_SECONDS;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableMultiAnglePauseSeconds(): number {
-    return this.selectedTable?.multiAnglePauseSeconds ?? DEFAULT_MULTI_ANGLE_PAUSE_SECONDS;
-  }
-  set tableMultiAnglePauseSeconds(value: number) {
-    if (!this.selectedTable) return;
-    const number = Number(value);
-    this.selectedTable.multiAnglePauseSeconds = Number.isFinite(number)
-      ? Math.min(30, Math.max(0, number))
-      : DEFAULT_MULTI_ANGLE_PAUSE_SECONDS;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
-  get tableMultiAnglePieceRevolutionSeconds(): number {
-    return this.selectedTable?.multiAnglePieceRevolutionSeconds ?? DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
-  }
-  set tableMultiAnglePieceRevolutionSeconds(value: number) {
-    if (!this.selectedTable) return;
-    const number = Number(value);
-    this.selectedTable.multiAnglePieceRevolutionSeconds = Number.isFinite(number)
-      ? Math.min(300, Math.max(5, number))
-      : DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
   readonly facingMarks = TABLE_FACING_MARKS;
 
   get tableFacingMark(): TableFacingMark {
@@ -374,7 +219,6 @@ export class GameTableSettingComponent {
     if (!this.selectedTable) return;
     const facingMark = asTableFacingMark(value);
     this.selectedTable.facingMark = facingMark;
-    if (facingMark === 'turn') this.selectedTable.multiAngleEnabled = false;
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 

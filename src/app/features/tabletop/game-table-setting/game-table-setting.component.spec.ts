@@ -102,45 +102,6 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableFacingMark).toBe('none');
       table.destroy();
     });
-
-    it('turns off multi-angle rotation when the whole piece is selected', () => {
-      const table = new GameTable();
-      table.initialize();
-      table.multiAngleEnabled = true;
-      component.selectedTable = table;
-
-      component.tableFacingMark = 'turn';
-
-      expect(table.facingMark).toBe('turn');
-      expect(table.multiAngleEnabled).toBe(false);
-      table.destroy();
-    });
-
-    it('resets whole-piece facing when multi-angle rotation is enabled', () => {
-      const table = new GameTable();
-      table.initialize();
-      table.facingMark = 'turn';
-      component.selectedTable = table;
-
-      component.tableMultiAngleEnabled = true;
-
-      expect(table.multiAngleEnabled).toBe(true);
-      expect(table.facingMark).toBe('none');
-      table.destroy();
-    });
-
-    it('keeps arrow facing when multi-angle rotation is enabled', () => {
-      const table = new GameTable();
-      table.initialize();
-      table.facingMark = 'arrow';
-      component.selectedTable = table;
-
-      component.tableMultiAngleEnabled = true;
-
-      expect(table.multiAngleEnabled).toBe(true);
-      expect(table.facingMark).toBe('arrow');
-      table.destroy();
-    });
   });
 
   describe('how far a piece may walk', () => {
@@ -314,111 +275,6 @@ describe('GameTableSettingComponent', () => {
     });
   });
 
-  it('stores and bounds the multi-angle motion settings', () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      component.tableMultiAngleMotionMode = 'quarter-turn';
-      component.tableMultiAngleRevolutionSeconds = 24;
-      component.tableMultiAnglePauseSeconds = 3.5;
-      component.tableMultiAnglePieceRevolutionSeconds = 90;
-
-      expect(table.multiAngleMotionMode).toBe('quarter-turn');
-      expect(table.multiAngleRevolutionSeconds).toBe(24);
-      expect(table.multiAnglePauseSeconds).toBe(3.5);
-      expect(table.multiAnglePieceRevolutionSeconds).toBe(90);
-
-      expect(component.tableMultiAngleResourceBuffEnabled).toBe(false);
-      component.tableMultiAngleResourceBuffEnabled = true;
-      expect(table.multiAngleResourceBuffEnabled).toBe(true);
-
-      component.tableMultiAngleMotionMode = 'piece-quarter-turn';
-      expect(component.tableMultiAngleMotionMode).toBe('piece-quarter-turn');
-      expect(table.multiAngleMotionMode).toBe('piece-quarter-turn');
-
-      component.tableMultiAngleRevolutionSeconds = 0;
-      component.tableMultiAnglePauseSeconds = 99;
-      component.tableMultiAnglePieceRevolutionSeconds = 1;
-      expect(table.multiAngleRevolutionSeconds).toBe(1);
-      expect(table.multiAnglePauseSeconds).toBe(30);
-      expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('resets the piece revolution time for each selected motion mode', () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      table.multiAnglePieceRevolutionSeconds = 90;
-      component.tableMultiAngleMotionMode = 'quarter-turn';
-      expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
-
-      table.multiAnglePieceRevolutionSeconds = 90;
-      component.tableMultiAngleMotionMode = 'piece-quarter-turn';
-      expect(table.multiAnglePieceRevolutionSeconds).toBe(5);
-
-      table.multiAnglePieceRevolutionSeconds = 90;
-      component.tableMultiAngleMotionMode = 'continuous';
-      expect(table.multiAnglePieceRevolutionSeconds).toBe(60);
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('offers piece-only quarter turns and their pause setting', async () => {
-    const table = new GameTable();
-    table.initialize();
-    table.mode2d = true;
-    table.multiAngleEnabled = true;
-    table.multiAngleMotionMode = 'piece-quarter-turn';
-    component.selectedTable = table;
-
-    try {
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      const option = fixture.nativeElement.querySelector(
-        'option[value="piece-quarter-turn"]'
-      ) as HTMLOptionElement | null;
-      expect(option?.textContent).toContain('コマだけ90°回転して停止');
-      expect(fixture.nativeElement.querySelector('input[name="tableMultiAnglePauseSeconds"]')).toBeTruthy();
-      const resourceBuff = fixture.nativeElement.querySelector(
-        'input[name="tableMultiAngleResourceBuffEnabled"]'
-      ) as HTMLInputElement | null;
-      expect(resourceBuff?.checked).toBe(false);
-      expect(resourceBuff?.closest('label')?.textContent).toContain('リソースバフ回転表示（最大4つまで）');
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('stores the radial menu setting on the table', () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      expect(component.tableRadialMenuEnabled).toBe(false);
-      expect(component.tableRadialMenuRotationSpeed).toBe(5);
-      component.tableRadialMenuEnabled = true;
-      component.tableRadialMenuRotationSpeed = 9;
-      expect(table.radialMenuEnabled).toBe(true);
-      expect(table.radialMenuRotationSpeed).toBe(9);
-
-      component.tableRadialMenuRotationSpeed = 99;
-      expect(table.radialMenuRotationSpeed).toBe(24);
-    } finally {
-      table.destroy();
-    }
-  });
-
   it('stores the orthographic projection setting on the table', () => {
     const table = new GameTable();
     table.initialize();
@@ -447,206 +303,28 @@ describe('GameTableSettingComponent', () => {
     }
   });
 
-  it('stores and validates the multi-direction cut-in setting on the table', () => {
+  it('shows shared tabletop-display settings even while table 2D mode is off', async () => {
     const table = new GameTable();
     table.initialize();
-    component.selectedTable = table;
-
-    try {
-      expect(component.tableCutInMultiDirectionMode).toBe('none');
-      component.tableCutInMultiDirectionMode = 'vertical-right';
-      expect(table.cutInMultiDirectionMode).toBe('vertical-right');
-
-      table.cutInMultiDirectionMode = 'diagonal' as never;
-      expect(component.tableCutInMultiDirectionMode).toBe('none');
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('shows the multi-direction cut-in setting only inside 2D mode', async () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('select[name="tableCutInMultiDirectionMode"]')).toBeNull();
-
-      table.mode2d = true;
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      const select = fixture.nativeElement.querySelector(
-        'select[name="tableCutInMultiDirectionMode"]'
-      ) as HTMLSelectElement;
-      expect(select).toBeTruthy();
-      expect(select.closest('label')?.textContent).toContain('カットインの多方向表示');
-      expect([...select.options].map((option) => option.textContent?.trim())).toEqual([
-        'しない',
-        '上下',
-        '上下右',
-        '上下左',
-        '上下左右',
-      ]);
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('stores and validates the hover detail placement on the table', () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      expect(component.tableHoverDetailPlacement).toBe('piece');
-      component.tableHoverDetailPlacement = 'screen-edges';
-      expect(table.hoverDetailPlacement).toBe('screen-edges');
-
-      table.hoverDetailPlacement = 'corners' as never;
-      expect(component.tableHoverDetailPlacement).toBe('piece');
-
-      component.tableHoverDetailPlacement = 'anywhere' as never;
-      expect(table.hoverDetailPlacement).toBe('piece');
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('shows the hover detail placement only inside 2D mode', async () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('select[name="tableHoverDetailPlacement"]')).toBeNull();
-
-      table.mode2d = true;
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      const select = fixture.nativeElement.querySelector(
-        'select[name="tableHoverDetailPlacement"]'
-      ) as HTMLSelectElement;
-      expect(select).toBeTruthy();
-      expect(select.closest('label')?.textContent).toContain('コマの詳細表示');
-      expect([...select.options].map((option) => option.textContent?.trim())).toEqual([
-        'コマの近くに表示（従来）',
-        '画面の端に4方向表示（編集不可）',
-      ]);
-
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(select.value).toBe('piece');
-
-      select.value = 'screen-edges';
-      select.dispatchEvent(new Event('change'));
-      fixture.detectChanges();
-      expect(table.hoverDetailPlacement).toBe('screen-edges');
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('stores and validates the menu font scale on the table', () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      expect(component.tableMultiAngleFontScale).toBe('small');
-      component.tableMultiAngleFontScale = 'large';
-      expect(table.multiAngleFontScale).toBe('large');
-
-      table.multiAngleFontScale = 'huge' as never;
-      expect(component.tableMultiAngleFontScale).toBe('small');
-
-      component.tableMultiAngleFontScale = 'gigantic' as never;
-      expect(table.multiAngleFontScale).toBe('small');
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('shows the menu font scale setting only inside 2D mode', async () => {
-    const table = new GameTable();
-    table.initialize();
-    component.selectedTable = table;
-
-    try {
-      fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('select[name="tableMultiAngleFontScale"]')).toBeNull();
-
-      table.mode2d = true;
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      const select = fixture.nativeElement.querySelector(
-        'select[name="tableMultiAngleFontScale"]'
-      ) as HTMLSelectElement;
-      expect(select).toBeTruthy();
-      expect(select.closest('label')?.textContent).toContain('メニュー・ティッカーの文字サイズ');
-      expect([...select.options].map((option) => option.textContent?.trim())).toEqual(['小', '中', '大']);
-
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(select.value).toBe('small');
-
-      select.value = 'medium';
-      select.dispatchEvent(new Event('change'));
-      fixture.detectChanges();
-      expect(table.multiAngleFontScale).toBe('medium');
-    } finally {
-      table.destroy();
-    }
-  });
-
-  it('shows projection and rotating menu checkboxes inside 2D mode settings', async () => {
-    const table = new GameTable();
-    table.initialize();
-    table.mode2d = true;
+    table.mode2d = false;
     component.selectedTable = table;
 
     try {
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
+
       const projection = fixture.nativeElement.querySelector(
         'input[name="tableOrthographicProjection"]'
       ) as HTMLInputElement;
-      expect(projection).toBeTruthy();
-      expect(projection.checked).toBe(false);
-      expect(projection.closest('label')?.textContent).toContain('平行投影');
       const terrainRotation = fixture.nativeElement.querySelector(
         'input[name="tableTerrainRotationIn2dEnabled"]'
       ) as HTMLInputElement;
+      expect(projection).toBeTruthy();
       expect(terrainRotation).toBeTruthy();
-      expect(terrainRotation.checked).toBe(false);
-      expect(terrainRotation.closest('label')?.textContent).toContain('地形の回転を許可（通常は2Dモードでは固定）');
-      const checkbox = fixture.nativeElement.querySelector('input[name="tableRadialMenuEnabled"]') as HTMLInputElement;
-      expect(checkbox).toBeTruthy();
-      expect(checkbox.checked).toBe(false);
-      expect(checkbox.closest('label')?.textContent).toContain('回転メニュー表示');
-      const radialMenuHelp = fixture.nativeElement.querySelector('[data-testid="radial-menu-help"]') as HTMLElement;
-      expect(radialMenuHelp.textContent).toContain(
-        '右クリックで回転メニューを開き、連打で強制回転、右ドラッグでメニューの表示位置を移動できます。各メニュー項目から開くウィンドウの向きは、中心から4分割した角度方向になります。'
-      );
-      expect(radialMenuHelp.classList).toContain('text-ui-dim');
-      const speed = fixture.nativeElement.querySelector(
-        'input[name="tableRadialMenuRotationSpeed"]'
-      ) as HTMLInputElement;
-      expect(speed).toBeTruthy();
-      expect(speed.value).toBe('5');
-      expect(speed.max).toBe('24');
-      expect(speed.disabled).toBe(true);
-      const multiAngleHint = fixture.nativeElement.querySelector('[data-testid="multi-angle-hint"]') as HTMLElement;
-      expect(multiAngleHint.textContent).toContain('キャラクターの向きの「コマごと回す」とは併用できません。');
-      expect(multiAngleHint.classList).toContain('text-ui-dim');
+      expect(fixture.nativeElement.textContent).toContain('卓上ディスプレイ関連設定');
+      expect(fixture.nativeElement.querySelector('input[name="tableRadialMenuEnabled"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('select[name="tableMultiAngleFontScale"]')).toBeNull();
     } finally {
       table.destroy();
     }

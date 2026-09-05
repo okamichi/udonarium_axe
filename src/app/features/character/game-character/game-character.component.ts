@@ -460,7 +460,7 @@ export class GameCharacterComponent {
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
-    return table.imageBillboard || table.mode2d;
+    return table.imageBillboard || this.tabletopService.mode2d();
   });
 
   readonly multiAnglePiecePedestalRotation = computed(() =>
@@ -506,10 +506,7 @@ export class GameCharacterComponent {
 
   readonly mode2dEnabled = computed(() => {
     if (this.isPoster()) return true;
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
-    return table.mode2d;
+    return this.tabletopService.mode2d();
   });
 
   /** What the table asks of a piece that has to show which way it faces. */
@@ -517,7 +514,9 @@ export class GameCharacterComponent {
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
-    return asTableFacingMark(table.facingMark);
+    const mark = asTableFacingMark(table.facingMark);
+    const display = this.tabletopService.tabletopDisplaySettings;
+    return mark === 'turn' && display.enabled() && display.multiAngleEnabled() ? 'none' : mark;
   });
 
   /**
@@ -683,17 +682,14 @@ export class GameCharacterComponent {
   });
 
   readonly multiAngleNameOrbitEnabled = computed(() => {
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
-    return !this.isPoster() && table.mode2d && table.multiAngleEnabled;
+    const display = this.tabletopService.tabletopDisplaySettings;
+    return !this.isPoster() && display.enabled() && display.multiAngleEnabled();
   });
 
   readonly multiAngleResourceBuffOrbitEnabled = computed(() => {
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
-    return this.multiAngleNameOrbitEnabled() && table.multiAngleResourceBuffEnabled;
+    return (
+      this.multiAngleNameOrbitEnabled() && this.tabletopService.tabletopDisplaySettings.multiAngleResourceBuffEnabled()
+    );
   });
 
   readonly multiAngleCurvedNameLayout = computed(() =>
@@ -735,13 +731,11 @@ export class GameCharacterComponent {
   );
 
   readonly multiAngleNameOrbitAnimation = computed(() => {
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    const display = this.tabletopService.tabletopDisplaySettings;
     return multiAngleOrbitAnimation(
-      multiAngleNameMotionMode(table.multiAngleMotionMode),
-      table.multiAngleRevolutionSeconds,
-      table.multiAnglePauseSeconds
+      multiAngleNameMotionMode(display.multiAngleMotionMode()),
+      display.multiAngleRevolutionSeconds(),
+      display.multiAnglePauseSeconds()
     );
   });
 
@@ -774,23 +768,18 @@ export class GameCharacterComponent {
   );
 
   readonly multiAnglePieceRevolutionSeconds = computed(() => {
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
-    const seconds = table.multiAnglePieceRevolutionSeconds;
+    const seconds = this.tabletopService.tabletopDisplaySettings.multiAnglePieceRevolutionSeconds();
     return Number.isFinite(seconds)
       ? Math.min(300, Math.max(5, seconds))
       : DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS;
   });
 
   readonly multiAnglePieceRotationAnimation = computed(() => {
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    const display = this.tabletopService.tabletopDisplaySettings;
     return multiAngleOrbitAnimation(
-      multiAnglePieceMotionMode(table.multiAngleMotionMode),
+      multiAnglePieceMotionMode(display.multiAngleMotionMode()),
       this.multiAnglePieceRevolutionSeconds(),
-      table.multiAnglePauseSeconds
+      display.multiAnglePauseSeconds()
     );
   });
 
@@ -996,7 +985,7 @@ export class GameCharacterComponent {
 
   protected onPiecePointerDown(event: PointerEvent): void {
     this.checkKey(event);
-    if (event.button !== 2 || !this.tabletopService.currentTable.mode2d) return;
+    if (event.button !== 2 || !this.tabletopService.tabletopDisplayMode()) return;
 
     this.selectionSignalService.cancelTableGesture();
     this.rightDrag = {
@@ -1130,6 +1119,7 @@ export class GameCharacterComponent {
       this.translateFn
     );
     const table = this.tabletopService.currentTable;
+    const display = this.tabletopService.tabletopDisplaySettings;
     const surfaceEntries = buildSurfaceSwitchContextMenu(char, table, this.translateFn);
     const menu = buildGameCharacterContextMenuModel(
       char,
@@ -1151,7 +1141,7 @@ export class GameCharacterComponent {
       this.buffViewMode(),
       surfaceEntries
     );
-    if (!table.mode2d) {
+    if (!display.enabled()) {
       this.contextMenuService.open(position, menu.actions, this.name());
       return;
     }
@@ -1165,9 +1155,9 @@ export class GameCharacterComponent {
       menu.actions,
       menu.radialGroups,
       this.name(),
-      table.radialMenuEnabled,
-      table.radialMenuRotationSpeed,
-      multiAngleFontScaleFactor(table.multiAngleFontScale),
+      display.radialMenuEnabled(),
+      display.radialMenuRotationSpeed(),
+      multiAngleFontScaleFactor(display.multiAngleFontScale()),
       menuClearanceRadius,
       menuOcclusionHalfExtent,
     ] as const;

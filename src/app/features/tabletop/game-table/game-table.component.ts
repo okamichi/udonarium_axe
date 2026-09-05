@@ -10,6 +10,7 @@ import {
   inject,
   Signal,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { CardTargetService } from '@axe/application/card/card-target.service';
@@ -245,6 +246,10 @@ export class GameTableComponent {
       this.gestureService.cancelInput();
     });
     effect(() => {
+      this.tabletopService.tabletopDisplayMode();
+      if (this._initialized) untracked(() => this.syncMode2d());
+    });
+    effect(() => {
       const focus = this.selectionSignalService.focusCoordinate();
       if (!focus || !this.gameTable) return;
       this.glideTimer = setTimeout(() => {
@@ -316,7 +321,7 @@ export class GameTableComponent {
   }
 
   private syncMode2d(): void {
-    const enabled = this.currentTable.mode2d;
+    const enabled = this.tabletopService.mode2d();
     const enteredMode2d = enabled && this._lastMode2dTableId !== this.currentTable.identifier;
     this._lastMode2dTableId = enabled ? this.currentTable.identifier : null;
     const orthographicProjection = enabled && this.currentTable.orthographicProjection;
@@ -698,15 +703,16 @@ export class GameTableComponent {
   openTableContextMenu(menuPosition: PointerCoordinate, objectPosition: PointerCoordinate): void {
     const menu = this.buildContextMenuModel(objectPosition);
     const table = this.currentTable;
-    if (table.mode2d) {
+    const display = this.tabletopService.tabletopDisplaySettings;
+    if (display.enabled()) {
       this.contextMenuService.openRadial(
         menuPosition,
         menu.actions,
         menu.rotatingGroups,
         table.name,
-        table.radialMenuEnabled,
-        table.radialMenuRotationSpeed,
-        multiAngleFontScaleFactor(table.multiAngleFontScale)
+        display.radialMenuEnabled(),
+        display.radialMenuRotationSpeed(),
+        multiAngleFontScaleFactor(display.multiAngleFontScale())
       );
       return;
     }

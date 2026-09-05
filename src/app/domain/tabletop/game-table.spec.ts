@@ -121,24 +121,11 @@ describe('GameTable', () => {
       expect(table.gridShow).toBe(false);
     });
 
-    it('starts with multi-angle labels disabled', () => {
+    it('starts with shared tabletop-display options disabled', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.orthographicProjection).toBe(false);
       expect(table.terrainRotationIn2dEnabled).toBe(false);
-      expect(table.cutInMultiDirectionMode).toBe('none');
-      expect(table.radialMenuEnabled).toBe(false);
-      expect(table.radialMenuRotationSpeed).toBe(5);
-      expect(table.multiAngleEnabled).toBe(false);
-      expect(table.multiAngleResourceBuffEnabled).toBe(false);
-      expect(table.multiAngleMotionMode).toBe('continuous');
-      expect(table.multiAngleRevolutionSeconds).toBe(12);
-      expect(table.multiAnglePauseSeconds).toBe(4);
-      expect(table.multiAnglePieceRevolutionSeconds).toBe(60);
-      expect(table.multiAngleTickerEnabled).toBe(false);
-      expect(table.multiAngleTickerPixelsPerSecond).toBe(55);
-      expect(table.multiAngleFontScale).toBe('small');
-      expect(table.hoverDetailPlacement).toBe('piece');
     });
 
     it('starts snapping to it', () => {

@@ -2,6 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContextMenuService, ContextMenuType } from '@axe/application/ui/context-menu.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import {
+  TABLETOP_DISPLAY_SETTINGS_STORAGE_KEY,
+  TabletopDisplaySettingsService,
+} from '@axe/application/ui/tabletop-display-settings.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -15,6 +19,7 @@ describe('GameTableComponent', () => {
   let fixture: ComponentFixture<GameTableComponent>;
 
   beforeEach(async () => {
+    localStorage.removeItem(TABLETOP_DISPLAY_SETTINGS_STORAGE_KEY);
     TestBed.configureTestingModule({
       imports: [GameTableComponent],
       providers: [...TEST_PROVIDERS],
@@ -27,6 +32,7 @@ describe('GameTableComponent', () => {
   });
 
   afterEach(() => {
+    localStorage.removeItem(TABLETOP_DISPLAY_SETTINGS_STORAGE_KEY);
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
@@ -60,6 +66,17 @@ describe('GameTableComponent', () => {
       component.gestureService.setTransform(0, 0, 0, 0, 0, 15);
       syncMode2d(component);
       expect(component.gestureService.viewRotateZ).toBe(15);
+    });
+
+    it('enters flat mode from this browser local tabletop-display setting', () => {
+      component.currentTable.mode2d = false;
+      component.gestureService.viewRotateX = 35;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+
+      syncMode2d(component);
+
+      expect(component.gestureService.tiltLocked).toBe(true);
+      expect(component.gestureService.viewRotateX).toBe(0);
     });
 
     it('uses scale-based zoom only while orthographic projection is enabled in 2D mode', async () => {
@@ -190,8 +207,11 @@ describe('GameTableComponent', () => {
 
     it('opens the rotating interface directly on an empty 2D table when enabled', () => {
       component.currentTable.mode2d = true;
-      component.currentTable.radialMenuEnabled = true;
-      component.currentTable.radialMenuRotationSpeed = 8;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        radialMenuEnabled: true,
+        radialMenuRotationSpeed: 8,
+      });
       const menus = TestBed.inject(ContextMenuService);
       const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
       const openLegacy = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
@@ -212,8 +232,11 @@ describe('GameTableComponent', () => {
 
     it('opens the four-direction launcher on an empty 2D table when rotating display is disabled', () => {
       component.currentTable.mode2d = true;
-      component.currentTable.radialMenuEnabled = false;
-      component.currentTable.radialMenuRotationSpeed = 6;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        radialMenuEnabled: false,
+        radialMenuRotationSpeed: 6,
+      });
       const menus = TestBed.inject(ContextMenuService);
       const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
       const openLegacy = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
@@ -234,7 +257,7 @@ describe('GameTableComponent', () => {
 
     it('keeps the existing vertical table menu outside 2D mode', () => {
       component.currentTable.mode2d = false;
-      component.currentTable.radialMenuEnabled = false;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: false, radialMenuEnabled: false });
       const menus = TestBed.inject(ContextMenuService);
       const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
       const openLegacy = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
@@ -246,6 +269,19 @@ describe('GameTableComponent', () => {
         expect.any(Array),
         component.currentTable.name
       );
+      expect(openRotating).not.toHaveBeenCalled();
+    });
+
+    it('keeps the ordinary menu in shared 2D when local tabletop display mode is off', () => {
+      component.currentTable.mode2d = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: false, radialMenuEnabled: true });
+      const menus = TestBed.inject(ContextMenuService);
+      const openRotating = vi.spyOn(menus, 'openRadial').mockImplementation(() => undefined);
+      const openLegacy = vi.spyOn(menus, 'open').mockImplementation(() => undefined);
+
+      component.openTableContextMenu(menuPosition, objectPosition);
+
+      expect(openLegacy).toHaveBeenCalled();
       expect(openRotating).not.toHaveBeenCalled();
     });
   });

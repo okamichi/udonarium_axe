@@ -24,7 +24,6 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
-import { triggerUpdateGameObject } from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
@@ -193,31 +192,28 @@ export class ChatWindowComponent {
   readonly isTickerTab = computed(() => this.chatTab()?.isTickerTab ?? false);
 
   get tickerEnabled(): boolean {
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    return table.multiAngleTickerEnabled;
+    return this.tabletopService.tabletopDisplaySettings.multiAngleTickerEnabled();
   }
   set tickerEnabled(value: boolean) {
-    const table = this.tabletopService.currentTable;
-    table.multiAngleTickerEnabled = value;
-    triggerUpdateGameObject(table.toContext());
+    this.tabletopService.tabletopDisplaySettings.patch({ multiAngleTickerEnabled: value });
   }
 
   get tickerPixelsPerSecond(): number {
-    const table = this.tabletopService.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    const value = Number(table.multiAngleTickerPixelsPerSecond);
+    const value = Number(this.tabletopService.tabletopDisplaySettings.multiAngleTickerPixelsPerSecond());
     return Number.isFinite(value)
       ? Math.min(MAX_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, Math.max(MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, value))
       : DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND;
   }
   set tickerPixelsPerSecond(value: number) {
     const numeric = Number(value);
-    const table = this.tabletopService.currentTable;
-    table.multiAngleTickerPixelsPerSecond = Number.isFinite(numeric)
-      ? Math.min(MAX_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, Math.max(MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, numeric))
-      : DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND;
-    triggerUpdateGameObject(table.toContext());
+    this.tabletopService.tabletopDisplaySettings.patch({
+      multiAngleTickerPixelsPerSecond: Number.isFinite(numeric)
+        ? Math.min(
+            MAX_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
+            Math.max(MIN_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND, numeric)
+          )
+        : DEFAULT_MULTI_ANGLE_TICKER_PIXELS_PER_SECOND,
+    });
   }
 
   private isAutoScroll = true;

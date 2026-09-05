@@ -2,12 +2,12 @@ import { DestroyRef, inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn, cutInPanelChrome } from '@axe/domain/media/cut-in';
 import { asCutInMultiDirectionMode } from '@axe/domain/tabletop/cut-in-multi-direction';
-import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { makeCutInMultiDirectionLayout } from '@axe/features/media/cut-in-multi-direction-layout';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 
@@ -19,7 +19,7 @@ export class CutInEventHandlerService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly audioStorage = inject(AudioStorage);
   private readonly panelService = inject(PanelService);
-  private readonly tableSelecter = inject(TableSelecter);
+  private readonly tabletopDisplay = inject(TabletopDisplaySettingsService);
   private readonly t = inject(TRANSLATE_FN);
 
   private readonly soundOnlyPlayer = new AudioPlayer();
@@ -47,8 +47,9 @@ export class CutInEventHandlerService {
 
   private openCutInPanel(cutIn: CutIn, invisible = false): void {
     if (!cutIn) return;
-    const table = this.tableSelecter.viewTable;
-    const mode = table?.mode2d ? asCutInMultiDirectionMode(table.cutInMultiDirectionMode) : 'none';
+    const mode = this.tabletopDisplay.enabled()
+      ? asCutInMultiDirectionMode(this.tabletopDisplay.cutInMultiDirectionMode())
+      : 'none';
     if (invisible || mode === 'none') {
       this.openSingleCutInPanel(cutIn, invisible);
       return;

@@ -34,4 +34,9 @@ describe('mobileMenuItems', () => {
   it('counts loading a room among the shared items', () => {
     expect(sharedMobileMenuItems().map((item) => item.action)).toContain('zipLoad');
   });
+
+  it('places the local tabletop display settings after the table settings', () => {
+    const actions = MOBILE_MENU_ITEMS.map((item) => item.action);
+    expect(actions.indexOf('tabletopDisplaySetting')).toBe(actions.indexOf('tableSetting') + 1);
+  });
 });

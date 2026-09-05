@@ -7,6 +7,7 @@ import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -41,14 +42,18 @@ describe('GameCharacterComponent', () => {
     const table = TestBed.inject(TabletopService).currentTable;
     table.mode2d = false;
     table.facingMark = 'none';
-    table.radialMenuEnabled = false;
     table.imageBillboard = false;
-    table.multiAngleEnabled = false;
-    table.multiAngleResourceBuffEnabled = false;
-    table.multiAngleMotionMode = 'continuous';
-    table.multiAngleRevolutionSeconds = 12;
-    table.multiAnglePauseSeconds = 2;
-    table.multiAnglePieceRevolutionSeconds = 60;
+    TestBed.inject(TabletopDisplaySettingsService).patch({
+      enabled: false,
+      radialMenuEnabled: false,
+      radialMenuRotationSpeed: 5,
+      multiAngleEnabled: false,
+      multiAngleResourceBuffEnabled: false,
+      multiAngleMotionMode: 'continuous',
+      multiAngleRevolutionSeconds: 12,
+      multiAnglePauseSeconds: 4,
+      multiAnglePieceRevolutionSeconds: 60,
+    });
   };
 
   beforeEach(useFlatTable);
@@ -206,9 +211,12 @@ describe('GameCharacterComponent', () => {
       fixture.componentRef.setInput('gameCharacter', character);
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = tableMode2d;
-      table.radialMenuEnabled = radialMenuEnabled;
-      table.radialMenuRotationSpeed = 7;
-      table.multiAngleEnabled = showRotatingName;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: tableMode2d,
+        radialMenuEnabled,
+        radialMenuRotationSpeed: 7,
+        multiAngleEnabled: showRotatingName,
+      });
       fixture.detectChanges();
       const diameter = size * 50;
       vi.spyOn(component.rootElementRef()!.nativeElement, 'getBoundingClientRect').mockReturnValue({
@@ -295,7 +303,7 @@ describe('GameCharacterComponent', () => {
       fixture.componentRef.setInput('gameCharacter', character);
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = true;
-      table.radialMenuEnabled = false;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true, radialMenuEnabled: false });
       fixture.detectChanges();
       const root = component.rootElementRef()!.nativeElement;
       vi.spyOn(root, 'getBoundingClientRect').mockReturnValue({
@@ -353,6 +361,7 @@ describe('GameCharacterComponent', () => {
       fixture.componentRef.setInput('gameCharacter', character);
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
       fixture.detectChanges();
       const root = component.rootElementRef()!.nativeElement;
       vi.spyOn(root, 'getBoundingClientRect').mockReturnValue({
@@ -382,8 +391,8 @@ describe('GameCharacterComponent', () => {
           expect.any(Array),
           expect.any(Array),
           'click-menu-piece',
-          table.radialMenuEnabled,
-          table.radialMenuRotationSpeed,
+          false,
+          5,
           1,
           0,
           25
@@ -450,6 +459,17 @@ describe('GameCharacterComponent', () => {
       expect(component.canTurn()).toBe(true);
     });
 
+    it('suppresses whole-piece turning only in this browser while its name orbit is enabled', () => {
+      tableShowing('turn', true);
+      const table = TestBed.inject(TabletopService).currentTable;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true, multiAngleEnabled: true });
+      place();
+
+      expect(component.facingMark()).toBe('none');
+      expect(component.canTurn()).toBe(false);
+      expect(table.facingMark).toBe('turn');
+    });
+
     it('turns the picture with the piece from above', () => {
       tableShowing('turn', true);
       place(90);
@@ -499,9 +519,11 @@ describe('GameCharacterComponent', () => {
 
     it('moves the arrow outside the rotating resource gauge', () => {
       tableShowing('arrow', true);
-      const table = TestBed.inject(TabletopService).currentTable;
-      table.multiAngleEnabled = true;
-      table.multiAngleResourceBuffEnabled = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        multiAngleEnabled: true,
+        multiAngleResourceBuffEnabled: true,
+      });
       place();
 
       const baseOffset = Math.round(component.gridSize * 0.06);
@@ -1259,6 +1281,16 @@ describe('GameCharacterComponent', () => {
       expect(component.imageBillboardEnabled()).toBe(true);
     });
 
+    it('faces it in flat mode when only this browser enables tabletop display mode', () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = false;
+      tabletopService.currentTable.imageBillboard = false;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+
+      expect(component.mode2dEnabled()).toBe(true);
+      expect(component.imageBillboardEnabled()).toBe(true);
+    });
+
     it.each(['none', 'turn', 'arrow'] as const)(
       'keeps the character image renderable in 2D multi-angle mode with facing mark %s',
       (facingMark) => {
@@ -1269,7 +1301,7 @@ describe('GameCharacterComponent', () => {
         fixture.componentRef.setInput('gameCharacter', character);
         const table = TestBed.inject(TabletopService).currentTable;
         table.mode2d = true;
-        table.multiAngleEnabled = true;
+        TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true, multiAngleEnabled: true });
         table.facingMark = facingMark;
 
         try {
@@ -1335,7 +1367,7 @@ describe('GameCharacterComponent', () => {
     it('keeps the stationary name while the clockwise orbit is disabled', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.mode2d = true;
-      tabletopService.currentTable.multiAngleEnabled = false;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true, multiAngleEnabled: false });
       const character = GameCharacter.create('停止名', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
@@ -1354,7 +1386,7 @@ describe('GameCharacterComponent', () => {
     it('curves a short label four times around the clockwise orbit', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.mode2d = true;
-      tabletopService.currentTable.multiAngleEnabled = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true, multiAngleEnabled: true });
       const character = GameCharacter.create('周回名', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
@@ -1414,8 +1446,11 @@ describe('GameCharacterComponent', () => {
     it('replaces the linear resource bars with equal rotating pedestal arcs', () => {
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = true;
-      table.multiAngleEnabled = true;
-      table.multiAngleResourceBuffEnabled = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        multiAngleEnabled: true,
+        multiAngleResourceBuffEnabled: true,
+      });
       const character = GameCharacter.create('円形ゲージ', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
@@ -1456,9 +1491,9 @@ describe('GameCharacterComponent', () => {
 
     it('switches between stationary and rotating resource and buff displays', () => {
       const table = TestBed.inject(TabletopService).currentTable;
-      const objectChange = TestBed.inject(ObjectChangeService);
       table.mode2d = true;
-      table.multiAngleEnabled = true;
+      const settings = TestBed.inject(TabletopDisplaySettingsService);
+      settings.patch({ enabled: true, multiAngleEnabled: true, multiAngleResourceBuffEnabled: false });
       const character = GameCharacter.create('表示切替', 1, '');
       const buff = DataElement.create('加護', 2, { type: DataElementType.NUMBER_RESOURCE });
       character.buffDataElement!.appendChild(buff);
@@ -1471,16 +1506,14 @@ describe('GameCharacterComponent', () => {
         expect(root.querySelector('[data-testid="buff-badge"]')).toBeTruthy();
         expect(root.querySelector('[data-testid="multi-angle-resource-buff-orbit"]')).toBeNull();
 
-        table.multiAngleResourceBuffEnabled = true;
-        objectChange.notifyChanged(table.identifier);
+        settings.patch({ multiAngleResourceBuffEnabled: true });
         fixture.detectChanges();
         expect(root.querySelector('[data-testid="piece-gauge"]')).toBeNull();
         expect(root.querySelector('[data-testid="buff-badge"]')).toBeNull();
         expect(root.querySelectorAll('[data-testid="multi-angle-resource-segment"]')).toHaveLength(2);
         expect(root.querySelector('[data-testid="multi-angle-buff-icon"]')).toBeTruthy();
 
-        table.multiAngleResourceBuffEnabled = false;
-        objectChange.notifyChanged(table.identifier);
+        settings.patch({ multiAngleResourceBuffEnabled: false });
         fixture.detectChanges();
         expect(root.querySelectorAll('[data-testid="piece-gauge"]')).toHaveLength(2);
         expect(root.querySelector('[data-testid="buff-badge"]')).toBeTruthy();
@@ -1493,8 +1526,11 @@ describe('GameCharacterComponent', () => {
     it('shows at most four configured resources in ninety-degree segments', () => {
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = true;
-      table.multiAngleEnabled = true;
-      table.multiAngleResourceBuffEnabled = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        multiAngleEnabled: true,
+        multiAngleResourceBuffEnabled: true,
+      });
       const character = GameCharacter.create('四分割', 1, '');
       const group = character.detailDataElement!.getFirstElementByName('基本')!;
       for (const name of ['AP', 'BP', 'CP']) {
@@ -1527,8 +1563,11 @@ describe('GameCharacterComponent', () => {
     it('moves buff icons onto the same rotating outer orbit', () => {
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = true;
-      table.multiAngleEnabled = true;
-      table.multiAngleResourceBuffEnabled = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        multiAngleEnabled: true,
+        multiAngleResourceBuffEnabled: true,
+      });
       const character = GameCharacter.create('外周バフ', 1, '');
       const buff = DataElement.create('毒', 3, {
         type: DataElementType.NUMBER_RESOURCE,
@@ -1559,11 +1598,14 @@ describe('GameCharacterComponent', () => {
     it('uses smooth quarter turns separated by the configured pause', () => {
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = true;
-      table.multiAngleEnabled = true;
-      table.multiAngleMotionMode = 'quarter-turn';
-      table.multiAngleRevolutionSeconds = 8;
-      table.multiAnglePauseSeconds = 2;
-      table.multiAnglePieceRevolutionSeconds = 90;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        multiAngleEnabled: true,
+        multiAngleMotionMode: 'quarter-turn',
+        multiAngleRevolutionSeconds: 8,
+        multiAnglePauseSeconds: 2,
+        multiAnglePieceRevolutionSeconds: 90,
+      });
       const character = GameCharacter.create('間欠回転', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
@@ -1591,11 +1633,14 @@ describe('GameCharacterComponent', () => {
     it('keeps the name continuous while only the piece pauses after quarter turns', () => {
       const table = TestBed.inject(TabletopService).currentTable;
       table.mode2d = true;
-      table.multiAngleEnabled = true;
-      table.multiAngleMotionMode = 'piece-quarter-turn';
-      table.multiAngleRevolutionSeconds = 8;
-      table.multiAnglePauseSeconds = 2;
-      table.multiAnglePieceRevolutionSeconds = 90;
+      TestBed.inject(TabletopDisplaySettingsService).patch({
+        enabled: true,
+        multiAngleEnabled: true,
+        multiAngleMotionMode: 'piece-quarter-turn',
+        multiAngleRevolutionSeconds: 8,
+        multiAnglePauseSeconds: 2,
+        multiAnglePieceRevolutionSeconds: 90,
+      });
       const character = GameCharacter.create('コマだけ間欠回転', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
