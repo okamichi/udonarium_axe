@@ -31,11 +31,14 @@ import {
   ContextMenuSeparator,
   ContextMenuService,
 } from '@axe/application/ui/context-menu.service';
+import { DisplayCalibrationService } from '@axe/application/ui/display-calibration.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { buildToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { ViewLockService } from '@axe/application/ui/view-lock.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -44,6 +47,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 import { multiAngleFontScaleFactor } from '@axe/domain/tabletop/multi-angle-font-scale';
+import { zoomToViewPositionZ } from '@axe/domain/tabletop/physical-scale';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { boardSurfaceOf, surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -189,6 +193,7 @@ const NO_BEAM_WALL_GRIDS: readonly BeamWallGrid[] = [];
     '(document:contextmenu)': 'onDocumentContextMenu($event)',
     '(document:keydown.escape)': 'onEscapeKey($event)',
     '(document:keydown.enter)': 'onEnterKey($event)',
+    '(window:resize)': 'onWindowResize()',
   },
 })
 export class GameTableComponent {
@@ -212,10 +217,14 @@ export class GameTableComponent {
   private readonly objectChangeService = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly displayCalibration = inject(DisplayCalibrationService);
+  private readonly viewLock = inject(ViewLockService);
   protected readonly isOrthographicProjection = computed(
     () => this.tabletopService.mode2d() && this.tabletopService.orthographicProjection()
   );
   private _initialized = false;
+  /** A resize fires many times over one drag; only the last of them has to reach the camera. */
+  private _resizeFrame: number | null = null;
   private _lastTableId: string | null = null;
   private _lastMode2dTableId: string | null = null;
   readonly gestureService = inject(GameTableGestureService);
@@ -291,6 +300,22 @@ export class GameTableComponent {
       },
       this.destroyRef
     );
+    this.destroyRef.onDestroy(() => {
+      if (this._resizeFrame !== null) cancelAnimationFrame(this._resizeFrame);
+    });
+
+    // The calibration and the lock are kept on the device rather than on the table, so no table
+    // event announces them. Without this, measuring the screen would change nothing until
+    // something else happened to redraw the board.
+    effect(() => {
+      this.displayCalibration.realSizeEnabled();
+      this.viewLock.locked();
+      this.displayCalibration.pxPerMm();
+      untracked(() => {
+        this.syncViewLock();
+        this.snapToRealSize();
+      });
+    });
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();
     this.tabletopActionService.initAprilDiceImage();
@@ -320,11 +345,60 @@ export class GameTableComponent {
     });
   }
 
+  /**
+   * Whether a square could measure its real width right now.
+   *
+   * Perspective stretches the far edge of the screen, so a board drawn under it has no single
+   * scale to set. The test lives here rather than at each caller, so no way in can skip it.
+   */
+  private canShowRealSize(): boolean {
+    return (
+      this._initialized &&
+      this.tabletopService.mode2d() &&
+      this.gestureService.orthographicProjection &&
+      this.displayCalibration.realSizeEnabled()
+    );
+  }
+
+  /**
+   * The camera goes where a square measures the width it is meant to.
+   *
+   * The gestures stop at life size, so this reaches past them by setting the depth outright.
+   * Real size only holds still under the lock, which is why turning it on takes the lock with it.
+   */
+  private snapToRealSize(): void {
+    if (!this.canShowRealSize()) return;
+    const zoom = this.displayCalibration.zoomFor(this.currentTable.cellMm, this.currentTable.gridSize);
+    if (zoom === null) return;
+    this.gestureService.snapToViewPositionZ(zoomToViewPositionZ(zoom));
+  }
+
+  /**
+   * A resize is the one moment the camera is written to while locked.
+   *
+   * Real size is a property of the glass rather than of the window, so it survives the window
+   * changing shape - but only if it is put back afterwards.
+   */
+  onWindowResize(): void {
+    // The warning is wanted at once; the camera can wait for the frame the drag settles on.
+    this.displayCalibration.refreshScreenScale();
+    if (!this.viewLock.locked() || !this.canShowRealSize()) return;
+    if (this._resizeFrame !== null) return;
+    this._resizeFrame = requestAnimationFrame(() => {
+      this._resizeFrame = null;
+      this.snapToRealSize();
+    });
+  }
+
+  private syncViewLock(): void {
+    this.gestureService.viewLocked = this.viewLock.locked() && this.tabletopService.mode2d();
+  }
+
   private syncMode2d(): void {
     const enabled = this.tabletopService.mode2d();
     const enteredMode2d = enabled && this._lastMode2dTableId !== this.currentTable.identifier;
     this._lastMode2dTableId = enabled ? this.currentTable.identifier : null;
-    const orthographicProjection = enabled && this.currentTable.orthographicProjection;
+    const orthographicProjection = enabled && this.tabletopService.orthographicProjection();
     const projectionChanged = this.gestureService.orthographicProjection !== orthographicProjection;
     this.gestureService.tiltLocked = enabled;
     this.gestureService.orthographicProjection = orthographicProjection;
@@ -332,6 +406,8 @@ export class GameTableComponent {
       const rotateZ = enteredMode2d ? -this.gestureService.viewRotateZ : 0;
       this.gestureService.setTransform(0, 0, 0, 0, 0, rotateZ);
     }
+    this.syncViewLock();
+    this.snapToRealSize();
   }
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
@@ -661,13 +737,14 @@ export class GameTableComponent {
         void this.openTableSetting();
       },
     };
+    const tableSettingActions = [tableSettingAction, ...this.buildViewLockActions()];
     return {
       actions: [
         ...primaryCreateActions,
         ContextMenuSeparator,
         ...secondaryCreateActions,
         ContextMenuSeparator,
-        tableSettingAction,
+        ...tableSettingActions,
       ],
       rotatingGroups: [
         {
@@ -683,10 +760,48 @@ export class GameTableComponent {
         {
           name: this.t('feature.tabletop.tableSetting.title'),
           icon: 'tune',
-          actions: [tableSettingAction],
+          actions: tableSettingActions,
         },
       ],
     };
+  }
+
+  /**
+   * Holding the view still, and putting it back on real size.
+   *
+   * Only in 2D, where a screen is laid flat and the miniatures sit on it. The entries go into
+   * both menus because the flat one is what the four-way hamburger opens when the rotating
+   * menu is off, and a table using that would otherwise have no way to reach them.
+   */
+  private buildViewLockActions(): ContextMenuAction[] {
+    if (!this.tabletopService.mode2d()) return [];
+    const actions: ContextMenuAction[] = [
+      buildToggleAction(
+        this.viewLock.locked(),
+        (next) => {
+          this.viewLock.set(next);
+          this.syncViewLock();
+        },
+        {
+          on: this.t('feature.tabletop.contextMenu.viewLockOn'),
+          off: this.t('feature.tabletop.contextMenu.viewLockOff'),
+        }
+      ),
+    ];
+    // Offered only where it would do something: under perspective there is no one scale to set,
+    // and an entry that quietly does nothing is worse than one that is not there.
+    if (this.displayCalibration.isCalibrated() && this.tabletopService.orthographicProjection()) {
+      actions.push({
+        name: this.t('feature.tabletop.contextMenu.snapToRealSize'),
+        action: () => {
+          // Real size brings the lock with it; the service settles that for every way in.
+          this.displayCalibration.setRealSizeEnabled(true);
+          this.snapToRealSize();
+          this.syncViewLock();
+        },
+      });
+    }
+    return actions;
   }
 
   onContextMenu(e: MouseEvent) {

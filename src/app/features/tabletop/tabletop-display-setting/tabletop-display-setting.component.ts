@@ -1,10 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DisplayCalibrationService } from '@axe/application/ui/display-calibration.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { TabletopDisplaySettingsService } from '@axe/application/ui/tabletop-display-settings.service';
+import { ViewLockService } from '@axe/application/ui/view-lock.service';
 import { CUT_IN_MULTI_DIRECTION_MODES, CutInMultiDirectionMode } from '@axe/domain/tabletop/cut-in-multi-direction';
 import { HOVER_DETAIL_PLACEMENTS, HoverDetailPlacement } from '@axe/domain/tabletop/hover-detail-placement';
 import { DEFAULT_MULTI_ANGLE_PIECE_REVOLUTION_SECONDS, MultiAngleMotionMode } from '@axe/domain/tabletop/multi-angle';
 import { MULTI_ANGLE_FONT_SCALES, MultiAngleFontScale } from '@axe/domain/tabletop/multi-angle-font-scale';
+import { DisplayCalibrationComponent } from '@axe/features/tabletop/display-calibration/display-calibration.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -15,6 +19,9 @@ import { TranslocoModule } from '@jsverse/transloco';
 })
 export class TabletopDisplaySettingComponent {
   protected readonly settings = inject(TabletopDisplaySettingsService);
+  private readonly modalService = inject(ModalService);
+  private readonly displayCalibration = inject(DisplayCalibrationService);
+  private readonly viewLock = inject(ViewLockService);
   protected readonly cutInMultiDirectionModes = CUT_IN_MULTI_DIRECTION_MODES;
   protected readonly hoverDetailPlacements = HOVER_DETAIL_PLACEMENTS;
   protected readonly multiAngleFontScales = MULTI_ANGLE_FONT_SCALES;
@@ -119,5 +126,45 @@ export class TabletopDisplaySettingComponent {
   }
   set multiAngleTickerPixelsPerSecond(value: number) {
     this.settings.patch({ multiAngleTickerPixelsPerSecond: value });
+  }
+  /**
+   * The screen measurement and the lock belong to this browser, not to the table, so they are
+   * read straight from their services rather than through the stored display settings.
+   */
+  protected readonly isCalibrated = this.displayCalibration.isCalibrated;
+  protected readonly calibrationDpi = this.displayCalibration.dpi;
+  protected readonly needsRecalibration = this.displayCalibration.needsRecalibration;
+
+  get viewLocked(): boolean {
+    return this.viewLock.locked();
+  }
+  set viewLocked(value: boolean) {
+    this.viewLock.set(value);
+  }
+
+  get realSizeEnabled(): boolean {
+    return this.displayCalibration.realSizeEnabled();
+  }
+  set realSizeEnabled(value: boolean) {
+    // Real size means nothing until the screen has been measured, so asking for it asks for that.
+    if (value && !this.displayCalibration.isCalibrated()) {
+      this.openCalibration();
+      return;
+    }
+    this.displayCalibration.setRealSizeEnabled(value);
+  }
+
+  openCalibration(): void {
+    // Without this the shell holds a fixed 800px and clips the frame the card is matched against.
+    void this.modalService.open(DisplayCalibrationComponent, { fitWidth: true });
+  }
+
+  nudgeScale(steps: number): void {
+    this.displayCalibration.nudge(steps);
+  }
+
+  /** Back to an unmeasured screen. The width of a square stays, since the map still asks for it. */
+  resetCalibration(): void {
+    this.displayCalibration.reset();
   }
 }

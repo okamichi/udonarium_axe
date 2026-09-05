@@ -75,7 +75,8 @@ export class TabletopService {
   readonly sharedMode2d: Signal<boolean> = computed(() => this.currentTableVersion().mode2d);
   readonly tabletopDisplayMode = this.tabletopDisplaySettings.enabled;
   readonly mode2d: Signal<boolean> = computed(() => this.sharedMode2d() || this.tabletopDisplayMode());
-  readonly orthographicProjection: Signal<boolean> = computed(() => this.currentTableVersion().orthographicProjection);
+  /** A screen laid flat under miniatures is always drawn without perspective. */
+  readonly orthographicProjection: Signal<boolean> = this.tabletopDisplayMode;
   readonly terrainRotationIn2dEnabled: Signal<boolean> = computed(
     () => this.currentTableVersion().terrainRotationIn2dEnabled
   );

@@ -68,12 +68,12 @@ describe('TabletopService', () => {
 
       table.gridSize = 77;
       table.mode2d = true;
-      table.orthographicProjection = true;
       await new Promise((resolve) => setTimeout(resolve, 20));
 
       expect(service.gridSize()).toBe(77);
       expect(service.mode2d()).toBe(true);
-      expect(service.orthographicProjection()).toBe(true);
+      // Perspective is dropped for a screen laid flat, which only the device knows it is.
+      expect(service.orthographicProjection()).toBe(false);
     });
 
     it.each([

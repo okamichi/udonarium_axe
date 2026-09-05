@@ -20,6 +20,84 @@
   >
     <div class="border-ui-accent border-l-2 border-solid pl-2">
       <span class="text-[12px] font-semibold tracking-wide">{{
+        'feature.tabletop.tabletopDisplaySetting.realSize' | transloco
+      }}</span>
+    </div>
+
+    <label class="flex cursor-pointer items-center gap-2 select-none">
+      <input
+        type="checkbox"
+        class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+        [(ngModel)]="viewLocked"
+        name="viewLocked"
+        data-testid="view-locked"
+      />
+      {{ 'feature.tabletop.tableSetting.viewLock' | transloco }}
+    </label>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <label class="flex cursor-pointer items-center gap-2 select-none">
+        <input
+          type="checkbox"
+          class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+          [(ngModel)]="realSizeEnabled"
+          name="realSizeEnabled"
+          data-testid="real-size-enabled"
+        />
+        {{ 'feature.tabletop.tableSetting.realSize' | transloco }}
+      </label>
+      <button
+        class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-2 py-0.5 text-[12px]"
+        type="button"
+        (click)="openCalibration()"
+      >
+        {{ 'feature.tabletop.tableSetting.realSizeCalibrate' | transloco }}
+      </button>
+    </div>
+
+    @if (isCalibrated()) {
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="text-ui-muted flex-1 text-[12px]">
+          {{ 'feature.tabletop.tableSetting.realSizeDpi' | transloco: { dpi: calibrationDpi() } }}
+        </span>
+        <button
+          class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-1.5 py-0.5 text-[12px]"
+          type="button"
+          (click)="nudgeScale(-1)"
+        >
+          {{ 'feature.tabletop.tableSetting.realSizeSmaller' | transloco }}
+        </button>
+        <button
+          class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-1.5 py-0.5 text-[12px]"
+          type="button"
+          (click)="nudgeScale(1)"
+        >
+          {{ 'feature.tabletop.tableSetting.realSizeLarger' | transloco }}
+        </button>
+      </div>
+    } @else {
+      <p class="text-ui-muted m-0 text-[11px]">
+        {{ 'feature.tabletop.tableSetting.realSizeUncalibrated' | transloco }}
+      </p>
+    }
+
+    @if (needsRecalibration()) {
+      <p class="m-0 text-[11px] text-amber-400">
+        {{ 'feature.tabletop.tableSetting.realSizeStale' | transloco }}
+      </p>
+    }
+
+    <button
+      class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover self-start border border-solid px-2 py-0.5 text-[12px]"
+      type="button"
+      (click)="resetCalibration()"
+      data-testid="reset-calibration"
+    >
+      {{ 'feature.tabletop.tableSetting.realSizeReset' | transloco }}
+    </button>
+
+    <div class="border-ui-accent border-l-2 border-solid pl-2">
+      <span class="text-[12px] font-semibold tracking-wide">{{
         'feature.tabletop.tabletopDisplaySetting.menuAndDisplay' | transloco
       }}</span>
     </div>

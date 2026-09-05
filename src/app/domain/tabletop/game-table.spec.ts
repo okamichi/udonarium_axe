@@ -124,8 +124,8 @@ describe('GameTable', () => {
     it('starts with shared tabletop-display options disabled', () => {
       const table = new GameTable();
       table.initialize();
-      expect(table.orthographicProjection).toBe(false);
       expect(table.terrainRotationIn2dEnabled).toBe(false);
+      expect(table.cellMm).toBe(25.4);
     });
 
     it('starts snapping to it', () => {

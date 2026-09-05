@@ -189,6 +189,18 @@ describe('NetworkEventHandlerService', () => {
     expect(openStandbySpy).toHaveBeenCalledTimes(1);
   });
 
+  it('stops after the limit on an error that keeps coming back', () => {
+    const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
+
+    // A token the cloud will not accept fails again the moment it is retried.
+    for (let i = 0; i < 10; i++) {
+      stubChange.networkError$.emit({ errorType: 'connectRtcApiFailed', errorMessage: '' });
+    }
+
+    expect(openStandbySpy).toHaveBeenCalledTimes(3);
+    expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(6);
+  });
+
   it('says a peer is reconnecting', () => {
     stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'retrying' });
 

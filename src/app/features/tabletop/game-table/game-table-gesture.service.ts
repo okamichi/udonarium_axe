@@ -6,6 +6,7 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { selectByRect } from '@axe/application/ui/rect-hit-test';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { TABLE_PERSPECTIVE_PX } from '@axe/domain/tabletop/physical-scale';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   MarqueeModifiers,
@@ -15,8 +16,6 @@ import {
 } from '@axe/features/tabletop/game-table/table-marquee-gesture';
 import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
 import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
-
-const TABLE_PERSPECTIVE_PX = 3000;
 
 @Injectable()
 export class GameTableGestureService {
@@ -39,6 +38,8 @@ export class GameTableGestureService {
 
   tiltLocked = false;
   orthographicProjection = false;
+  /** A display lying flat under miniatures is touched constantly; the view holds still. */
+  viewLocked = false;
 
   private frame: number | null = null;
   private turned = false;
@@ -155,6 +156,17 @@ export class GameTableGestureService {
     this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
   }
 
+  /**
+   * Puts the camera at a depth outright, rather than nudging it there.
+   *
+   * The zoom the gestures allow stops at life size, but a screen laid flat has to go past it
+   * for a square to measure an inch. This is the way past, and the reason the lock exists:
+   * once there, the gestures would pull the view straight back.
+   */
+  snapToViewPositionZ(viewPositionZ: number): void {
+    this.setTransform(0, 0, viewPositionZ - this.viewPositionZ, 0, 0, 0);
+  }
+
   private onTableTouchStart(): void {
     this.mouseGesture?.cancel();
     this.marqueeGesture?.cancel();
@@ -179,6 +191,13 @@ export class GameTableGestureService {
     srcEvent: TouchEvent | MouseEvent | PointerEvent
   ): void {
     if (!this.isTableTransformMode || document.body !== document.activeElement) return;
+
+    // Only the movement is dropped: the long press that opens the menu is a separate path,
+    // so a locked display can still be unlocked from it.
+    if (this.viewLocked) {
+      if (srcEvent.cancelable) srcEvent.preventDefault();
+      return;
+    }
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu && this.contextMenuService.isShow) {
       this.contextMenuService.close();
@@ -257,6 +276,12 @@ export class GameTableGestureService {
     }
 
     if (!this.isTableTransformMode || document.body !== document.activeElement) return;
+
+    // The marquee above still runs, since locking holds the view rather than the selection.
+    if (this.viewLocked) {
+      if ((srcEvent as Event).cancelable) (srcEvent as Event).preventDefault();
+      return;
+    }
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu && this.contextMenuService.isShow) {
       this.contextMenuService.close();

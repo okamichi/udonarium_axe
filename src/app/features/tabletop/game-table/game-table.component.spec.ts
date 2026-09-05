@@ -1,11 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ContextMenuService, ContextMenuType } from '@axe/application/ui/context-menu.service';
+import { ContextMenuAction, ContextMenuService, ContextMenuType } from '@axe/application/ui/context-menu.service';
+import { DisplayCalibrationService } from '@axe/application/ui/display-calibration.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import {
   TABLETOP_DISPLAY_SETTINGS_STORAGE_KEY,
   TabletopDisplaySettingsService,
 } from '@axe/application/ui/tabletop-display-settings.service';
+import { ViewLockService } from '@axe/application/ui/view-lock.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -82,7 +84,7 @@ describe('GameTableComponent', () => {
     it('uses scale-based zoom only while orthographic projection is enabled in 2D mode', async () => {
       component.gestureService.viewPositionZ = -3000;
       component.currentTable.mode2d = true;
-      component.currentTable.orthographicProjection = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
 
       syncMode2d(component);
       await nextFrame();
@@ -91,7 +93,7 @@ describe('GameTableComponent', () => {
         (component.gestureService as unknown as { gameTableEl: HTMLElement }).gameTableEl.style.transform
       ).toContain('scale(0.500000)');
 
-      component.currentTable.orthographicProjection = false;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: false });
       syncMode2d(component);
       await nextFrame();
       expect(component.gestureService.orthographicProjection).toBe(false);
@@ -103,7 +105,7 @@ describe('GameTableComponent', () => {
     it('removes the perspective from the tabletop viewport', async () => {
       component.currentTable.gridType = GridType.NONE;
       component.currentTable.mode2d = true;
-      component.currentTable.orthographicProjection = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
 
       fixture.detectChanges();
       await fixture.whenStable();
@@ -198,6 +200,206 @@ describe('GameTableComponent', () => {
       expect(model.actions[separatorIndexes[0] - 1].name).toBe('ダイスを作成');
       expect(model.actions[separatorIndexes[0] + 1].name).toBe('コインを作成');
       expect(model.rotatingGroups[0].actions).toHaveLength(separatorIndexes[0]);
+    });
+  });
+
+  describe('holding the view still', () => {
+    const position = { x: 0, y: 0, z: 0 };
+    const LOCK_OFF = '☐ ビューを固定';
+    const LOCK_ON = '☑ ビューを固定';
+
+    /** The table settings group, which is where the entry lives in the rotating menu. */
+    const rotatingSettingNames = (): string[] => {
+      const model = component.buildContextMenuModel(position);
+      const group = model.rotatingGroups.find((entry) => entry.name === 'テーブル設定');
+      return (group?.actions ?? []).map((action) => action.name);
+    };
+    const flatNames = (): string[] => component.buildContextMenuActions(position).map((action) => action.name);
+
+    beforeEach(() => {
+      (component.gestureService as unknown as { gameTableEl: HTMLElement }).gameTableEl = document.createElement('div');
+    });
+
+    it('offers the lock from both menus in 2D, since either one may be the one in use', () => {
+      component.currentTable.mode2d = true;
+
+      expect(rotatingSettingNames()).toContain(LOCK_OFF);
+      expect(flatNames()).toContain(LOCK_OFF);
+    });
+
+    it('leaves it out in 3D, where nothing is standing on the screen', () => {
+      component.currentTable.mode2d = false;
+
+      expect(rotatingSettingNames()).not.toContain(LOCK_OFF);
+      expect(flatNames()).not.toContain(LOCK_OFF);
+    });
+
+    it('flips the lock when the entry is chosen, and says so the next time it is read', () => {
+      component.currentTable.mode2d = true;
+      const lock = TestBed.inject(ViewLockService);
+      const toggle = component
+        .buildContextMenuActions(position)
+        .find((action) => action.name === LOCK_OFF) as ContextMenuAction;
+
+      toggle.action?.();
+
+      expect(lock.locked()).toBe(true);
+      expect(component.gestureService.viewLocked).toBe(true);
+      expect(flatNames()).toContain(LOCK_ON);
+    });
+
+    it('withholds the way back to real size until the screen has been measured', () => {
+      component.currentTable.mode2d = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+
+      expect(flatNames()).not.toContain('実寸に合わせ直す');
+
+      TestBed.inject(DisplayCalibrationService).calibrateFromCardRun(274, 1);
+
+      expect(flatNames()).toContain('実寸に合わせ直す');
+      expect(rotatingSettingNames()).toContain('実寸に合わせ直す');
+    });
+
+    it('reaches the camera once for a run of resizes, not once per event', async () => {
+      component.currentTable.mode2d = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+      component.gestureService.orthographicProjection = true;
+      component.currentTable.gridSize = 50;
+      const calibration = TestBed.inject(DisplayCalibrationService);
+      calibration.calibrateFromCardRun(274, 1);
+      calibration.setRealSizeEnabled(true);
+      TestBed.inject(ViewLockService).set(true);
+      const internals = component as unknown as { _initialized: boolean; setGameTableGrid(): void };
+      vi.spyOn(internals, 'setGameTableGrid').mockImplementation(() => undefined);
+      internals._initialized = true;
+      const snap = vi.spyOn(component.gestureService, 'snapToViewPositionZ');
+      // Let the setting up settle first, so only the resizes are counted.
+      await fixture.whenStable();
+      snap.mockClear();
+
+      // A drag of the window edge reports a resize on every pixel it passes.
+      for (let i = 0; i < 20; i++) component.onWindowResize();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      expect(snap).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves the camera alone on a resize while nothing is locked to real size', async () => {
+      component.currentTable.mode2d = true;
+      TestBed.inject(DisplayCalibrationService).calibrateFromCardRun(274, 1);
+      const snap = vi.spyOn(component.gestureService, 'snapToViewPositionZ');
+
+      component.onWindowResize();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      expect(snap).not.toHaveBeenCalled();
+    });
+
+    it('moves the board the moment the screen is measured, with nothing else to prompt it', async () => {
+      component.currentTable.mode2d = true;
+      component.currentTable.gridSize = 50;
+      const internals = component as unknown as { _initialized: boolean; setGameTableGrid(): void };
+      vi.spyOn(internals, 'setGameTableGrid').mockImplementation(() => undefined);
+      internals._initialized = true;
+      // syncMode2d writes this from the table, so setting it on the service alone would be undone.
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+      const calibration = TestBed.inject(DisplayCalibrationService);
+      // Let the table settle first, so nothing but the calibration is left to move the board.
+      await fixture.whenStable();
+      expect(component.gestureService.viewPositionZ).toBe(0);
+
+      // What confirming the calibration modal does, and nothing besides.
+      calibration.calibrateFromCardRun(274, 1);
+      calibration.setRealSizeEnabled(true);
+      await fixture.whenStable();
+
+      expect(component.gestureService.viewPositionZ).toBeCloseTo(1155.1, 1);
+    });
+
+    it('follows a nudge of the scale, which is how the last of it is settled by eye', async () => {
+      component.currentTable.mode2d = true;
+      component.currentTable.gridSize = 50;
+      const internals = component as unknown as { _initialized: boolean; setGameTableGrid(): void };
+      vi.spyOn(internals, 'setGameTableGrid').mockImplementation(() => undefined);
+      internals._initialized = true;
+      // syncMode2d writes this from the table, so setting it on the service alone would be undone.
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+      const calibration = TestBed.inject(DisplayCalibrationService);
+      calibration.calibrateFromCardRun(274, 1);
+      calibration.setRealSizeEnabled(true);
+      await fixture.whenStable();
+      const before = component.gestureService.viewPositionZ;
+      expect(before).toBeGreaterThan(0);
+
+      calibration.nudge(1);
+      await fixture.whenStable();
+
+      expect(component.gestureService.viewPositionZ).toBeGreaterThan(before);
+    });
+
+    it('hears the lock being set from the settings panel, not only from the menus', async () => {
+      component.currentTable.mode2d = true;
+      // Settle the table first: otherwise its own pending event would carry the lock across,
+      // and this would pass without the board ever having listened to the setting.
+      await fixture.whenStable();
+      expect(component.gestureService.viewLocked).toBe(false);
+
+      TestBed.inject(ViewLockService).set(true);
+      await fixture.whenStable();
+
+      expect(component.gestureService.viewLocked).toBe(true);
+    });
+
+    it('takes the lock with it when the view is put back on real size', () => {
+      component.currentTable.mode2d = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+      component.gestureService.orthographicProjection = true;
+      component.currentTable.gridSize = 50;
+      TestBed.inject(DisplayCalibrationService).calibrateFromCardRun(274, 1);
+      // Marking it ready wakes the grid redraw, which has no canvas to draw on here.
+      const internals = component as unknown as { _initialized: boolean; setGameTableGrid(): void };
+      vi.spyOn(internals, 'setGameTableGrid').mockImplementation(() => undefined);
+      internals._initialized = true;
+      const snap = component
+        .buildContextMenuActions(position)
+        .find((action) => action.name === '実寸に合わせ直す') as ContextMenuAction;
+
+      snap.action?.();
+
+      expect(TestBed.inject(ViewLockService).locked()).toBe(true);
+      // 3000 * (1 - 1/1.626): the depth at which one square measures an inch.
+      expect(component.gestureService.viewPositionZ).toBeCloseTo(1155.1, 1);
+    });
+
+    it('offers no way back to real size under perspective, where there is no one scale', () => {
+      component.currentTable.mode2d = true;
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: false });
+      TestBed.inject(DisplayCalibrationService).calibrateFromCardRun(274, 1);
+
+      expect(flatNames()).not.toContain('実寸に合わせ直す');
+
+      TestBed.inject(TabletopDisplaySettingsService).patch({ enabled: true });
+
+      expect(flatNames()).toContain('実寸に合わせ直す');
+    });
+
+    it('holds the camera still under perspective, however the snap is reached', async () => {
+      component.currentTable.mode2d = true;
+      component.currentTable.gridSize = 50;
+      const internals = component as unknown as { _initialized: boolean; setGameTableGrid(): void };
+      vi.spyOn(internals, 'setGameTableGrid').mockImplementation(() => undefined);
+      internals._initialized = true;
+      const calibration = TestBed.inject(DisplayCalibrationService);
+      calibration.calibrateFromCardRun(274, 1);
+      calibration.setRealSizeEnabled(true);
+      await fixture.whenStable();
+      // syncMode2d leaves the service flat only when the table asks for it, which it has not.
+      expect(component.gestureService.orthographicProjection).toBe(false);
+
+      component.onWindowResize();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      expect(component.gestureService.viewPositionZ).toBe(0);
     });
   });
 

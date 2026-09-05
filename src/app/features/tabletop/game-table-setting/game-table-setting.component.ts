@@ -47,6 +47,7 @@ import {
   ZOC_MODES,
   ZocMode,
 } from '@axe/domain/tabletop/move/zone-of-control';
+import { cellWidthInches, clampCellMm, DEFAULT_CELL_MM } from '@axe/domain/tabletop/physical-scale';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
@@ -74,13 +75,13 @@ export class GameTableSettingComponent {
     this.objectChange.trackMyCursor();
     return !this.rolePermission.canEditTabletop;
   });
-  private readonly modalService = inject(ModalService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly imageService = inject(ImageService);
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectSerializer = inject(ObjectSerializer);
   private readonly tableSelecter = inject(TableSelecter);
+  private readonly modalService = inject(ModalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly visionService = inject(VisionService);
   private readonly cutInService = inject(CutInService);
@@ -192,15 +193,6 @@ export class GameTableSettingComponent {
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
-  get tableOrthographicProjection(): boolean {
-    return this.selectedTable?.orthographicProjection ?? false;
-  }
-  set tableOrthographicProjection(value: boolean) {
-    if (!this.selectedTable) return;
-    this.selectedTable.orthographicProjection = value;
-    triggerUpdateGameObject(this.selectedTable.toContext());
-  }
-
   get tableTerrainRotationIn2dEnabled(): boolean {
     return this.selectedTable?.terrainRotationIn2dEnabled ?? false;
   }
@@ -209,6 +201,33 @@ export class GameTableSettingComponent {
     this.selectedTable.terrainRotationIn2dEnabled = value;
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
+
+  /** The width of a square belongs to the map, so it is kept on the table with the grid size. */
+  get cellMm(): number {
+    return clampCellMm(this.selectedTable?.cellMm ?? DEFAULT_CELL_MM);
+  }
+  set cellMm(value: number) {
+    if (!this.selectedTable) return;
+    this.selectedTable.cellMm = clampCellMm(value);
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  /**
+   * What a square comes to on this screen, read at a glance rather than worked out.
+   *
+   * The game distance is the table's own, edited with the move settings, so the check reads
+   * that rather than keeping a second count of its own.
+   */
+  readonly cellSummary = computed(() => {
+    this.objectChange.versionOf(this.selectedTable?.identifier ?? '')();
+    const mm = clampCellMm(this.selectedTable?.cellMm ?? DEFAULT_CELL_MM);
+    return {
+      mm: round1(mm),
+      inches: round2(cellWidthInches(mm)),
+      distance: this.selectedTable?.cellDistance ?? DEFAULT_CELL_DISTANCE,
+      unit: parseMoveUnit(this.selectedTable?.cellDistanceUnit) ?? DEFAULT_CELL_DISTANCE_UNIT,
+    };
+  });
 
   readonly facingMarks = TABLE_FACING_MARKS;
 
@@ -792,4 +811,12 @@ export class GameTableSettingComponent {
 function wholeCells(value: number): number {
   const cells = Math.floor(Number(value));
   return Number.isFinite(cells) && cells > 0 ? cells : 0;
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
 }
