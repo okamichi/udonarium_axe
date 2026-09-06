@@ -1,0 +1,1 @@
+import{Ti as oe}from"./chunk-CYPryytA.js";var s=oe.instance;export{s as t};
