@@ -32,6 +32,7 @@ import { ViewModePreferenceService } from '@axe/application/ui/view-mode-prefere
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WIDGET_FAB } from '@axe/application/ui/widget-place';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
+import { BrowserAutomationAdapter } from '@axe/composition/automation/browser-automation-adapter';
 import { Network } from '@axe/core/network/network';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -41,6 +42,7 @@ import { FAB_ENTRIES, FabEntry } from '@axe/domain/ui/fab-menu';
 import { RoomPanelName } from '@axe/domain/ui/room-panel';
 import { nextViewMode, viewModeIcon, viewModeLabelKey } from '@axe/domain/ui/view-mode';
 import { AlarmEventHandlerService } from '@axe/features/alarm/alarm-event-handler.service';
+import { AutomationControlComponent } from '@axe/features/automation/automation-control.component';
 import { CardStackListImageComponent } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
 import { HandDragGhostComponent } from '@axe/features/card/hand-rail/hand-drag-ghost.component';
 import { HandRailComponent } from '@axe/features/card/hand-rail/hand-rail.component';
@@ -107,6 +109,7 @@ const FAB_MARGIN_PX = 12;
   selector: 'app-root',
   templateUrl: './app.component.html',
   imports: [
+    AutomationControlComponent,
     GameTableComponent,
     NetworkIndicatorComponent,
     MiniJukeboxComponent,
@@ -140,6 +143,7 @@ const FAB_MARGIN_PX = 12;
   host: { '(window:resize)': 'measureFabSides()' },
 })
 export class AppComponent {
+  readonly automation = inject(BrowserAutomationAdapter);
   readonly theme = inject(ThemeService);
   readonly motion = inject(MotionService);
   readonly language = inject(LanguageService);

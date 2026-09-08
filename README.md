@@ -1,4 +1,7 @@
-# Udonarium Axe
+# Udonarium Axe with MCP, draft version
+
+> **AI と一緒にセッション操作。** Claude Code などから MCP 経由で、部屋やコマの確認・コマの移動・チャット送信ができる実験的な実装です。
+> [▶ デモ動画を見る](mcp.mp4) · [MCP の導入手順](tools/mcp-server/README.md)
 
 [![Latest release](https://img.shields.io/github/v/release/Xelltis/udonarium_axe?logo=github)](https://github.com/Xelltis/udonarium_axe/releases/latest)
 [![Release](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml/badge.svg)](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml)
@@ -158,14 +161,15 @@ npm run e2e        # Playwright E2E
 
 詳細な開発規範は以下を参照してください。
 
-| ドキュメント                                           | 内容                               |
-| ------------------------------------------------------ | ---------------------------------- |
-| [CLAUDE.md](CLAUDE.md)                                 | 開発規範の最小セット（まずはここ） |
-| [docs/features.md](docs/features.md)                   | Axe で追加・拡張した機能の一覧     |
-| [docs/multi-angle.md](docs/multi-angle.md)             | 2D 多方向閲覧と外周ティッカー      |
-| [docs/architecture.md](docs/architecture.md)           | 7 層アーキテクチャと設計思想       |
-| [docs/coding-guidelines.md](docs/coding-guidelines.md) | コーディング規範・コードスタイル   |
-| [docs/contribution.md](docs/contribution.md)           | コミット規約・lefthook フック      |
+| ドキュメント                                             | 内容                               |
+| -------------------------------------------------------- | ---------------------------------- |
+| [CLAUDE.md](CLAUDE.md)                                   | 開発規範の最小セット（まずはここ） |
+| [docs/features.md](docs/features.md)                     | Axe で追加・拡張した機能の一覧     |
+| [docs/multi-angle.md](docs/multi-angle.md)               | 2D 多方向閲覧と外周ティッカー      |
+| [docs/architecture.md](docs/architecture.md)             | 7 層アーキテクチャと設計思想       |
+| [docs/coding-guidelines.md](docs/coding-guidelines.md)   | コーディング規範・コードスタイル   |
+| [docs/contribution.md](docs/contribution.md)             | コミット規約・lefthook フック      |
+| [tools/mcp-server/README.md](tools/mcp-server/README.md) | MCPによるAI操作の導入と使い方      |
 
 ## ライセンス
 

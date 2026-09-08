@@ -222,7 +222,7 @@ export class MovePlanService {
    * Nothing else may be asked of the plan while it walks: the piece is between cells, and a
    * second move begun over the top of this one would leave it there.
    */
-  async run(): Promise<boolean> {
+  async run(beforeStep?: () => void): Promise<boolean> {
     const plan = this.held();
     if (!plan || this.walking) return false;
     const way = this.wholeWay();
@@ -238,21 +238,28 @@ export class MovePlanService {
     }
 
     this.walking = true;
+    let expectedVersion = character.version;
     try {
       const corner = cornerShiftOf(character, table.gridSize);
       const steps = way.slice(1);
       for (const [index, cell] of steps.entries()) {
+        if (beforeStep) {
+          beforeStep();
+          if (character.version !== expectedVersion || this.objectStore.get(character.identifier) !== character) {
+            return false;
+          }
+        }
         const centre = cellCenterOf(plan.grid, cell);
-        character.location.x = centre.x - corner;
-        character.location.y = centre.y - corner;
-        character.update();
+        character.location = { ...character.location, x: centre.x - corner, y: centre.y - corner };
         // Sprung on arrival rather than once the walking is over, so what the ground does
         // happens where the piece is standing when it does it.
         this.triggerFire.stepped(character, plan.grid, cell, index === steps.length - 1);
+        expectedVersion = character.version;
         await new Promise((rest) => setTimeout(rest, MOVE_STEP_MS));
       }
     } finally {
       this.walking = false;
+      this.close();
     }
     SoundEffect.play(PresetSound.piecePut);
     this.close();
