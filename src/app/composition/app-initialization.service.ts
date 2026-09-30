@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
+import { TtsCoordinatorService } from '@axe/application/tts/tts-coordinator.service';
 import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { AppConfigService } from '@axe/composition/app-config.service';
 import { initializeNetworkMessaging } from '@axe/core/network/network-messaging';
@@ -44,6 +45,7 @@ const PREFETCH_FALLBACK_DELAY_MS = 1500;
 
 @Injectable({ providedIn: 'root' })
 export class AppInitializationService {
+  private readonly tts = inject(TtsCoordinatorService);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly appConfigService = inject(AppConfigService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -67,6 +69,7 @@ export class AppInitializationService {
    */
   initialize(): void {
     initializeNetworkMessaging();
+    this.tts.initialize();
     this.fileArchiver.initialize();
     ImageSharingSystem.instance.initialize();
     AudioSharingSystem.instance.initialize();

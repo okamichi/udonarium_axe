@@ -30,6 +30,8 @@ export interface ChatMessageContext {
   dicebot?: string;
   imageIdentifier?: string;
   attachmentImageIdentifiers?: string;
+  ttsAttachment?: string;
+  ttsSpeech?: boolean | 'true';
 
   imagePos?: number;
   messColor?: string;
@@ -44,6 +46,8 @@ export interface ChatMessageContext {
 
 @SyncObject('chat')
 export class ChatMessage extends ObjectNode implements ChatMessageContext {
+  @SyncVar() ttsAttachment: string;
+  @SyncVar() ttsSpeech: boolean | 'true';
   @SyncVar() originFrom: string;
   @SyncVar() from: string;
   @SyncVar() to: string;

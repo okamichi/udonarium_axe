@@ -46,6 +46,7 @@ import { ChatComposeService } from '@axe/features/chat/chat-compose.service';
 import { buildChatMessageContextMenu } from '@axe/features/chat/chat-message/chat-message-context-menu';
 import { formatChatTickerMessage } from '@axe/features/chat/chat-ticker/chat-ticker-layout';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
+import { TtsMessageAudioComponent } from '@axe/features/tts/tts-message-audio.component';
 import { vnEmoteLabels } from '@axe/features/visual-novel/visual-novel-emote-label';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
@@ -62,7 +63,17 @@ import { TranslocoModule } from '@jsverse/transloco';
     '[class.chat-message-highlight]': 'isHighlighted()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, NgStyle, DatePipe, FormsModule, LinkifyPipe, ChatColorStylePipe, SafePipe, TranslocoModule],
+  imports: [
+    TtsMessageAudioComponent,
+    NgClass,
+    NgStyle,
+    DatePipe,
+    FormsModule,
+    LinkifyPipe,
+    ChatColorStylePipe,
+    SafePipe,
+    TranslocoModule,
+  ],
 })
 export class ChatMessageComponent {
   /** The panels a bubble has to read against, which a skin may have moved. */

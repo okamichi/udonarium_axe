@@ -55,6 +55,119 @@ describe('SkyWayDataStream', () => {
   });
 });
 
+describe('releasing SDK subscriptions when reconnecting', () => {
+  function fixture() {
+    const publication = { id: 'publication-a', contentType: 'data', metadata: 'udonarium-data-stream' };
+    const subscription = {
+      id: 'subscription-a',
+      publication,
+      state: 'subscribed',
+      onConnectionStateChanged: { add: vi.fn(() => ({ removeListener: vi.fn() })) },
+    };
+    const person = {
+      state: 'joined',
+      subscriptions: [] as (typeof subscription)[],
+      subscribe: vi.fn().mockResolvedValue({ subscription }),
+      unsubscribe: vi.fn().mockImplementation(async () => {
+        person.subscriptions = [];
+      }),
+    };
+    const stream = SkyWayDataStream.createSubscription(
+      { room: undefined, roomPerson: person } as never,
+      { peerId: 'peer-a', userId: 'user-a', password: '' } as never
+    );
+    vi.spyOn(stream, 'member', 'get').mockReturnValue({ publications: [publication] } as never);
+    const inner = stream as unknown as {
+      initializeSubscription(): Promise<void>;
+      refresh(): void;
+      onStateChanged(state: string): void;
+      subscription: typeof subscription | null;
+    };
+    vi.spyOn(inner, 'refresh').mockImplementation(() => {});
+    return { stream, inner, person, subscription };
+  }
+
+  it('releases the previous subscription before subscribing again', async () => {
+    const { inner, person, subscription } = fixture();
+    person.subscriptions.push(subscription);
+    person.subscribe.mockImplementation(async () => {
+      expect(person.subscriptions).toHaveLength(0);
+      return { subscription };
+    });
+    await inner.initializeSubscription();
+    expect(person.unsubscribe).toHaveBeenCalledWith(subscription.id);
+    expect(person.subscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases a disconnected subscription instead of losing its reference', async () => {
+    const { stream, inner, person, subscription } = fixture();
+    await inner.initializeSubscription();
+    stream.on('close', () => stream.disconnect());
+    inner.onStateChanged('disconnected');
+    expect(person.unsubscribe).toHaveBeenCalledWith(subscription.id);
+    expect(inner.subscription).toBeNull();
+  });
+
+  it('releases a subscribe that completes after cancellation without attaching listeners', async () => {
+    const { stream, inner, person, subscription } = fixture();
+    let resolve!: (value: { subscription: typeof subscription }) => void;
+    person.subscribe.mockReturnValue(
+      new Promise((done) => {
+        resolve = done;
+      })
+    );
+    const connecting = inner.initializeSubscription();
+    stream.disconnect();
+    resolve({ subscription });
+    await connecting;
+    expect(person.unsubscribe).toHaveBeenCalledWith(subscription.id);
+    expect(subscription.onConnectionStateChanged.add).not.toHaveBeenCalled();
+    expect(inner.subscription).toBeNull();
+  });
+
+  it('does not start concurrent subscriptions on the same stream', async () => {
+    const { inner, person, subscription } = fixture();
+    let resolve!: (value: { subscription: typeof subscription }) => void;
+    person.subscribe.mockReturnValue(
+      new Promise((done) => {
+        resolve = done;
+      })
+    );
+    const first = inner.initializeSubscription();
+    await inner.initializeSubscription();
+    expect(person.subscribe).toHaveBeenCalledTimes(1);
+    resolve({ subscription });
+    await first;
+  });
+
+  it('waits for an unsubscribe already in progress before reconnecting', async () => {
+    const { stream, inner, person, subscription } = fixture();
+    await inner.initializeSubscription();
+    person.subscriptions.push(subscription);
+    let release!: () => void;
+    person.unsubscribe.mockReturnValue(
+      new Promise<void>((done) => {
+        release = done;
+      })
+    );
+    stream.disconnect();
+    const retry = SkyWayDataStream.createSubscription(
+      { room: undefined, roomPerson: person } as never,
+      { peerId: 'peer-a', userId: 'user-a', password: '' } as never
+    );
+    vi.spyOn(retry, 'member', 'get').mockReturnValue({ publications: [subscription.publication] } as never);
+    const retryInner = retry as unknown as { initializeSubscription(): Promise<void>; refresh(): void };
+    vi.spyOn(retryInner, 'refresh').mockImplementation(() => {});
+    const reconnecting = retryInner.initializeSubscription();
+    expect(person.unsubscribe).toHaveBeenCalledTimes(1);
+    expect(person.subscribe).toHaveBeenCalledTimes(1);
+    person.subscriptions = [];
+    release();
+    await reconnecting;
+    expect(person.subscribe).toHaveBeenCalledTimes(2);
+  });
+});
+
 it('starts with its fields empty', () => {
   const stream = SkyWayDataStream.createSubscription(
     { room: undefined } as never,

@@ -46,6 +46,7 @@ import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
 import { ChatTabStripComponent } from '@axe/features/chat/chat-tab-strip/chat-tab-strip.component';
 import { RoomPanelService } from '@axe/features/panels/room-panel.service';
+import { TtsControlsComponent } from '@axe/features/tts/tts-controls.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -459,6 +460,15 @@ export class ChatWindowComponent {
     };
     const component = this.panelService.open<ChatMessageSettingComponent>(ChatMessageSettingComponent, option);
     component.chatTabidentifier = this.chatTabidentifier;
+  }
+
+  showTtsSetting() {
+    const coordinate = this.pointerDeviceService.pointers[0];
+    const component = this.panelService.open<TtsControlsComponent>(TtsControlsComponent, {
+      title: this.t('feature.chat.window.ttsSetting'),
+      ...sheetPanelBox(coordinate, 580, 420),
+    });
+    component.tabId = this.chatTabidentifier;
   }
 
   /** Opens the vote menu near the pointer for the current tab, loading it on first use. */

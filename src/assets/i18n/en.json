@@ -2773,6 +2773,7 @@
         "tabSetting": "Tab settings",
         "diceTableSetting": "Dice tables",
         "chatSetting": "Chat settings",
+        "ttsSetting": "TTS settings",
         "titleWithTab": "Chat - {{tab}}",
         "voteMenuTitle": "Vote / Roll call",
         "alarmMenuTitle": "Alarm timer",

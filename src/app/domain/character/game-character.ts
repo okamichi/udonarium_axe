@@ -41,6 +41,7 @@ import {
 
 @SyncObject('character')
 export class GameCharacter extends OwnedTabletopObject {
+  @SyncVar() ttsVoice: string;
   @SyncVar() owner: string = '';
   @SyncVar() partyIdentifier: string = '';
   @SyncVar() folderName: string = '';

@@ -14,6 +14,7 @@ import {
 } from '@axe/application/chat/chat-message-helpers';
 import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { TtsCoordinatorService } from '@axe/application/tts/tts-coordinator.service';
 import { emitDiceTableMessage, emitResourceEditMessage, emitSendMessage } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
@@ -37,6 +38,7 @@ const HOURS = 60 * 60 * 1000;
 
 @Injectable()
 export class ChatMessageService {
+  private readonly tts = inject(TtsCoordinatorService);
   private readonly objectStore = inject(ObjectStore);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly imageStorage = inject(ImageStorage);
@@ -296,6 +298,10 @@ export class ChatMessageService {
     const portrait = this.applyPortraitCommand(chatMessage, text, sendFrom, imgIndex);
     this.setLastControlInfoToPeer(sendFrom, portrait.identifier, portrait.index, sendTo);
 
+    const ttsSpeech =
+      !gameSystem?.COMMAND_PATTERN?.test(toHalfWidth(chatMessage.text ?? '')) &&
+      !/^[sｓＳ]?[tｔＴ]?[:：&＆]/i.test(chatMessage.text ?? '');
+    if (ttsSpeech) chatMessage.ttsSpeech = true;
     const chat = chatTab.addMessage(chatMessage);
 
     const eventPlan = emitChatMessageEvents(messageTargetContext ?? undefined);
@@ -311,6 +317,7 @@ export class ChatMessageService {
       messageTargetContext: eventPlan.resourceEditTargetContext,
     });
 
+    if (ttsSpeech) void this.tts.onNewMessage(chat).catch(() => undefined);
     return chat;
   }
 

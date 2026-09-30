@@ -138,6 +138,14 @@
               <i class="material-icons align-middle text-base!">tune</i
               >{{ 'feature.chat.window.chatSetting' | transloco }}
             </button>
+            <button
+              type="button"
+              class="text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-none bg-transparent px-4 py-1.5 text-left text-[12px] shadow-none transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[15px]! [&_.material-icons]:opacity-80"
+              (click)="showTtsSetting(); chatSettings.open = false"
+            >
+              <i class="material-icons align-middle text-base!">record_voice_over</i
+              >{{ 'feature.chat.window.ttsSetting' | transloco }}
+            </button>
           </div>
         </details>
       </div>

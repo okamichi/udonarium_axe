@@ -47,8 +47,8 @@ const FEATURE_DEPENDENCIES: Record<string, readonly string[]> = {
   alarm: [],
   buff: [],
   card: [],
-  character: ['card', 'data-element', 'disclosure', 'tabletop'],
-  chat: ['data-element', 'hotbar', 'visual-novel'],
+  character: ['card', 'data-element', 'disclosure', 'tabletop', 'tts'],
+  chat: ['data-element', 'hotbar', 'visual-novel', 'tts'],
   coin: [],
   controller: [],
   'data-element': ['tabletop'],
@@ -74,6 +74,7 @@ const FEATURE_DEPENDENCIES: Record<string, readonly string[]> = {
   'streaming-overlay': [],
   tabletop: ['card', 'character', 'coin', 'dice', 'disclosure', 'effect', 'lobby', 'map-editor', 'replay'],
   'visual-novel': ['character', 'chat'],
+  tts: [],
   vote: [],
   widgets: [],
 };

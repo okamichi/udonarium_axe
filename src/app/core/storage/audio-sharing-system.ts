@@ -34,6 +34,11 @@ export class AudioSharingSystem {
    */
   preferredIdentifiers: () => readonly string[] = () => [];
 
+  readonly ttsPreferred = new Set<string>();
+  readonly excludedTts = new Set<string>();
+  isTransferring(identifier: string): boolean {
+    return this.sendTaskMap.has(identifier) || this.receiveTaskMap.has(identifier);
+  }
   private constructor() {}
 
   /**
@@ -58,9 +63,10 @@ export class AudioSharingSystem {
             const otherCatalog: CatalogItem[] = msg.data as CatalogItem[];
             const request: CatalogItem[] = [];
             for (const item of otherCatalog) {
+              if (this.excludedTts.has(item.identifier)) continue;
               let audio = AudioStorage.instance.get(item.identifier);
               if (audio === null) {
-                audio = AudioFile.createEmpty(item.identifier, item.name);
+                audio = AudioFile.createEmpty(item.identifier, item.name, item.category);
                 AudioStorage.instance.add(audio);
               }
               if (audio.state < AudioState.COMPLETE && !this.receiveTaskMap.has(item.identifier)) {
@@ -112,7 +118,7 @@ export class AudioSharingSystem {
           case 'START_AUDIO_TRANSMISSION': {
             const identifier: string = (msg.data as { fileIdentifier: string }).fileIdentifier;
             const audio = AudioStorage.instance.get(identifier);
-            if (this.receiveTaskMap.has(identifier) || audio?.isReady) {
+            if (this.excludedTts.has(identifier) || this.receiveTaskMap.has(identifier) || audio?.isReady) {
               Logger.warn('[AudioSync] タスクキャンセル', identifier);
               networkSend(`CANCEL_TASK_${identifier}`, null, msg.sendFrom);
             } else {
@@ -132,7 +138,7 @@ export class AudioSharingSystem {
 
   /** The audio to ask for next: a preferred one if it is wanted, otherwise any of them. */
   private pickRequest(request: readonly CatalogItem[]): CatalogItem {
-    const preferred = this.preferredIdentifiers();
+    const preferred = [...this.preferredIdentifiers(), ...this.ttsPreferred];
     const wanted = request.find((item) => preferred.includes(item.identifier));
     return wanted ?? request[Math.floor(Math.random() * request.length)];
   }
@@ -144,6 +150,7 @@ export class AudioSharingSystem {
     networkSend('START_AUDIO_TRANSMISSION', { fileIdentifier: audio.identifier }, sendTo);
 
     const context: AudioFileContext = {
+      ...(audio.isTts ? { category: 'tts' as const } : {}),
       identifier: audio.identifier,
       name: audio.name,
       blob: null,

@@ -2773,6 +2773,7 @@
         "tabSetting": "탭 설정",
         "diceTableSetting": "주사위 표 설정",
         "chatSetting": "채팅 설정",
+        "ttsSetting": "TTS 설정",
         "titleWithTab": "채팅 창 - {{tab}}",
         "voteMenuTitle": "점호/투표 설정",
         "alarmMenuTitle": "알람 타이머",

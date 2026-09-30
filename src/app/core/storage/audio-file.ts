@@ -8,6 +8,7 @@ export enum AudioState {
 }
 
 export interface AudioFileContext {
+  category?: 'tts';
   identifier: string;
   name: string;
   type: string;
@@ -66,6 +67,11 @@ export class AudioFile {
     return AudioState.COMPLETE;
   }
 
+  /** Session-only generated speech, independent of the user-visible filename. */
+  get isTts(): boolean {
+    return this.context.category === 'tts';
+  }
+
   isHidden: boolean = false;
 
   /** ObjectURL for embedded album artwork (null if none, undefined if not yet extracted) */
@@ -86,10 +92,11 @@ export class AudioFile {
    * A placeholder for audio known only from a peer's catalogue, holding the identifier
    * and name until the bytes arrive.
    */
-  static createEmpty(identifier: string, name?: string): AudioFile {
+  static createEmpty(identifier: string, name?: string, category?: 'tts'): AudioFile {
     const audio = new AudioFile();
     audio.context.identifier = identifier;
     if (name) audio.context.name = name;
+    if (category === 'tts') audio.context.category = category;
 
     return audio;
   }
@@ -149,6 +156,7 @@ export class AudioFile {
     this.context.identifier ||= context.identifier;
     if (context.name) this.context.name = context.name;
     const hadBlob = !!this.context.blob;
+    if (!hadBlob && context.category === 'tts') this.context.category = 'tts';
     this.context.blob ??= context.blob;
     this.context.type ||= context.type;
     this.context.url ||= context.url;

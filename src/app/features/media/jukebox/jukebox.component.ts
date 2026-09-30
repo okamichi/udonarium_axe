@@ -96,7 +96,7 @@ export class JukeboxComponent {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('audio-tag')();
     this.objectChange.versionOf('Jukebox')();
-    const all = this.audioStorage.audios.filter((audio) => !audio.isHidden);
+    const all = this.audioStorage.audios.filter((audio) => !audio.isHidden && !audio.isTts);
     const tag = this.selectTag();
     if (tag === this.allTag()) return all;
     return all.filter((audio) => {
@@ -115,7 +115,9 @@ export class JukeboxComponent {
     this.objectChange.versionOf('Playlist')();
     this.objectChange.versionOf('Jukebox')();
     const entries = this.playlist?.entries ?? [];
-    return entries.map((id) => this.audioStorage.get(id)).filter((a): a is AudioFile => a !== null && !a.isHidden);
+    return entries
+      .map((id) => this.audioStorage.get(id))
+      .filter((a): a is AudioFile => a !== null && !a.isHidden && !a.isTts);
   });
 
   private dragFromIndex: number | null = null;
@@ -125,7 +127,7 @@ export class JukeboxComponent {
     this.objectChange.collectionOf('audio-tag')();
     const tags = new Set<string>(JukeboxComponent.PRESET_TAGS);
     for (const audio of this.audioStorage.audios) {
-      if (audio.isHidden) continue;
+      if (audio.isHidden || audio.isTts) continue;
       const audioTag = AudioTag.get(audio.identifier);
       const t = audioTag?.tag || 'BGM';
       tags.add(t);

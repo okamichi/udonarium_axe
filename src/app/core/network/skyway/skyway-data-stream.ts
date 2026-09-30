@@ -11,6 +11,7 @@ import { setZeroTimeout } from '@axe/core/util/zero-timeout';
 import {
   isRemoteMember,
   LocalDataStream,
+  LocalPerson,
   P2PConnection,
   Publication,
   RemoteDataStream,
@@ -33,6 +34,7 @@ interface Ping {
 
 export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   static readonly STALE_TIMEOUT_MS = 25000;
+  private static readonly unsubscriptions = new WeakMap<Subscription, Promise<void>>();
 
   readonly peer: PeerContext;
 
@@ -91,7 +93,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   isPublication = false;
   private isCanceled = false;
   private isRejected = false;
-  private isOpened = false;
+  private isSubscribing = false;
 
   private state: TransportConnectionState = 'new';
   private subscription: Subscription<RemoteDataStream> | null = null;
@@ -153,16 +155,12 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   /**
    * Closes the stream.
    *
-   * An open stream is disposed at once, with its listeners removed and no close event. One that has
-   * not opened yet has its channel closed as soon as it appears.
+   * Removes listeners immediately, including while subscribe is still pending. A subscription
+   * that finishes after cancellation is released without opening the stream.
    */
   disconnect() {
     this.isCanceled = true;
-    if (this.isOpened) {
-      this.dispose();
-    } else {
-      this.refresh();
-    }
+    this.dispose();
   }
 
   /** Refuses the peer's connection, setting the stream up only to close its channel straight away. */
@@ -184,12 +182,29 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.onStreamPublished = null;
     this.onConnectionStateChanged = null;
 
+    const subscription = this.subscription;
     this.subscription = null;
+    if (!this.isPublication && subscription && this.skyWay.roomPerson) {
+      void SkyWayDataStream.unsubscribe(this.skyWay.roomPerson, subscription).catch((error) => {
+        Logger.warn('[SkyWay] サブスクリプション解除エラー', error);
+      });
+    }
 
     this.dataChannel?.removeEventListener('open', this.onopen);
     this.dataChannel?.removeEventListener('message', this.onmessage);
     this.dataChannel?.close();
     this.dataChannel = null;
+  }
+
+  private static unsubscribe(person: LocalPerson, subscription: Subscription): Promise<void> {
+    const pending = this.unsubscriptions.get(subscription);
+    if (pending) return pending;
+    if (person.state !== 'joined' || subscription.state === 'canceled') return Promise.resolve();
+    const task = person.unsubscribe(subscription.id).finally(() => {
+      this.unsubscriptions.delete(subscription);
+    });
+    this.unsubscriptions.set(subscription, task);
+    return task;
   }
 
   private initializePublication() {
@@ -219,6 +234,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   private async initializeSubscription() {
+    if (this.isCanceled || this.isSubscribing) return;
     const member = this.member;
     if (!member) {
       Logger.warn(`[SkyWay] メンバーが見つかりません: ${this.peer.peerId}`);
@@ -248,10 +264,19 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     }
 
     this.refresh();
+    this.isSubscribing = true;
     try {
       const roomPerson = this.skyWay.roomPerson;
       if (!roomPerson) return;
+      // A failed subscribe can leave an SDK subscription even when no stream opened.
+      const previous = roomPerson.subscriptions.find((s) => s.publication.id === publication.id);
+      if (previous) await SkyWayDataStream.unsubscribe(roomPerson, previous);
+      if (this.isCanceled) return;
       const { subscription } = await roomPerson.subscribe<RemoteDataStream>(publication.id);
+      if (this.isCanceled) {
+        await SkyWayDataStream.unsubscribe(roomPerson, subscription);
+        return;
+      }
 
       this.onConnectionStateChanged?.removeListener();
       this.onConnectionStateChanged = subscription.onConnectionStateChanged.add((state) => {
@@ -262,21 +287,22 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
       this.refresh();
     } catch (e) {
+      if (this.isCanceled) return;
       if (e instanceof Error) {
         Logger.warn('[SkyWay] サブスクリプションエラー', e);
       } else {
         Logger.error('[SkyWay] サブスクリプションエラー', e);
       }
 
-      this.subscription = null;
       this.state = 'disconnected';
       this.emit('close');
+    } finally {
+      this.isSubscribing = false;
     }
   }
 
   private onStateChanged(state: TransportConnectionState) {
     if (state === 'disconnected') {
-      this.subscription = null;
       this.emit('close');
       return;
     }
@@ -286,6 +312,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   private refresh() {
+    if (this.isCanceled) return;
     const member = this.member;
 
     const p2pconnection = (
@@ -331,12 +358,10 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     if (isOpen !== this.peer.isOpen) {
       this.peer.isOpen = isOpen;
       if (isOpen) {
-        this.isOpened = true;
         this.state = 'connected';
         this.resetTimestamp();
         this.emit('open');
       } else {
-        this.subscription = null;
         this.state = 'disconnected';
         this.emit('close');
       }

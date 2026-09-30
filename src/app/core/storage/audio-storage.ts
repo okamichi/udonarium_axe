@@ -1,8 +1,10 @@
+import { EventChannel } from '@axe/core/event/event-channel';
 import { networkSend } from '@axe/core/network/network-messaging';
 import { AudioFile, AudioFileContext, AudioState } from '@axe/core/storage/audio-file';
 import { CatalogSendSchedule } from '@axe/core/storage/catalog-send-schedule';
 
 export type CatalogItem = {
+  readonly category?: 'tts';
   readonly identifier: string;
   readonly state: number;
   readonly name?: string;
@@ -19,6 +21,7 @@ export class AudioStorage {
   private readonly catalogSchedule = new CatalogSendSchedule((peer) =>
     networkSend('SYNCHRONIZE_AUDIO_LIST', this.getCatalog(), peer)
   );
+  readonly changes = new EventChannel<string>();
   private hash: { [identifier: string]: AudioFile } = {};
 
   /** Every audio this seat knows of, including placeholders whose bytes have not arrived. */
@@ -71,6 +74,7 @@ export class AudioStorage {
     if (AudioState.COMPLETE <= audio.state) this.catalogSchedule.whenQuiet(100);
     if (this.update(audio)) return this.hash[audio.identifier];
     this.hash[audio.identifier] = audio;
+    this.changes.emit(audio.identifier);
     return audio;
   }
 
@@ -78,6 +82,7 @@ export class AudioStorage {
     const updateAudio: AudioFile = this.hash[audio.identifier];
     if (updateAudio) {
       updateAudio.apply(audio instanceof AudioFile ? audio.toContext() : audio);
+      this.changes.emit(audio.identifier);
       return true;
     }
     return false;
@@ -92,6 +97,7 @@ export class AudioStorage {
     if (audio) {
       audio.destroy();
       delete this.hash[identifier];
+      this.changes.emit(identifier);
       return true;
     }
     return false;
@@ -120,7 +126,12 @@ export class AudioStorage {
     const catalog: CatalogItem[] = [];
     for (const audio of AudioStorage.instance.audios) {
       if (AudioState.COMPLETE <= audio.state) {
-        catalog.push({ identifier: audio.identifier, state: audio.state, name: audio.name });
+        catalog.push({
+          identifier: audio.identifier,
+          state: audio.state,
+          name: audio.name,
+          ...(audio.isTts ? { category: 'tts' as const } : {}),
+        });
       }
     }
     return catalog;

@@ -158,6 +158,8 @@ export class AudioPlayer {
   audio: AudioFile | undefined;
   volumeType: VolumeType = VolumeType.MASTER;
   onEnded: (() => void) | null = null;
+  onStarted: (() => void) | null = null;
+  onError: ((error: unknown) => void) | null = null;
 
   private _volume: number = 1;
   private _loop: boolean = false;
@@ -288,12 +290,21 @@ export class AudioPlayer {
     this.mediaElementSource.connect(this.getConnectingAudioNode());
     this.audioElm.src = url;
     this.audioElm.load();
-    this.audioElm.play().catch((reason) => {
-      if (attempt === this.playAttempt) {
-        this._isAwaitingGesture = (reason as { name?: unknown } | null)?.name === 'NotAllowedError';
-      }
-      Logger.warn('[AudioPlayer] 再生失敗', reason);
-    });
+    this.audioElm.onerror = () => {
+      if (attempt === this.playAttempt) this.onError?.(this.audioElm.error);
+    };
+    this.audioElm
+      .play()
+      .then(() => {
+        if (attempt === this.playAttempt) this.onStarted?.();
+      })
+      .catch((reason) => {
+        if (attempt === this.playAttempt) {
+          this._isAwaitingGesture = (reason as { name?: unknown } | null)?.name === 'NotAllowedError';
+          this.onError?.(reason);
+        }
+        Logger.warn('[AudioPlayer] 再生失敗', reason);
+      });
   }
 
   /** Pauses playback where it is, keeping the position; does nothing before anything has played. */
@@ -362,6 +373,7 @@ export class AudioPlayer {
     this.playAttempt++;
     this._isAwaitingGesture = false;
     if (!this._audioElm) return;
+    this._audioElm.onerror = null;
     this._audioElm.pause();
     this._audioElm.currentTime = 0;
     this._audioElm.src = '';

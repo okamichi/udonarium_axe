@@ -2773,6 +2773,7 @@
         "tabSetting": "タブ設定",
         "diceTableSetting": "ダイス表設定",
         "chatSetting": "チャット設定",
+        "ttsSetting": "TTS設定",
         "titleWithTab": "チャットウィンドウ - {{tab}}",
         "voteMenuTitle": "点呼/投票設定",
         "alarmMenuTitle": "アラームタイマ",

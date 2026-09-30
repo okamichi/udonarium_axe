@@ -6,6 +6,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
 import { Party } from '@axe/domain/party/party';
+import { readVoice, validVoice } from '@axe/domain/tts/tts-types';
 
 describe('the pieces a first table is set out with', () => {
   function clearStore(): void {}
@@ -71,6 +72,22 @@ describe('the pieces a first table is set out with', () => {
       'モンスターC',
     ]) {
       expect(sample(name)).toBeTruthy();
+    }
+  });
+
+  it('assigns distinct TTS voices to the sample PCs and leaves monsters silent', () => {
+    const profiles = ['melissa', 'doo-koo', 'ornithogalum'];
+    const voices = ['キャラクターA', 'キャラクターB', 'キャラクターC'].map((name) => JSON.parse(sample(name).ttsVoice));
+    voices.forEach((voice, index) => {
+      expect(validVoice(voice)).toBe(true);
+      expect(voice.enabled).toBe(true);
+      expect(voice.profileId).toBe(profiles[index]);
+      expect(voice.styleId).toBe('default');
+    });
+    expect(new Set(voices.map((voice) => voice.seed)).size).toBe(3);
+    expect(voices[1].speed).toBe(0.9);
+    for (const name of ['モンスターA', 'モンスターB', 'モンスターC']) {
+      expect(readVoice(sample(name).ttsVoice).enabled).toBe(false);
     }
   });
 

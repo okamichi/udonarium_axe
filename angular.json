@@ -78,7 +78,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
-          "options": {},
+          "options": {
+            "proxyConfig": "proxy.tts.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "udonarium_axe:build:production"

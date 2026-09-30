@@ -19,13 +19,14 @@ import {
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { clampInRange, floatOr, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
+import { TtsCharacterSettingsComponent } from '@axe/features/tts/tts-character-settings.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-character-settings-tab',
   templateUrl: './game-character-settings-tab.component.html',
   host: { class: 'block', '[attr.inert]': "isReadOnly() ? '' : null" },
-  imports: [FormsModule, GameDataElementComponent, TranslocoModule],
+  imports: [TtsCharacterSettingsComponent, FormsModule, GameDataElementComponent, TranslocoModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameCharacterSettingsTabComponent {

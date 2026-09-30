@@ -105,7 +105,9 @@ export class SaveDataService {
     }
     files.push(new File([this.convertToXml(ImageTagList.create(images))], 'imagetag.xml', { type: 'text/plain' }));
 
-    const audios = this.audioStorage.audios.filter((audio) => !audio.isHidden && wanted.audios.has(audio.identifier));
+    const audios = this.audioStorage.audios.filter(
+      (audio) => !audio.isHidden && !audio.isTts && wanted.audios.has(audio.identifier)
+    );
     const taken = new Set(files.map((file) => file.name.toLowerCase()));
     for (const audio of audios) {
       const file = createAudioArchiveFile(audio, taken);
@@ -150,7 +152,7 @@ export class SaveDataService {
     const imageTagXml = this.convertToXml(ImageTagList.create(images), pretty);
     files.push(new File([imageTagXml], 'imagetag.xml', { type: 'text/plain' }));
 
-    const audios: AudioFile[] = this.audioStorage.audios.filter((a) => !a.isHidden);
+    const audios: AudioFile[] = this.audioStorage.audios.filter((a) => !a.isHidden && !a.isTts);
     const audioTagXml = this.convertToXml(AudioTagList.create(audios), pretty);
     files.push(new File([audioTagXml], 'audiotag.xml', { type: 'text/plain' }));
 
