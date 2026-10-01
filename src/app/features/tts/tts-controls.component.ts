@@ -36,6 +36,16 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
     <details>
       <summary>生成担当・接続設定（対応端末のみ）</summary>
       <p>生成担当は1台指定してください。ほかの端末は担当の通知を受けて選択します。</p>
+      <label class="block"
+        >Bridge URL
+        <input
+          type="url"
+          autocomplete="off"
+          placeholder="https://tts.example.com/api/tts/"
+          [(ngModel)]="tts.api.bridgeUrl"
+          [disabled]="busy() || tts.isHost()"
+      /></label>
+      <p>空欄は同じサイトのBridgeへ接続します。外部接続はHTTPS。変更するときは担当接続を解除してください。</p>
       <label>Bridge認証トークン <input type="password" autocomplete="off" [(ngModel)]="tts.api.token" /></label>
       <label
         >読み上げタブ

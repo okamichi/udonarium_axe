@@ -1,10 +1,14 @@
-import { expect, test as base } from '@playwright/test';
 import { once } from 'node:events';
 import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
+
+import { expect, test as base } from '@playwright/test';
+
 import { createCharacter, openChatSettingsMenuItem, waitAppReady } from './helpers';
 
 const test = base.extend<{ realBridge: string | null }>({
+  // Playwright requires a destructured first argument even when no fixtures are used.
+  // eslint-disable-next-line no-empty-pattern
   realBridge: async ({}, use) => {
     if (!process.env['TTS_REAL_E2E']) {
       await use(null);
@@ -47,6 +51,7 @@ test('PCの固定シード・声色で生成し、本文を先に表示して一
     localStorage.setItem('ui-lang', 'ja');
   });
   let requests = 0;
+  const bridgeRequests: string[] = [];
   let release: () => void = () => {};
   const gate = new Promise<void>((resolve) => {
     release = resolve;
@@ -54,6 +59,7 @@ test('PCの固定シード・声色で生成し、本文を先に表示して一
   let speechSettings: { seed?: string; caption?: string; cfgScaleCaption?: number; voiceId?: string } = {};
   let speechText = '';
   await page.route('**/api/tts/**', async (route) => {
+    bridgeRequests.push(route.request().url());
     if (!realBridge && route.request().url().endsWith('/voices'))
       return route.fulfill({ json: { id: 'axe-test-voice' } });
     if (!realBridge && route.request().url().endsWith('/health'))
@@ -73,7 +79,11 @@ test('PCの固定シード・声色で生成し、本文を先に表示して一
       return route.fulfill({
         body: wav(),
         contentType: 'audio/wav',
-        headers: { 'X-TTS-Duration-Ms': '1000', 'X-TTS-Profile-Revision': 'test-1' },
+        headers: {
+          'X-TTS-Duration-Ms': '1000',
+          'X-TTS-Profile-Revision': 'test-1',
+          'Access-Control-Expose-Headers': 'X-TTS-Duration-Ms, X-TTS-Profile-Revision',
+        },
       });
     }
     if (realBridge)
@@ -107,9 +117,12 @@ test('PCの固定シード・声色で生成し、本文を先に表示して一
   await openChatSettingsMenuItem(page, 'TTS設定');
   await controls.getByLabel('この端末で読み上げ').check();
   await controls.getByText('生成担当・接続設定（対応端末のみ）', { exact: true }).click();
+  if (!realBridge) await controls.getByLabel('Bridge URL', { exact: true }).fill('https://tts.example.com/api/tts/');
   await controls.getByLabel('Bridge認証トークン').fill('test-token-memory-only');
   await controls.getByRole('button', { name: 'この端末を担当にする（接続・発声確認）' }).click();
   await expect(controls.locator('summary').first()).toContainText('接続中', { timeout: realBridge ? 65000 : 5000 });
+  await expect(controls.getByLabel('Bridge URL', { exact: true })).toBeDisabled();
+  if (!realBridge) expect(bridgeRequests.every((url) => new URL(url).origin === 'https://tts.example.com')).toBe(true);
   await page
     .locator('ui-panel')
     .filter({ has: controls })

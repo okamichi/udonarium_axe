@@ -23,7 +23,7 @@ npm start
 
 `http://localhost:4200` を開いてください。`angular.json` と `proxy.tts.json` により `/api/tts/` がBridgeへ転送され、ブラウザからは同一オリジンになります。TTSのためのCORS許可は不要です。
 
-1. PCのキャラクターシート → **設定** → **キャラクター音声** を開きます。
+1. PCのキャラクターシート → **設定** → **TTS設定** を開きます。
 2. **公開セリフを読み上げる** をONにし、プロファイルID・スタイルID・声色・固定シード・生成ステップ・速度を指定します。
 3. チャットウィンドウの **歯車** → **TTS設定** → **生成担当・接続設定** で、Bridge認証トークンと読み上げ対象の公開タブを設定します。
 4. **この端末を担当にする** を押します。実際に短い文を生成してモデルをウォームアップし、成功後に部屋へ担当を通知します。
@@ -53,16 +53,16 @@ node tools/tts-bridge/server.mjs
 - `steps` はIrodoriのAPIでは `irodori.num_steps` に対応します。1～100、速度は0.5～2、声色は1000文字までです。
 - `allowCharacterOverrides: true` のプロファイルでは、各PCの声色・シード・ステップ・速度を適用します。異なるPCは同名でもキャラクターIDで識別されます。
 - `false` はサーバー設定を固定するための設定です。現行のPC編集UIからの上書き要求はエラーになります。PCごとの編集を使う通常運用では `true` にしてください。
-- `styles` の各キーでサーバー側設定を追加できます。例えば `default` と `calm` を登録し、PCのスタイルIDで選択します。
+- `styles` の各キーでサーバー側設定を追加できます。例えば `default` と `calm` を登録し、PCのスタイルIDで選択します。ただしキャラシートから送る声色・シード・ステップ・速度などが優先されるので、IDだけ変更してもそれらの項目はサーバー設定へ切り替わりません。
 - 音声添付にはサーバーの `revision` と実際の声設定のハッシュを記録します。参照音声やチェックポイントを変更する際は `revision` も更新してください。
 
 同じcaption・seed・ステップ・速度・モデルを固定すると再現性を保ちやすくなりますが、シードは話者IDではありません。継続して同じPCの声を使う場合は参照音声を固定してください。
 
-キャラシートで自然な文章を **この端末で試聴** し、気に入った声ができたら **この試聴をキャラの声として固定** を押します。試聴WAVを担当端末のIrodoriサーバへ登録し、参照音声IDをキャラに保存・同期します。次の試聴と新しいチャットの発言は、その参照音声を使って生成します。別のキャラは別の試聴を固定してください。声色の説明は参照音声の特徴に合わせ、発言ごとの感情・演技はタグで指定します。参照にしても声の完全一致は保証できません。
+キャラシートで自然な文章を **この端末で試聴** し、気に入った声ができたら **この試聴をキャラの声として固定** を押します。試聴WAVを、このブラウザの接続先Bridgeが使うIrodoriサーバへ登録し、参照音声IDをキャラに保存・同期します。次の試聴と新しいチャットの発言は、その参照音声を使って生成します。チャットの生成担当も同じIrodoriサーバを使う必要があります。別のキャラは別の試聴を固定してください。声色の説明は参照音声の特徴に合わせ、発言ごとの感情・演技はタグで指定します。参照にしても声の完全一致は保証できません。
 
 既にIrodoriに登録した音声は **参照音声ID** に直接指定できます。空欄はBridgeプロファイルのvoiceを使用します（初期設定はnone）。参照ファイルのパスやURLは指定できません。生成担当を別サーバへ移す場合は、参照音声ファイルも同じIDで移してください。キャラ保存にはIDだけが含まれ、参照音声の実体はIrodori側のvoicesディレクトリに残ります。過去のセリフのWAVは声の固定で変更されません。
 
-キャラクターの **この端末で試聴** はBridgeへ直接生成を依頼し、ローカルでだけ再生します。試聴WAVは部屋の音声カタログへ登録しません。試聴する端末にはBridgeとトークンが必要です。
+キャラクターの **この端末で試聴** はBridgeへ直接生成を依頼し、ローカルでだけ再生します。試聴WAVは部屋の音声カタログへ登録しません。試聴する端末にはBridgeへの接続設定とトークンが必要です。Bridgeをその端末で起動する必要はありません。
 
 ## 発言ごとの感情・演技（v4-Large）
 
@@ -115,14 +115,12 @@ CFGはキャラ設定の「指示の強度」で編集できます。空欄は�
 
 ## 配信時の同一オリジン設定
 
-公開HTTPSページからローカルHTTPへ直接接続する構成は標準対応にしません。生成担当が使うAxe配信元へ `/api/tts/` のプロキシを配置します。以下はnginxの例です。
+アックスと同じ配信元の `/api/tts/` にプロキシを配置する構成では、Bridge URLを空欄にします。公開HTTPSページからローカルHTTPへ直接接続する構成は標準対応にしません。以下は既存のHTTPS `server` ブロック内へ配置するnginxの例です。NginxとBridgeは同じホスト上で動かします。
 
 ```nginx
 location /api/tts/ {
-    # LAN配信の場合も、利用する範囲に合わせてアクセス元を制限してください。
-    allow 127.0.0.1;
-    allow ::1;
-    deny all;
+    # 必要なら利用端末のIP・ネットワークをallow/denyで制限します。
+    # BridgeのBearer認証はアクセス元にかかわらず必須です。
     proxy_pass http://127.0.0.1:8090;
     proxy_http_version 1.1;
     proxy_set_header Authorization $http_authorization;
@@ -132,6 +130,82 @@ location /api/tts/ {
 ```
 
 トークンを配布JavaScriptや共有データに埋め込まないでください。BridgeはBearer認証を必須にし、汎用のURL転送やファイルパス指定は提供しません。Nodeの環境変数はBridge用ターミナルでのみ指定します。`TTS_BRIDGE_PORT` で待受ポートを変更できます。
+
+## アックスの配信元と別のオリジンにあるBridgeへ接続する
+
+アックスのHTML・JavaScriptを自分のWebサーバで配信し、TTS用のサーバを別に置く場合にも利用できます。以下ではアックスの配信元を `https://axe.example.com`、Bridgeの公開先を `https://tts.example.com` とします。生成担当はチャットの歯車 → **TTS設定** → **生成担当・接続設定** の **Bridge URL** に `https://tts.example.com/api/tts/` を入力します。`https://tts.example.com` だけなら `/api/tts/` を補います。独自のサブパスを使う場合はAPIのルートまで指定してください。アックスと同じオリジンで `/api/tts/` をプロキシする構成なら、URL欄は空欄のままで使え、CORSも不要です。
+
+Bridge URLと認証トークンはそのブラウザのメモリだけに保持し、部屋・キャラ・localStorageへ保存しません。ページを再読み込みすると再入力が必要です。生成担当中はURLを編集できません。接続先を変更するときは **担当接続を解除** してから変更してください。ヘルス確認、音声生成、キャラの試聴、参照音声登録はすべて同じURLを使います。参加者はBridge URL・トークンを入力せず、P2Pで音声を受け取ります。
+
+外部URLはHTTPSを使用します。認証情報・クエリ・フラグメントを含むURLは拒否し、Cookie送信とリダイレクト追従も行いません。HTTPの開発ページからHTTPの `localhost`・`127.0.0.1`・`[::1]` へ接続する場合だけ例外とします。
+
+構成は `Irodori :8088 ←→ Bridge :8090 ←→ Nginx HTTPS :443 ←→ 生成担当ブラウザ ←→ P2P参加者` です。ブラウザはアックスの配布サーバからアックスを読み込み、そのブラウザからTTS側のNginxへ直接接続します。アックスの配布サーバが音声生成を中継する必要はありません。同じサーバ上のBridgeとIrodoriをループバックで待ち受けさせ、公開する受信ポートはNginxの443番にします。Bridgeを変更せず、NginxでCORSを処理できます。次の例をTTS側の `nginx.conf` の `http { ... }` 内に置き、ドメイン・証明書パス・許可オリジンを実環境に合わせて変更してください。`https://axe.example.com` は自分のアックス配信元のオリジン（スキーム・ホスト・必要ならポート）に置き換えてください。
+
+```nginx
+# httpコンテキスト。Originには /udonarium_axe/ のようなパスは含まれません。
+map $http_origin $tts_cors_origin {
+    default "";
+    "https://axe.example.com" "https://axe.example.com";
+}
+map $http_origin $tts_origin_allowed {
+    default 0;
+    "" 1; # curlなど、Originを送らない要求もBridgeのBearer認証は必要
+    "https://axe.example.com" 1;
+}
+limit_req_zone $binary_remote_addr zone=tts_api:10m rate=1r/s;
+
+server {
+    listen 443 ssl;
+    server_name tts.example.com;
+    ssl_certificate     /etc/letsencrypt/live/tts.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tts.example.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    location /api/tts/ {
+        if ($tts_origin_allowed = 0) { return 403; }
+        if ($request_method !~ ^(GET|POST|OPTIONS)$) { return 405; }
+
+        # エラー応答にもCORSヘッダーを付け、ブラウザがエラーを読めるようにする。
+        add_header Access-Control-Allow-Origin $tts_cors_origin always;
+        add_header Vary Origin always;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type" always;
+        add_header Access-Control-Expose-Headers "X-TTS-Duration-Ms, X-TTS-Profile-Revision" always;
+        add_header Access-Control-Max-Age 600 always;
+
+        # プリフライトにはBearerが付かないので、Bridgeへ転送せず応答する。
+        # 実際のGET/POSTは下の転送先で必ず認証する。
+        if ($request_method = OPTIONS) { return 204; }
+
+        limit_req zone=tts_api burst=10 nodelay;
+        limit_req_status 429;
+        client_max_body_size 10m;
+        proxy_pass http://127.0.0.1:8090;
+        proxy_http_version 1.1;
+        proxy_set_header Authorization $http_authorization;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 70s;
+        proxy_send_timeout 70s;
+    }
+
+    location / { return 404; }
+}
+```
+
+`Authorization` 付きのクロスオリジン要求はプリフライトが必要です。また、WAV検証で使う `X-TTS-Duration-Ms` と `X-TTS-Profile-Revision` を `Access-Control-Expose-Headers` で公開しないと、生成が成功してもアックス側で応答を読めません。CORSヘッダーはNginxだけで付け、Bridge側には重複して追加しません。CORSはブラウザからの利用範囲を制御するもので、認証の代わりにはなりません。公開JavaScriptへトークンを埋め込まず、生成担当が入力してください。
+
+設定後は `nginx -t` で検証し、プリフライトを確認します。
+
+```sh
+curl -i -X OPTIONS https://tts.example.com/api/tts/synthesize \
+  -H 'Origin: https://axe.example.com' \
+  -H 'Access-Control-Request-Method: POST' \
+  -H 'Access-Control-Request-Headers: authorization,content-type'
+```
+
+204と許可オリジン・メソッド・ヘッダーが返ることを確認してください。認証なしの `GET /api/tts/health` は401、認証付きではヘルス応答が返る構成です。URLは末尾のスラッシュも含め実際のAPIに直接到達するものを指定し、HTTPからHTTPSへの転送や別ドメインへのリダイレクトに頼らないでください。接続エラーの場合はHTTPS証明書、許可Origin、OPTIONS応答、上記の公開ヘッダーを確認します。
+
+参考: [Nginxのadd_header](https://nginx.org/en/docs/http/ngx_http_headers_module.html)、[CORSとプリフライト](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS)。
 
 ## 対象・制御・保存
 
@@ -152,11 +226,12 @@ location /api/tts/ {
 ```sh
 node --test tools/tts-bridge/server.test.mjs tools/tts-bridge/synthesis.test.mjs
 npx vitest run src/app/domain/tts src/app/application/tts
+npm run lint
+npm run build
+# Playwrightは上で生成したdist/を配信して検証します。
 npx playwright test e2e/tts.spec.ts --project=chromium
 # 実Irodori + 一時Bridge + Chromiumで発言から再生まで確認する場合
 TTS_REAL_E2E=1 npx playwright test e2e/tts.spec.ts --project=chromium --workers=1
-npm run lint
-npm run build
 ```
 
 実IrodoriとBridgeの疎通・WAV検証は以下で実行できます。短い発声を1回生成し、WAVをOSの一時ディレクトリへ保存します。認証トークンはこの試験内だけで生成・破棄します。
