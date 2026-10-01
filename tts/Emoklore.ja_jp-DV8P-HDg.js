@@ -1,0 +1,1 @@
+var o={Emoklore:{success_count:`成功数%{count}`,double:`ダブル`,triple:`トリプル`,miracle:`ミラクル`,catastrophe:`カタストロフ`,dice_count_zero:`ダイス数が0以下 ＞ 確定失敗`}};var t={ja_jp:o};export{t as default,o as ja_jp};

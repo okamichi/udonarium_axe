@@ -1,0 +1,22 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function(n){var G=n.module,N=n.klass,b=n.const_set,P=n.send2,R=n.find_super,h=n.def,i=n.truthy,z=n.eqeqeq,L=n.hash2,E=n.rb_gt,D=n.send,S=n.rb_le,g=n.rb_plus,T=n.rb_times,B=[],e=n.nil;return(function(Y,F){var H=[G(Y,`BCDice`)].concat(F);return(function(Q,U){var y=[G(Q,`GameSystem`)].concat(U),W=n.$r(y);return(function(X,Z,O){var s=N(X,Z,`Alsetto`),p=[s].concat(O),ee=s.$$prototype;return ee.randomizer=e,b(p[0],`ID`,`Alsetto`),b(p[0],`NAME`,`詩片のアルセット`),b(p[0],`SORT_KEY`,`うたかたのあるせつと`),b(p[0],`HELP_MESSAGE`,`\u30FB\u6210\u529F\u5224\u5B9A\uFF1AnAL[m]\u3000\u3000\u3000\u3000\u30FB\u30C8\u30E9\u30A4\u30A2\u30F3\u30D5\u7121\u3057\uFF1AnALC[m]
+\u30FB\u547D\u4E2D\u5224\u5B9A\uFF1AnAL[m]*p\u3000\u3000\u3000\u30FB\u30C8\u30E9\u30A4\u30A2\u30F3\u30D5\u7121\u3057\uFF1AnALC[m]*p
+\u30FB\u547D\u4E2D\u5224\u5B9A\uFF08\u30AC\u30F3\u30B9\u30EA\u30F3\u30AC\u30FC\u306E\u6839\u6E90\u8A69\uFF09\uFF1AnALG[m]*p
+[]\u5185\u306F\u7701\u7565\u53EF\u80FD\u3002
+
+AL\u30B3\u30DE\u30F3\u30C9\u306F\u30C8\u30E9\u30A4\u30A2\u30F3\u30D5\u306E\u5206\u3060\u3051\u3001\u81EA\u52D5\u3067\u632F\u308A\u8DB3\u3057\u51E6\u7406\u3092\u884C\u3044\u307E\u3059\u3002
+\u300Cn\u300D\u3067\u30C0\u30A4\u30B9\u6570\u3092\u6307\u5B9A\u3002
+\u300Cm\u300D\u3067\u76EE\u6A19\u5024\u3092\u6307\u5B9A\u3002\u7701\u7565\u6642\u306F\u3001\u30C7\u30D5\u30A9\u30EB\u30C8\u306E\u300C3\u300D\u304C\u4F7F\u7528\u3055\u308C\u307E\u3059\u3002
+\u300Cp\u300D\u3067\u653B\u6483\u529B\u3092\u6307\u5B9A\u3002\u300C*\u300D\u306F\u300Cx\u300D\u3067\u3082\u53EF\u3002
+\u653B\u6483\u529B\u6307\u5B9A\u3067\u547D\u4E2D\u5224\u5B9A\u3068\u306A\u308A\u3001\u6210\u529F\u6570\u3067\u306F\u306A\u304F\u3001\u30C0\u30E1\u30FC\u30B8\u3092\u7D50\u679C\u8868\u793A\u3057\u307E\u3059\u3002
+
+ALC\u30B3\u30DE\u30F3\u30C9\u306F\u30C8\u30E9\u30A4\u30A2\u30F3\u30D5\u7121\u3057\u3067\u3001\u6210\u529F\u6570\u3001\u30C0\u30E1\u30FC\u30B8\u3092\u7D50\u679C\u8868\u793A\u3057\u307E\u3059\u3002
+ALG\u30B3\u30DE\u30F3\u30C9\u306F\u300C2\u4EE5\u4E0B\u300D\u3067\u30C8\u30E9\u30A4\u30A2\u30F3\u30D5\u51E6\u7406\u3092\u884C\u3044\u307E\u3059\u3002
+
+\u3010\u66F8\u5F0F\u4F8B\u3011
+\u30FB5AL \u2192 5d6\u3067\u76EE\u6A19\u50243\u3002
+\u30FB5ALC \u2192 5d6\u3067\u76EE\u6A19\u50243\u3002\u30C8\u30E9\u30A4\u30A2\u30F3\u30D5\u7121\u3057\u3002
+\u30FB6AL2 \u2192 6d6\u3067\u76EE\u6A19\u50242\u3002
+\u30FB4AL*5 \u2192 4d6\u3067\u76EE\u6A19\u50243\u3001\u653B\u6483\u529B5\u306E\u547D\u4E2D\u5224\u5B9A\u3002
+\u30FB7AL2x10 \u2192 7d6\u3067\u76EE\u6A19\u50242\u3001\u653B\u6483\u529B10\u306E\u547D\u4E2D\u5224\u5B9A\u3002
+\u30FB8ALC4x5 \u2192 8d6\u3067\u76EE\u6A19\u50244\u3001\u653B\u6483\u529B5\u3001\u30C8\u30E9\u30A4\u30A2\u30F3\u30D5\u7121\u3057\u306E\u547D\u4E2D\u5224\u5B9A\u3002
+`),s.$register_prefix(`\\d+AL[CG]?`),h(s,`$initialize`,function m(l){m.$$p;var t=this;return m.$$p=null,P(t,R(t,`initialize`,m,!1,!0),`initialize`,[l],null),t.sort_add_dice=!0}),h(s,`$eval_game_system_specific_command`,function(l){return this.$check_roll(l)}),s.$private(),h(s,`$parse_check_roll`,function(l){var r,t=e,_=e,f=e,a=e,u=e,o=e,c=e;return t=/(\d+)AL(C|G)?(\d+)?((x|\*)(\d+))?$/i.$match(l),i(t)?(_=t[`$[]`](1).$to_i(),f=i(a=t[`$[]`](2)[`$nil?`]())?a:t[`$[]`](2)[`$==`](`G`),u=z(`G`,a=t[`$[]`](2))?2:z(`C`,a)?0:1,o=i(a=(r=t[`$[]`](3),r===e||r==null?e:r.$to_i()))?a:3,c=t[`$[]`](6).$to_i(),L([`rapid`,`enable_critical`,`critical_number`,`target`,`damage`],{rapid:_,enable_critical:f,critical_number:u,target:o,damage:c})):e}),h(s,`$check_roll`,function(l){var r=this,t=e,_=e,f=e,a=e,u=e,o=e,c=e,v=e,$=e,k=e,x=e,M=e,C=e,q=e,j=e,w=e,I=e,A=e,K=e;if(t=r.$parse_check_roll(l),!i(t))return e;for(_=t[`$[]`](`rapid`),f=t[`$[]`](`enable_critical`),a=t[`$[]`](`critical_number`),u=t[`$[]`](`target`),o=t[`$[]`](`damage`),c=0,v=0,$=``,k=_;i(E(k,0))&&(x=r.randomizer.$roll_barabara(k,6).$sort(),M=x.$join(`,`),C=D(x,`count`,[],function(d){return d??=e,S(d,u)}),q=D(x,`count`,[],function(d){return d??=e,S(d,a)}),c=g(c,C),i(E(q,0))&&(v=g(v,1)),i($[`$empty?`]())||($=g($,`+`)),$=g($,``+C+`[`+M+`]`),!!i(f));)k=q;return j=o[`$!=`](0),i(j)?(w=T(c,o),I=r.$translate(`Alsetto.damage`,L([`total_damage`],{total_damage:w})),A=`(`+_+`D6<=`+u+`) ＞ `+$+` ＞ Hits：`+c+`*`+o+` ＞ `+I):(K=r.$translate(`Alsetto.success_count`,L([`success_count`],{success_count:c})),A=`(`+_+`D6<=`+u+`) ＞ `+$+` ＞ `+K),i(f)&&(A=g(A,r.$translate(`Alsetto.triumph`,L([`critical_count`],{critical_count:v})))),A})})(y[0],W(`Base`),y)})(H[0],H)})(B[0],B)});

@@ -1,0 +1,1 @@
+var i={YearZeroEngine:{success_count:`성공 수`,difficulty:`난이도`,success_msg:`판정 성공!`,failure_msg:`판정 실패!`,roll_one:`주사위 눈 1`,ability:`능력`,skill:`기능`,item:`아이템`,pushable:`푸시 가능`,dice:`주사위`}};var l={ko_kr:i};export{l as default,i as ko_kr};

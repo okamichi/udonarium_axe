@@ -1,0 +1,1 @@
+var o={Airgetlamh:{damage:`%<count>d 대미지`,success_count:`성공 수 : %<count>d`,critical:`%<count>d 크리티컬`}};var u={ko_kr:o};export{u as default,o as ko_kr};

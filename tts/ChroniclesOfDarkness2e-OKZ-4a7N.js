@@ -1,0 +1,20 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function($){var X=$.module,P=$.klass,f=$.const_set,i=$.truthy,U=$.to_ary,N=$.def,y=$.rb_le,v=$.rb_plus,S=$.rb_gt,T=$.neqeq,A=$.rb_ge,m=$.send,b=$.thrower,k=[],e=$.nil;return(function(w,L){var M=[X(w,`BCDice`)].concat(L);return(function(O,W){var R=[X(O,`GameSystem`)].concat(W),F=$.$r(R);return(function(G,H,z){var I=P(G,H,`ChroniclesOfDarkness2e`),c=[I].concat(z),_=$.$r(c);return f(c[0],`ID`,`ChroniclesOfDarkness2e`),f(c[0],`NAME`,`Chronicles of Darkness 2nd Edtion`),f(c[0],`SORT_KEY`,`くろにくるすおふたあくねす2`),f(c[0],`HELP_MESSAGE`,`\u30FB\u5224\u5B9A\u30B3\u30DE\u30F3\u30C9(CDx@cWdAs)
+    x:\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB(0\u4EE5\u4E0B\u3067Chance Roll)
+    c:\u632F\u308A\u8DB3\u3057\u5024(\u7701\u7565\u53EF\u3001\u7701\u7565\u6642\u306F10)\u30028-10\u306E\u5024\u3092\u53D6\u308B\u3002Chance Roll\u306B\u306F\u9069\u7528\u3055\u308C\u306A\u3044\u3002
+    d:\u6B66\u5668\u30C0\u30E1\u30FC\u30B8\u4FEE\u6B63(\u7701\u7565\u53EF)\u3002\u5224\u5B9A\u306B\u3088\u308B\u6210\u529F\u6570\u304C1\u4EE5\u4E0A\u306E\u3068\u304D\u306B\u30C0\u30E1\u30FC\u30B8\u3068\u3057\u3066\u4FEE\u6B63\u5024\u3092\u52A0\u7B97\u3002
+    s:\u81EA\u52D5\u6210\u529F\u6570(\u7701\u7565\u53EF)\u3002\u6210\u529F\u6570\u306B\u52A0\u7B97\u3055\u308C\u308B\u3002
+
+    \u4F8B1\uFF1A6\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB\u300110 again
+    CD6
+    CD6@10
+
+    \u4F8B2\uFF1A9\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB\u30019\u306E\u632F\u308A\u8DB3\u3057(9 again)\u3001\u81EA\u52D5\u6210\u529F1
+    CD9@9A1
+
+    \u4F8B3\uFF1A0\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB(Chance Roll)\u30018\u306E\u632F\u308A\u8DB3\u3057(8 again, \u9069\u7528\u3055\u308C\u306A\u3044)\u3001\u81EA\u52D5\u6210\u529F1\u3001\u6B66\u5668\u4FEE\u6B63+2
+    CD0@8W2A1
+
+    \u4F8B4\uFF1A-1\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB(Chance Roll)
+    CD(4-5)
+
+`),f(c[0],`DICE_POOL_INDEX`,2),f(c[0],`AGAIN_NUMBER_INDEX`,4),f(c[0],`WEAPON_MODIFIER_INDEX`,6),f(c[0],`AUTO_SUCCESS_INDEX`,8),f(c[0],`EXCEPTIONAL_SUCCESS_THRESHOLD`,5),I.$register_prefix(`(CD\\d*)`),N(I,`$eval_game_system_specific_command`,function(t){var n,l,o=this,u=e,a=e,r=e,s=e,E=e,D=e,h=e,C=e;return u=/^(CD)(-?\d+)(@([8-9]|10))?(W(\d+))?(A(\d+))?$/.$match(t),i(u)?(l=o.$get_arguments(u),n=U(l),a=n[0]==null?e:n[0],r=n[1]==null?e:n[1],s=n[2]==null?e:n[2],E=n[3]==null?e:n[3],l=o.$make_dice_roll(a,r),n=U(l),D=n[0]==null?e:n[0],h=n[1]==null?e:n[1],C=n[2]==null?e:n[2],o.$get_roll_result(a,h,D,s,E,C)):``}),I.$private(),N(I,`$get_roll_result`,function(t,n,l,o,u,a){var r=e,s=e;return i(y(t,0))?r=`Chance Roll(1D10) ＞ `:r=`(`+t+`D10) ＞ `,r=``+r+n+`success=`+l+` `,s=v(l,u),i(a)?_(`Result`).$fumble(``+r+`Dramatic Failure!`):i(S(s,0))?(i(S(u,0))&&(r=``+r+`auto_success=`+u+` total_success=`+s+` `),T(o,0)&&(r=``+r+`weapon_modifier=`+o+` damage=`+v(s,o)+` `),i(A(s,_(`EXCEPTIONAL_SUCCESS_THRESHOLD`)))?_(`Result`).$critical(``+r+`Exceptional Success!`):_(`Result`).$success(``+r+`Success!`)):_(`Result`).$failure(``+r+`Failure!`)}),N(I,`$get_arguments`,function(t){var n=e,l=e,o=e,u=e;return n=t[`$[]`](_(`DICE_POOL_INDEX`)).$to_i(),l=i(t[`$[]`](_(`AGAIN_NUMBER_INDEX`))[`$nil?`]())?10:t[`$[]`](_(`AGAIN_NUMBER_INDEX`)).$to_i(),o=i(t[`$[]`](_(`WEAPON_MODIFIER_INDEX`))[`$nil?`]())?0:t[`$[]`](_(`WEAPON_MODIFIER_INDEX`)).$to_i(),u=i(t[`$[]`](_(`AUTO_SUCCESS_INDEX`))[`$nil?`]())?0:t[`$[]`](_(`AUTO_SUCCESS_INDEX`)).$to_i(),[n,l,o,u]}),N(I,`$make_dice_roll`,function(t,n){var l=this;return i(y(t,0))?l.$roll_dice_pool(1,n,!0):l.$roll_dice_pool(t,n,!1)}),N(I,`$roll_dice_pool`,function(t,n,l){try{var o=b(`return`),u=this,a=e,r=e,s=e;return a=0,r=0,s=``,(function(){try{var E=b(`break`);return m(u,`loop`,[],function D(){var h=D.$$s==null?this:D.$$s,C=e;if(h.randomizer??=e,C=h.randomizer.$roll_barabara(t,10),s=``+s+`[`+C.$join(`,`)+`] `,i(l)?i(S(C.$count(1),0))?o.$throw([0,s,!0]):i(S(C.$count(10),0))?a=1:a=0:(a=v(a,m(C,`count`,[],function(d){return d??=e,A(d,8)})),r=m(C,`count`,[],function(d){return d??=e,A(d,n)})),i(S(r,0)))return t=r;E.$throw()},{$$s:u,$$ret:o})}catch(D){if(D===E)return D.$v;throw D}})(),[a,s,!1]}catch(E){if(E===o)return E.$v;throw E}})})(R[0],F(`Base`),R)})(M[0],M)})(k[0],k)});

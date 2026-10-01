@@ -1,0 +1,14 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function(r){var P=r.module,T=r.klass,m=r.const_set,c=r.truthy,f=r.def,g=r.rb_le,k=r.rb_minus,z=r.rb_plus,R=r.rb_divide,E=r.rb_times,y=[],e=r.nil;return(function(G,S){var D=[P(G,`BCDice`)].concat(S);return(function(q,A){var b=[P(q,`GameSystem`)].concat(A),j=r.$r(b);return(function(C,H,I){var _=T(C,H,`PersonaO`),d=[_].concat(I),v=r.$r(d),K=_.$$prototype;return K.randomizer=e,m(d[0],`ID`,`PersonaO`),m(d[0],`NAME`,`ペルソナTRPG-O`),m(d[0],`SORT_KEY`,`へるそなTRPGO`),m(d[0],`HELP_MESSAGE`,`\u30FB\u57FA\u672C\u5224\u5B9A
+\u3000PTx@y\u3000x\uFF1A\u76EE\u6A19\u5024\u3001y\uFF1A\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u5024\uFF08\u7701\u7565\u6642\u306F5\uFF09
+\u3000\u4F8B\uFF09PT60\u3000PT90@10
+
+\u30FB\u30C0\u30E1\u30FC\u30B8\u8A08\u7B97
+\u3000nPD+(x+y*2)%(z-a)-b\u3000n\uFF1A\u30C0\u30A4\u30B9\u500B\u6570\u3001x\uFF1A\u30B9\u30AD\u30EB\u56FA\u5B9A\u5024\u3001y\uFF1A\u30DC\u30FC\u30CA\u30B9\u3001z\uFF1A\u30D0\u30D5\u500D\u7387\u3001a\uFF1A\u8010\u6027\u3001b\uFF1A\u6575\u9632\u5FA1\u529B
+\u3000nPD+(x+y*2)\u307E\u3067\u304C\u30B9\u30AD\u30EB\u306B\u3088\u308B\u7D20\u306E\u30C0\u30E1\u30FC\u30B8\u3001z\u304A\u3088\u3073a\u306F\u8A08\u7B97\u5F0F\u3092\u5165\u308C\u3066\u3088\u3044\u3002
+\u3000
+\u3000\u4F8B\uFF09\u30BD\u30CB\u30C3\u30AF\u30D1\u30F3\u30C1\u3001\u529BB2\u70B9\u3001
+\u3000\u3000\u3000\u30BF\u30EB\u30AB\u30B8\u30E3\u304C\u304B\u304B\u3063\u3066\u304A\u308A\u3001\u6253\u6483\u8010\u6027\u3042\u308A\u3001
+\u3000\u3000\u3000\u76EE\u6A19\u306E\u7269\u7406\u9632\u5FA1\u529B\u306F2\u70B9
+\u3000\u3000\u3000
+\u3000\u3000\u30002PD+(20+2*2)%(100+50-50)-2
+`),_.$register_prefix(`PT`,`\\d+PD`),f(_,`$eval_game_system_specific_command`,function(l){var n=this,t=e;return c(t=n.$roll_attack(l))?t:n.$roll_damage(l)}),_.$private(),f(_,`$roll_attack`,function(l){var n,t=this,$=e,i=e,s=e,a=e,o=e,u=e;return $=/^PT(-?\d+)?(@(-?\d+))?$/i.$match(l),c($)?(i=$[`$[]`](1).$to_i(),s=c(a=(n=$[`$[]`](3),n===e||n==null?e:n.$to_i()))?a:5,o=t.randomizer.$roll_once(100),u=c(g(o,s))?v(`Result`).$critical(`クリティカル`):c(g(o,i))?v(`Result`).$success(`成功`):v(`Result`).$failure(`失敗`),u[`$text=`](`D100<=`+i+`@`+s+` ＞ `+o+` ＞ `+u.$text()),u):e}),f(_,`$roll_damage`,function(l){var n=this,t=e,$=e,i=e,s=e,a=e,o=e,u=e,x=e;return t=/^(\d+)PD\+(-?\d+)%(-?\d+)-(\d+)$/i.$match(l),c(t)?($=t[`$[]`](1).$to_i(),i=t[`$[]`](2).$to_i(),s=t[`$[]`](3).$to_i(),a=t[`$[]`](4).$to_i(),o=n.randomizer.$roll_barabara($,10),u=o.$sum(),x=k(z(u,R(E(s,i),100).$to_i()),a),``+$+`D10+`+i+`＊`+s+`%-`+a+` ＞ [`+o.$join(`,`)+`]+`+i+`＊`+s+`%-`+a+` ＞ `+x+` ダメージ！`):e})})(b[0],j(`Base`),b)})(D[0],D)})(y[0],y)});

@@ -1,0 +1,1 @@
+var c={Revulture:{error:{no_dice:`주사위가 0개 입니다.`,no_border:`목표값이 지정되지 않아 추가 대미지를 계산할 수 없습니다.`},critical:`크리티컬 %<count>d`,hit_count:`히트 수 %<count>d`,damage:`대미지 %<count>d`}};var t={ko_kr:c};export{t as default,c as ko_kr};

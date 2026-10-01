@@ -1,0 +1,1 @@
+var a={Airgetlamh:{damage:`%<count>dダメージ`,success_count:`成功数：%<count>d`,critical:`%<count>dクリティカル`}};var u={ja_jp:a};export{u as default,a as ja_jp};

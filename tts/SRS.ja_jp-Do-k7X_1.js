@@ -1,0 +1,1 @@
+var s={SRS:{auto_success:`自動成功`,auto_failure:`自動失敗`}};var _={ja_jp:s};export{_ as default,s as ja_jp};

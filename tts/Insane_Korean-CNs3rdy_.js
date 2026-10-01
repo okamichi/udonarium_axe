@@ -1,0 +1,50 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.modules[`bcdice/game_system/Insane`]=function(a){var H=a.module,y=a.klass,$=a.const_set,z=a.send2,P=a.find_super,u=a.def,S=a.eqeq,o=a.truthy,h=a.rb_le,M=a.rb_ge,v=a.to_ary,R=a.send,d=a.hash2,A=a.thrower,C=a.rb_plus,N=[],s=a.nil,t=a.$$$;return(function(V,J){var c=[H(V,`BCDice`)].concat(J);return(function(f,B){var k=[H(f,`GameSystem`)].concat(B),g=a.$r(k);return(function(F,p,G){var b=y(F,p,`Insane`),m=[b].concat(G),I=a.$r(m),W=b.$$prototype;return W.randomizer=s,$(m[0],`ID`,`Insane`),$(m[0],`NAME`,`インセイン`),$(m[0],`SORT_KEY`,`いんせいん`),$(m[0],`HELP_MESSAGE`,`\u30FB\u5224\u5B9A\uFF08\u30B9\u30DA\u30B7\u30E3\u30EB\uFF0F\u30D5\u30A1\u30F3\u30D6\u30EB\uFF0F\u6210\u529F\uFF0F\u5931\u6557\u3092\u5224\u5B9A\uFF09
+\u30FB\u5404\u7A2E\u8868
+\u30B7\u30FC\u30F3\u8868\u3000ST
+\u3000\u672C\u5F53\u306F\u6016\u3044\u73FE\u4EE3\u65E5\u672C\u30B7\u30FC\u30F3\u8868 HJST\uFF0F\u72C2\u9A12\u306E\u4E8C\u3007\u5E74\u4EE3\u30B7\u30FC\u30F3\u8868 MTST
+\u3000\u6697\u9ED2\u306E\u30F4\u30A3\u30AF\u30C8\u30EA\u30A2\u30B7\u30FC\u30F3\u8868 DVST
+\u5F62\u5BB9\u8868 DT\uFF0F\u672C\u4F53\u8868 BT\uFF0F\u90E8\u4F4D\u8868 PT
+\u611F\u60C5\u8868\u3000\u3000\u3000\u3000\u3000\u3000FT
+\u8077\u696D\u8868\u3000\u3000\u3000\u3000\u3000\u3000JT
+\u30D0\u30C3\u30C9\u30A8\u30F3\u30C9\u8868\u3000\u3000BET
+\u30E9\u30F3\u30C0\u30E0\u5206\u91CE\u8868\u3000\u3000RCT
+\u30E9\u30F3\u30C0\u30E0\u7279\u6280\u8868\u3000\u3000RTTn(n\uFF1A\u5206\u91CE\u756A\u53F7\u3001\u7701\u7565\u53EF\u80FD)
+  1\u66B4\u529B(TVT)\u30012\u60C5\u52D5(TET)\u30013\u77E5\u899A(TPT)
+  4\u6280\u8853(TST)\u30015\u77E5\u8B58(TKT)\u30016\u602A\u7570(TMT)
+\u30DB\u30E9\u30FC\u30B9\u30B1\u30FC\u30D7\u8868
+  \u4F1A\u8A71(CHT)    \uFF0F\u8857\u4E2D(VHT)\u3000\u3000\uFF0F\u4E0D\u610F\u8A2A\u554F(IHT)
+  \u5EC3\u589F\u906D\u9047(RHT)\uFF0F\u91CE\u5916\u906D\u9047(MHT)\uFF0F\u60C5\u5831\u6F5C\u5728(LHT)
+\u906D\u9047\u8868\u3000\u90FD\u5E02(ECT)\uFF0F\u5C71\u6797(EMT)\uFF0F\u6D77\u8FBA(EAT)\uFF0F\u53CD\u5FDC\u8868\u3000RET
+\u6B8B\u696D\u30DB\u30E9\u30FC\u30B9\u30B1\u30FC\u30D7\u8868(OHT)\u3000 \uFF0F\u6B8B\u696D\u96FB\u8A71\u8868(OPT)\uFF0F\u6B8B\u696D\u30B7\u30FC\u30F3\u8868(OWT)
+\u793E\u540D\u6C7A\u5B9A\u88681(CNT1)\uFF0F\u793E\u540D\u6C7A\u5B9A\u88682(CNT2)\uFF0F\u793E\u540D\u6C7A\u5B9A\u88683(CNT3)
+\u66AB\u5B9A\u6574\u7406\u756A\u53F7\u4F5C\u6210\u8868(IRN)
+\u30FBD66\u30C0\u30A4\u30B9\u3042\u308A
+`),u(b,`$initialize`,function _(i){_.$$p;var e=this;return _.$$p=null,z(e,P(e,`initialize`,_,!1,!0),`initialize`,[i],null),e.sort_add_dice=!0,e.sort_barabara_dice=!0,e.d66_sort_type=t(I(`D66SortType`),`ASC`)}),u(b,`$result_2d6`,function(i,T,e,r,n){var l=this;return S(r,`>=`)?o(h(T,2))?I(`Result`).$fumble(l.$translate(`Insane.fumble`)):o(M(T,12))?I(`Result`).$critical(l.$translate(`Insane.special`)):S(n,`?`)?I(`Result`).$nothing():o(M(i,n))?I(`Result`).$success(l.$translate(`success`)):I(`Result`).$failure(l.$translate(`failure`)):s}),u(b,`$eval_game_system_specific_command`,function(i){var T,e,r=this,n=s,l=s,D=s,E=s;switch(i.valueOf()){case`BET`:n=r.$translate(`Insane.BET.name`),e=r.$get_badend_table(),T=v(e),l=T[0]==null?s:T[0],D=T[1]==null?s:T[1];break;case`IRN`:n=r.$translate(`Insane.IRN.name`),e=r.$get_interim_reference_number(),T=v(e),l=T[0]==null?s:T[0],D=T[1]==null?s:T[1];break;default:return o(E=t(r.$class(),`RTT`).$roll_command(r.randomizer,i))?E:r.$roll_tables(i,t(r.$class(),`TABLES`))}return``+n+`(`+D+`) ＞ `+l}),b.$private(),u(b,`$get_badend_table`,function(){try{var i=A(`return`),T=this,e=s;return e=[T.$translate(`Insane.BET.items.2`),R(T,`lambda`,[],function r(){var n=r.$$s==null?this:r.$$s;n.randomizer??=s,i.$throw(n.$translate(`Insane.BET.items.3`,d([`skill`],{skill:t(n.$class(),`RTT`).$roll_skill(n.randomizer)})))},{$$s:T,$$ret:i}),T.$translate(`Insane.BET.items.4`),T.$translate(`Insane.BET.items.5`),T.$translate(`Insane.BET.items.6`),T.$translate(`Insane.BET.items.7`),T.$translate(`Insane.BET.items.8`),T.$translate(`Insane.BET.items.9`),T.$translate(`Insane.BET.items.10`),R(T,`lambda`,[],function r(){var n=r.$$s==null?this:r.$$s;n.randomizer??=s,i.$throw(n.$translate(`Insane.BET.items.11`,d([`skill`],{skill:t(n.$class(),`RTT`).$roll_skill(n.randomizer)})))},{$$s:T,$$ret:i}),T.$translate(`Insane.BET.items.12`)],T.$get_table_by_2d6(e)}catch(r){if(r===i)return r.$v;throw r}}),u(b,`$get_interim_reference_number`,function(){var i=this,T=s,e=s,r=s,n=s,l=s;return T=[[11,`1`],[12,`2`],[13,`3`],[14,`4`],[15,`5`],[16,`6`],[22,`G`],[23,`I`],[24,`J`],[25,`K`],[26,`O`],[33,`P`],[34,`Q`],[35,`S`],[36,`T`],[44,`U`],[45,`V`],[46,`X`],[55,`Y`],[56,`Z`],[66,`-`]],e=i.randomizer.$roll_once(6),r=e.$to_s(),n=3,o(h(e,4))?n=C(e,5):S(e,5)&&(n=4),l=``,R(n,`times`,[],function D(){var E,q,j=D.$$s==null?this:D.$$s,w=s;return q=j.$get_table_by_d66_swap(T),E=v(q),w=E[0]==null?s:E[0],e=E[1]==null?s:E[1],l=C(l,w),r=C(r,`,`+e)},{$$s:i}),[l,r]}),(function(_,i){var T=[_].concat(i),e=a.$r(T);return _.$private(),u(_,`$translate_tables`,function(n){return d([`ST`,`HJST`,`MTST`,`DVST`,`DT`,`BT`,`PT`,`FT`,`JT`,`CHT`,`VHT`,`IHT`,`RHT`,`MHT`,`LHT`,`ECT`,`EMT`,`EAT`,`OHT`,`OPT`,`OWT`,`CNT1`,`CNT2`,`CNT3`,`RET`],{ST:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.ST`,n),HJST:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.HJST`,n),MTST:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.MTST`,n),DVST:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.DVST`,n),DT:t(e(`DiceTable`),`D66Table`).$from_i18n(`Insane.table.DT`,n),BT:t(e(`DiceTable`),`D66Table`).$from_i18n(`Insane.table.BT`,n),PT:t(e(`DiceTable`),`D66Table`).$from_i18n(`Insane.table.PT`,n),FT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.FT`,n),JT:t(e(`DiceTable`),`D66Table`).$from_i18n(`Insane.table.JT`,n),CHT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.CHT`,n),VHT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.VHT`,n),IHT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.IHT`,n),RHT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.RHT`,n),MHT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.MHT`,n),LHT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.LHT`,n),ECT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.ECT`,n),EMT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.EMT`,n),EAT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.EAT`,n),OHT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.OHT`,n),OPT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.OPT`,n),OWT:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.OWT`,n),CNT1:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.CNT1`,n),CNT2:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.CNT2`,n),CNT3:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.CNT3`,n),RET:t(e(`DiceTable`),`Table`).$from_i18n(`Insane.table.RET`,n)})}),u(_,`$translate_rtt`,function(n){return t(e(`DiceTable`),`SaiFicSkillTable`).$from_i18n(`Insane.RTT`,n,d([`rttn`],{rttn:[`TVT`,`TET`,`TPT`,`TST`,`TKT`,`TMT`]}))})})(a.get_singleton_class(b),m),$(m[0],`TABLES`,b.$translate_tables(`ja_jp`)),$(m[0],`RTT`,b.$translate_rtt(`ja_jp`)),b.$register_prefix(`BET`,`IRN`,I(`RTT`).$prefixes(),I(`TABLES`).$keys())})(k[0],g(`Base`),k)})(c[0],c)})(N[0],N)};Opal.queue(function(a){var H=a.module,y=a.klass,$=a.const_set,z=a.send2,P=a.find_super,u=a.def,S=a.top,o=[];a.nil;return S.$require(`bcdice/game_system/Insane`),(function(M,v){var d=[H(M,`BCDice`)].concat(v);return(function(A,C){var s=[H(A,`GameSystem`)].concat(C),t=a.$r(s);return(function(V,J,L){var c=y(V,J,`Insane_Korean`),f=[c].concat(L);return $(f[0],`ID`,`Insane:Korean`),$(f[0],`NAME`,`인세인`),$(f[0],`SORT_KEY`,`国際化:Korean:인세인`),$(f[0],`HELP_MESSAGE`,`\u30FB\uD310\uC815
+\uC2A4\uD398\uC15C\uFF0F\uD38C\uBE14\uFF0F\uC131\uACF5\uFF0F\uC2E4\uD328\uB97C \uD310\uC815
+\u30FB\uAC01\uC885\uD45C
+\uC7A5\uBA74\uD45C\u3000\u3000\u3000ST
+\u3000\uC0AC\uC2E4\uC740 \uBB34\uC11C\uC6B4 \uD604\uB300 \uC77C\uBCF8 \uC7A5\uBA74\uD45C HJST\uFF0F\uAD11\uB780\uC758 20\uB144\uB300 \uC7A5\uBA74\uD45C MTST
+\u3000\uBE45\uD1A0\uB9AC\uC544\uC758 \uC5B4\uB460 \uC7A5\uBA74\uD45C DVST
+\uD615\uC6A9\uD45C\u3000\u3000\u3000\u3000DT
+\u3000\uBCF8\uCCB4\uD45C BT\uFF0F\uBD80\uC704\uD45C PT
+\uAC10\uC815\uD45C\u3000\u3000\u3000\u3000\u3000\u3000FT
+\uC9C1\uC5C5\uD45C\u3000\u3000\u3000\u3000\u3000\u3000JT
+\uBC30\uB4DC\uC5D4\uB4DC\uD45C\u3000\u3000BET
+\uB79C\uB364 \uD2B9\uAE30 \uACB0\uC815\uD45C\u3000RTT
+\uC9C0\uC815\uD2B9\uAE30(\uD3ED\uB825)\uD45C\u3000\u3000(TVT)
+\uC9C0\uC815\uD2B9\uAE30(\uC815\uC11C)\uD45C\u3000\u3000(TET)
+\uC9C0\uC815\uD2B9\uAE30(\uC9C0\uAC01)\uD45C\u3000\u3000(TPT)
+\uC9C0\uC815\uD2B9\uAE30(\uAE30\uC220)\uD45C\u3000\u3000(TST)
+\uC9C0\uC815\uD2B9\uAE30(\uC9C0\uC2DD)\uD45C\u3000\u3000(TKT)
+\uC9C0\uC815\uD2B9\uAE30(\uAD34\uC774)\uD45C\u3000\u3000(TMT)
+\uD68C\uD654 \uC911\uC5D0 \uC0DD\uACA8\uB098\uB294 \uACF5\uD3EC\uD45C(CHT)
+\uAC70\uB9AC\uC5D0\uC11C \uB9C8\uC8FC\uCE58\uB294 \uACF5\uD3EC\uD45C(VHT)
+\uAC11\uC790\uAE30 \uCC3E\uC544\uC624\uB294 \uACF5\uD3EC\uD45C(IHT)
+\uD3D0\uD5C8\uC5D0\uC11C \uB9C8\uC8FC\uCE58\uB294 \uACF5\uD3EC\uD45C(RHT)
+\uC57C\uC678\uC5D0\uC11C \uB9C8\uC8FC\uCE58\uB294 \uACF5\uD3EC\uD45C(MHT)
+\uC815\uBCF4 \uC18D\uC5D0 \uC228\uC5B4\uC788\uB294 \uACF5\uD3EC\uD45C(LHT)
+\uC870\uC6B0\uD45C\u3000\uB3C4\uC2DC\u3000(ECT)\u3000\uC0B0\uB9BC\u3000(EMT)\u3000\uD574\uBCC0\u3000(EAT)/\uBC18\uC751\uD45C\u3000RET
+\uC57C\uADFC \uD638\uB7EC \uC2A4\uCF00\uC774\uD504\u3000OHT/\uC57C\uADFC \uC804\uD654\uD45C\u3000OPT/\uC57C\uADFC \uC7A5\uBA74\uD45C\u3000OWT
+\uD68C\uC0AC\uBA85 \uACB0\uC815\uD45C1\u3000CNT1/\uD68C\uC0AC\uBA85 \uACB0\uC815\uD45C2\u3000CNT2/\uD68C\uC0AC\uBA85 \uACB0\uC815\uD45C3\u3000CNT3
+\u30FBD66 \uB2E4\uC774\uC2A4 \uC788\uC74C.
+`),c.$register_prefix_from_super_class(),u(c,`$initialize`,function B(K){B.$$p;var g=this;return B.$$p=null,z(g,P(g,`initialize`,B,!1,!0),`initialize`,[K],null),g.locale=`ko_kr`}),$(f[0],`TABLES`,c.$translate_tables(`ko_kr`)),$(f[0],`RTT`,c.$translate_rtt(`ko_kr`))})(s[0],t(`Insane`),s)})(d[0],d)})(o[0],o)});

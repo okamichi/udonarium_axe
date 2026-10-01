@@ -1,0 +1,10 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function(e){var m=e.module,y=e.klass,s=e.const_set,L=e.hash2,W=e.not,t=e.truthy,h=e.eqeq,p=e.rb_divide,q=e.rb_ge,i=e.rb_le,D=e.def,d=[],r=e.nil,E=e.$$$;return(function(R,G){var f=[m(R,`BCDice`)].concat(G);return(function(S,k){var _=[m(S,`GameSystem`)].concat(k),A=e.$r(_);return(function(B,C,M){var c=y(B,C,`RecordOfLodossWar`),o=[c].concat(M),j=e.$r(o),w=c.$$prototype;return w.randomizer=r,s(o[0],`ID`,`RecordOfLodossWar`),s(o[0],`NAME`,`ロードス島戦記RPG`),s(o[0],`SORT_KEY`,`ろおとすとうせんきRPG`),s(o[0],`HELP_MESSAGE`,`\u25CF\u5224\u5B9A
+\u3000LW<=(\u76EE\u6A19\u5024)\u3067\u5224\u5B9A\u3002
+\u3000\u9054\u6210\u5024\u304C\u76EE\u6A19\u5024\u306E1/10(\u7AEF\u6570\u5207\u308A\u4E0A\u3052)\u4EE5\u4E0B\u3067\u3042\u308C\u3070\u5927\u6210\u529F\u30021\uFF5E10\u3067\u3042\u308C\u3070\u81EA\u52D5\u6210\u529F\u3002
+\u300091\uFF5E100\u3067\u3042\u308C\u3070\u81EA\u52D5\u5931\u6557\u3068\u306A\u308A\u307E\u3059\u3002
+
+\u25CF\u56DE\u907F\u5224\u5B9A
+\u3000LWD<=(\u76EE\u6A19\u5024)\u3067\u56DE\u907F\u5224\u5B9A\u3002\u3053\u306E\u6642\u51FA\u76EE\u304C51\u4EE5\u4E0A\u3067\u81EA\u52D5\u5931\u6557\u3068\u306A\u308A\u307E\u3059\u3002
+
+\u3000\u5224\u5B9A\u3068\u56DE\u907F\u5224\u5B9A\u306F\u3001\u3069\u3061\u3089\u3082\u30B3\u30DE\u30F3\u30C9\u3060\u3051\u306E\u5834\u5408\u3001\u51FA\u76EE\u306E\u8868\u793A\u3068\u81EA\u52D5\u6210\u529F\u3068\u81EA\u52D5\u5931\u6557\u306E\u5224\u5B9A\u306E\u307F\u3092\u884C\u3044\u307E\u3059\u3002
+`),c.$register_prefix(`LW`),D(c,`$eval_game_system_specific_command`,function(x){var v=this,g=r,n=r,u=r,a=r,$=r,l=r,b=r;return g=E(j(`Command`),`Parser`).$new(`LWD`,`LW`,L([`round_type`],{round_type:v.$round_type()})).$restrict_cmp_op_to(r,`<=`),n=g.$parse(x),t(n[`$nil?`]())||W([r,`<=`][`$include?`](n.$cmp_op()))?r:(u=h(n.$command(),`LWD`)?51:91,a=p(n.$target_number().$to_f(),10).$ceil(),$=v.randomizer.$roll_once(100),l=t(q($,u))?`自動失敗(`+u+`)`:t(i($,a))?`大成功(`+a+`)`:t(i($,10))?`自動成功`:t(n.$cmp_op())?t(i($,n.$target_number()))?`成功`:`失敗`:r,b=[`(1D100`+n.$cmp_op()+n.$target_number()+`)`,$.$to_s(),l].$compact(),b.$join(` ＞ `))})})(_[0],A(`Base`),_)})(f[0],f)})(d[0],d)});

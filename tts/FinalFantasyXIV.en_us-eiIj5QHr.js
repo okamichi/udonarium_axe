@@ -1,0 +1,1 @@
+var a={FinalFantasyXIV:{directhit:`Direct Hit`,normalhit:`Only Base Effect`}};var e={en_us:a};export{e as default,a as en_us};

@@ -1,0 +1,1 @@
+import{h as g}from"./chunk-Bfxo_vOT.js";var o=/[\s\u3000]+/;function i(t){return g(t).toLowerCase().trim()}function s(t){return i(t).split(o).filter(e=>e.length>0)}function u(t,e){return e.every(n=>t.includes(n))}export{s as n,u as r,i as t};

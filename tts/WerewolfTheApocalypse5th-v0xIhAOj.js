@@ -1,0 +1,30 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function($){var U=$.module,p=$.klass,D=$.const_set,i=$.truthy,m=$.to_ary,C=$.rb_gt,A=$.rb_ge,X=$.rb_divide,g=$.rb_plus,N=$.def,b=$.eqeq,F=$.rb_le,G=$.rb_minus,T=$.rb_lt,B=$.neqeq,P=$.rb_times,Y=$.send,h=[],_=$.nil;return(function(w,H){var q=[U(w,`BCDice`)].concat(H);return(function(z,j){var L=[U(z,`GameSystem`)].concat(j),O=$.$r(L);return(function(Q,V,Z){var s=p(Q,V,`WerewolfTheApocalypse5th`),c=[s].concat(Z),l=$.$r(c),x=s.$$prototype;return x.randomizer=_,D(c[0],`ID`,`WerewolfTheApocalypse5th`),D(c[0],`NAME`,`Werewolf: The Apocalypse 5th Edition`),D(c[0],`SORT_KEY`,`わあうふるしあほかりふす5`),D(c[0],`HELP_MESSAGE`,`\u30FB\u5224\u5B9A\u30B3\u30DE\u30F3\u30C9(nWAFx+x \u307E\u305F\u306F nWAIxRx)
+  WAF\u30B3\u30DE\u30F3\u30C9\u306FRage\u30C0\u30A4\u30B9\u3068\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB\u3092\u500B\u5225\u306B\u6307\u5B9A\u3059\u308B\u3002
+  WAI\u30B3\u30DE\u30F3\u30C9\u306FRage\u30C0\u30A4\u30B9\u3092\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB\u306E\u5185\u6570\u3068\u3057\u3066\u6307\u5B9A\u3059\u308B\u3002
+
+    \u4F8B\uFF1A\u96E3\u6613\u5EA62\u30019\u30C0\u30A4\u30B9\u30D7\u30FC\u30EB\u3067Rage\u30C0\u30A4\u30B93\u500B\u306E\u5834\u5408\u3001\u305D\u308C\u305E\u308C\u4EE5\u4E0B\u306E\u3088\u3046\u306A\u30B3\u30DE\u30F3\u30C9\u3068\u306A\u308B\u3002
+    2WAF6+3
+    2WAI9R3
+
+  \u96E3\u6613\u5EA6\u6307\u5B9A\uFF1A\u9054\u6210\u6570\u306E\u30AB\u30A6\u30F3\u30C8\u3001\u5224\u5B9A\u6210\u529F\u3068\u5931\u6557\u3001\uFF08Rage\u30C0\u30A4\u30B9\u304C\u3042\u308B\u5834\u5408\uFF09Brutal outcome\u3001\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u51E6\u7406\u3001\u5B8C\u5168\u5931\u6557/Total Failure\u3001\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u6210\u529F\u306E\u30C1\u30A7\u30C3\u30AF\u3092\u884C\u3046
+  \u4F8B) (\u96E3\u6613\u5EA6)WAF(\u901A\u5E38\u30C0\u30A4\u30B9)+(Rage\u30C0\u30A4\u30B9)
+      (\u96E3\u6613\u5EA6)WAF(\u901A\u5E38\u30C0\u30A4\u30B9)
+      (\u96E3\u6613\u5EA6)WAI(\u901A\u5E38\u30C0\u30A4\u30B9)R(Rage\u30C0\u30A4\u30B9)
+      (\u96E3\u6613\u5EA6)WAI(\u901A\u5E38\u30C0\u30A4\u30B9)
+
+  \u96E3\u6613\u5EA6\u7701\u7565\uFF1A\u9054\u6210\u6570\u306E\u30AB\u30A6\u30F3\u30C8\u3001\u5224\u5B9A\u5931\u6557\u3001\uFF08Rage\u30C0\u30A4\u30B9\u304C\u3042\u308B\u5834\u5408\uFF09Brutal outcome\u3001\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u51E6\u7406\u3001\u5B8C\u5168\u5931\u6557\u306E\u30C1\u30A7\u30C3\u30AF\u3092\u884C\u3046
+              \u5224\u5B9A\u6210\u529F\u30C1\u30A7\u30C3\u30AF\u3092\u884C\u308F\u306A\u3044
+              \u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u6210\u529F/Critical Win\u306E\u30D2\u30F3\u30C8\u3092\u51FA\u529B
+  \u4F8B) WAF(\u901A\u5E38\u30C0\u30A4\u30B9)+(Rage\u30C0\u30A4\u30B9)
+      WAF(\u901A\u5E38\u30C0\u30A4\u30B9)
+      WAI(\u901A\u5E38\u30C0\u30A4\u30B9)R(Rage\u30C0\u30A4\u30B9)
+      WAI(\u901A\u5E38\u30C0\u30A4\u30B9)
+
+  \u96E3\u6613\u5EA60\u6307\u5B9A\uFF1A\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u51E6\u7406\u3068\u9054\u6210\u6570\u306E\u30AB\u30A6\u30F3\u30C8\u3092\u884C\u3044\u3001\u5168\u3066\u306E\u30C1\u30A7\u30C3\u30AF\u3092\u884C\u308F\u306A\u3044
+  \u4F8B) 0WAF(\u901A\u5E38\u30C0\u30A4\u30B9)+(Rage\u30C0\u30A4\u30B9)
+      0WAF(\u901A\u5E38\u30C0\u30A4\u30B9)
+      0WAI(\u901A\u5E38\u30C0\u30A4\u30B9)+(Rage\u30C0\u30A4\u30B9)
+      0WAI(\u901A\u5E38\u30C0\u30A4\u30B9)
+
+`),D(c[0],`DIFFICULTY_INDEX`,1),D(c[0],`DICE_POOL_RAGE_DICE_NO_INCLUDED_INDEX`,5),D(c[0],`RAGE_DICE_NO_INCLUDED_INDEX`,7),D(c[0],`COMMAND_RAGE_DICE_INCLUDED_INDEX`,9),D(c[0],`DICE_POOL_RAGE_DICE_INCLUDED_INDEX`,10),D(c[0],`RAGE_DICE_INCLUDED_INDEX`,12),D(c[0],`NOT_CHECK_SUCCESS`,-1),s.$register_prefix(`\\d*(WAF|(WAI\\d*(R\\d?)?))`),N(s,`$eval_game_system_specific_command`,function(n){var e,r,t=this,o=_,a=_,E=_,I=_,u=_,f=_,d=_,S=_,y=_,W=_,k=_,v=_,M=_;return o=/^(\d+)?(((WAF)(-?\d+)(\+(\d+))?)|((WAI)(-?\d+)(R(\d+))?))$/.$match(n),i(o)?(r=t.$get_dice_pools(o),e=m(r),a=e[0]==null?_:e[0],E=e[1]==null?_:e[1],i(C(E,5))?`5を超えるRageダイス指定はできません。`:(r=t.$make_dice_roll(a),e=m(r),I=e[0]==null?_:e[0],u=e[1]==null?_:e[1],f=e[2]==null?_:e[2],d=`(`+a+`D10`,i(A(E,0))?(r=t.$make_dice_roll(E),e=m(r),S=e[0]==null?_:e[0],y=e[1]==null?_:e[1],W=e[2]==null?_:e[2],k=e[3]==null?_:e[3],v=X(k,2).$floor(),f=g(f,W),u=g(u,y),d=``+d+`+`+E+`D10) ＞ [`+I+`]+[`+S+`] `):(W=0,v=0,d=``+d+`) ＞ [`+I+`] `),u=g(u,t.$get_critical_success(f)),M=i(o[`$[]`](l(`DIFFICULTY_INDEX`)))?o[`$[]`](l(`DIFFICULTY_INDEX`)).$to_i():l(`NOT_CHECK_SUCCESS`),t.$get_roll_result(d,u,f,W,v,M))):``}),s.$private(),N(s,`$get_dice_pools`,function(n){var e=_,r=_,t=_,o=_;return e=n[`$[]`](l(`COMMAND_RAGE_DICE_INCLUDED_INDEX`)),i(e)&&b(e,`WAI`)?(r=i(n[`$[]`](l(`RAGE_DICE_INCLUDED_INDEX`))[`$nil?`]())?-1:n[`$[]`](l(`RAGE_DICE_INCLUDED_INDEX`)).$to_i(),t=n[`$[]`](l(`DICE_POOL_RAGE_DICE_INCLUDED_INDEX`)).$to_i(),i(F(t,0))&&(t=1),o=G(t,i(T(r,0))?0:r),i(C(t,0))&&i(A(r,t))&&(o=0,r=t)):(r=i(n[`$[]`](l(`RAGE_DICE_NO_INCLUDED_INDEX`))[`$nil?`]())?-1:n[`$[]`](l(`RAGE_DICE_NO_INCLUDED_INDEX`)).$to_i(),o=n[`$[]`](l(`DICE_POOL_RAGE_DICE_NO_INCLUDED_INDEX`)).$to_i(),i(F(o,0))&&i(F(r,0))&&(o=1)),[o,r]}),N(s,`$get_roll_result`,function(n,e,r,t,o,a){var E=_,I=_;return E=A(r,2),i(C(o,0))&&B(a,0)?(e=g(e,4),n=``+n+` [Brutal outcome] 自動失敗、または 達成数=`+e):n=``+n+` 達成数=`+e,i(C(a,0))?(n=``+n+` 難易度=`+a,i(A(e,a))?(n=``+n+` 上回り=`+G(e,a),i(E)?(I=l(`Result`).$critical(``+n+`：判定成功! [クリティカル成功/Critical Win]`),i(C(o,0))?I.$text():I):(I=l(`Result`).$success(``+n+`：判定成功!`),i(C(o,0))?I.$text():I)):b(e,0)?l(`Result`).$fumble(``+n+`：判定失敗! [完全失敗/Total Failure]`):l(`Result`).$failure(``+n+`：判定失敗!`)):i(T(a,0))?b(e,0)?l(`Result`).$fumble(``+n+`：判定失敗! [完全失敗/Total Failure]`):(i(E)&&(n=``+n+`
+\u3000\u5224\u5B9A\u6210\u529F\u306A\u3089 [\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u6210\u529F/Critical Win]`),n.$to_s()):n.$to_s()}),N(s,`$get_critical_success`,function(n){return P(X(n,2).$floor(),2)}),N(s,`$make_dice_roll`,function(n){var e=this,r=_,t=_,o=_,a=_,E=_;return r=e.randomizer.$roll_barabara(n,10),t=r.$join(`,`),o=Y(r,`count`,[],function(u){return u??=_,A(u,6)}),a=r.$count(10),E=g(r.$count(1),r.$count(2)),[t,o,a,E]})})(L[0],O(`Base`),L)})(q[0],q)})(h[0],h)});

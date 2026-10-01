@@ -1,0 +1,1 @@
+var i={Bloodorium:{triumph:`《트라이엄프》(*%{triumph})`}};var m={ko_kr:i};export{m as default,i as ko_kr};

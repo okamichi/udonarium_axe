@@ -1,0 +1,1 @@
+import{Z as kt,b as Ne}from"./chunk-C2FNwqDO.js";function s(t,n){return x(t.size,n)}function x(t,n){let o=Math.max(1,t);return n*o/2-(o%2===0?n/2:0)}function u(t,n,o,r=n.location){let e=s(n,o);return Ne(t,r.x+e,r.y+e)}function p(t,n,o,r){let e=kt(t,r),c=s(n,o);return{x:e.x-c,y:e.y-c}}export{x as i,s as n,u as r,p as t};

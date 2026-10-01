@@ -1,0 +1,1 @@
+var l={NegikureNegimaki:{result_level:`성공 레벨%{success_level}/요구%{required_level}`,success_level:`성공 레벨%{success_level}`,damage:`일반 피해%{normal_damage}/직격 피해%{direct_damage}`,guts_loss:`거츠 감소%{guts_loss}`}};var _={ko_kr:l};export{_ as default,l as ko_kr};

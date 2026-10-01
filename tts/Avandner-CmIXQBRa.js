@@ -1,0 +1,19 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function(n){var z=n.module,M=n.klass,h=n.const_set,N=n.send2,T=n.find_super,C=n.def,s=n.truthy,y=n.rb_gt,D=n.send,k=n.rb_le,r=n.rb_plus,E=n.rb_times,S=[],e=n.nil;return(function(j,w){var q=[z(j,`BCDice`)].concat(w);return(function(K,L){var R=[z(K,`GameSystem`)].concat(L),Y=n.$r(R);return(function(F,J,Q){var _=M(F,J,`Avandner`),m=[_].concat(Q),v=n.$r(m),U=_.$$prototype;return U.randomizer=e,h(m[0],`ID`,`Avandner`),h(m[0],`NAME`,`黒絢のアヴァンドナー`),h(m[0],`SORT_KEY`,`こつけんのあうあんとなあ`),h(m[0],`HELP_MESSAGE`,`\u30FB\u8ABF\u67FB\u5224\u5B9A\uFF1AnAVm[Cx]
+\u30FB\u547D\u4E2D\u5224\u5B9A\uFF1AnAVm*p[+t][Cx]
+[]\u5185\u306F\u7701\u7565\u53EF\u80FD\u3002
+
+\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u30D2\u30C3\u30C8\u306E\u5206\u3060\u3051\u3001\u81EA\u52D5\u3067\u632F\u308A\u8DB3\u3057\u51E6\u7406\u3092\u884C\u3044\u307E\u3059\u30020
+\u300Cn\u300D\u3067\u30C0\u30A4\u30B9\u6570\u3092\u6307\u5B9A\u3002
+\u300Cm\u300D\u3067\u76EE\u6A19\u5024\u3092\u6307\u5B9A\u3002\u7701\u7565\u306F\u51FA\u6765\u307E\u305B\u3093\u3002
+\u300CCx\u300D\u3067\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u5024\u3092\u6307\u5B9A\u3002\u7701\u7565\u6642\u306F\u300C1\u300D\u3001\u6700\u5927\u5024\u306F\u300C2\u300D\u3001\u300C0\u300D\u3067\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u7121\u3057\u3002
+\u300Cp\u300D\u3067\u653B\u6483\u529B\u3092\u6307\u5B9A\u3002\u300C*\u300D\u306F\u300Cx\u300D\u3067\u3082\u53EF\u3002
+\u300C+t\u300D\u3067\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u30C8\u30EA\u30AC\u30FC\u3092\u6307\u5B9A\u3002\u7701\u7565\u53EF\u80FD\u3067\u3059\u3002
+\u653B\u6483\u529B\u6307\u5B9A\u3067\u547D\u4E2D\u5224\u5B9A\u3068\u306A\u308A\u3001\u6210\u529F\u6570\u3067\u306F\u306A\u304F\u3001\u30C0\u30E1\u30FC\u30B8\u3092\u7D50\u679C\u8868\u793A\u3057\u307E\u3059\u3002
+
+\u3010\u66F8\u5F0F\u4F8B\u3011
+\u30FB5AV3 \u2192 5d10\u3067\u76EE\u6A19\u50243\u3002
+\u30FB6AV2C0 \u2192 6d10\u3067\u76EE\u6A19\u50242\u3002\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u7121\u3057\u3002
+\u30FB4AV3*5 \u2192 4d10\u3067\u76EE\u6A19\u50243\u3001\u653B\u6483\u529B5\u306E\u547D\u4E2D\u5224\u5B9A\u3002
+\u30FB7AV2x10 \u2192 7d10\u3067\u76EE\u6A19\u50242\u3001\u653B\u6483\u529B10\u306E\u547D\u4E2D\u5224\u5B9A\u3002
+\u30FB8av4*7+10 \u2192 8d10\u3067\u76EE\u6A19\u50244\u3001\u653B\u6483\u529B7\u3001\u30AF\u30EA\u30C6\u30A3\u30AB\u30EB\u30C8\u30EA\u30AC\u30FC10\u306E\u547D\u4E2D\u5224\u5B9A\u3002
+`),_.$register_prefix(`\\d+AV`),C(_,`$initialize`,function g(a){g.$$p;var i=this;return g.$$p=null,N(i,T(i,`initialize`,g,!1,!0),`initialize`,[a],null),i.sort_add_dice=!0}),C(_,`$eval_game_system_specific_command`,function(a){var d=this,i=e,f=e,x=e,o=e,c=e,$=e;return s(a[`$=~`](/(\d+)AV(\d+)((x|\*)(\d+))?(\+(\d+))?(C(\d+))?$/i))?(i=v(`Regexp`).$last_match(1).$to_i(),f=v(`Regexp`).$last_match(2).$to_i(),x=(s(o=v(`Regexp`).$last_match(5))?o:0).$to_i(),c=(s(o=v(`Regexp`).$last_match(7))?o:0).$to_i(),$=(s(o=v(`Regexp`).$last_match(9))?o:1).$to_i().$clamp(0,2),d.$checkRoll(i,f,x,c,$)):e}),C(_,`$checkRoll`,function(a,d,i,f,x){var o=this,c=e,$=e,u=e,A=e,b=e,B=e,p=e,V=e,t=e,G=e,H=e;for(c=0,$=0,u=``,A=a;s(y(A,0));)b=o.randomizer.$roll_barabara(A,10).$sort(),B=b.$join(`,`),p=D(b,`count`,[],function(l){return l??=e,k(l,d)}),V=D(b,`count`,[],function(l){return l??=e,k(l,x)}),c=r(c,p),$=r($,V),s(u[`$empty?`]())||(u=r(u,`+`)),u=r(u,``+p+`[`+B+`]`),A=V;return t=``,G=i[`$!=`](0),s(G)?(H=r(E(c,i),E($,f)),t=r(t,`(`+a+`D10<=`+d+`) ＞ `+u+` ＞ Hits：`+c+`*`+i),s(y(f,0))&&(t=r(t,` + Trigger：`+$+`*`+f)),t=r(t,` ＞ `+H+`ダメージ`)):t=r(t,`(`+a+`D10<=`+d+`) ＞ `+u+` ＞ 成功数：`+c),s(y($,0))&&(t=r(t,` / `+$+`クリティカル`)),t})})(R[0],Y(`Base`),R)})(q[0],q)})(S[0],S)});

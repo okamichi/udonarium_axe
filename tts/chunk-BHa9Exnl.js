@@ -1,0 +1,1 @@
+import{Y as M,gt as T}from"./chunk-CN3sJ17K.js";import{r as Ie}from"./chunk-DAX2okSA.js";var a=new M(`TRANSLATE_FN`,{providedIn:`root`,factory:()=>{let n=T(Ie);return(e,c)=>n.translate(e,c)}});export{a as t};

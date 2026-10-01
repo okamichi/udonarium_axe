@@ -1,0 +1,1 @@
+var t={FinalFantasyXIV:{directhit:`ダイレクトヒット`,normalhit:`基本効果のみ`}};var n={ja_jp:t};export{n as default,t as ja_jp};

@@ -1,0 +1,1 @@
+function e(i,t=0){return/iPhone|iPad|iPod/i.test(i)||/Macintosh/i.test(i)&&t>1}export{e as t};

@@ -1,0 +1,1 @@
+var l={Ventangle:{special:`スペシャル`,level_gap:`ギャップボーナス(%<gap>d)`}};var p={ja_jp:l};export{p as default,l as ja_jp};

@@ -1,0 +1,1 @@
+var a={Alsetto:{damage:`%{total_damage}ダメージ`,success_count:`成功数：%{success_count}`,triumph:` / %{critical_count}トライアンフ`}};var s={ja_jp:a};export{s as default,a as ja_jp};

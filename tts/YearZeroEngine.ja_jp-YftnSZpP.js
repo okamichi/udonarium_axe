@@ -1,0 +1,1 @@
+var i={YearZeroEngine:{success_count:`成功数`,difficulty:`難易度`,success_msg:`判定成功！`,failure_msg:`判定失敗！`,roll_one:`出目1`,ability:`能力`,skill:`技能`,item:`アイテム`,pushable:`プッシュ可能`,dice:`ダイス`}};var l={ja_jp:i};export{l as default,i as ja_jp};

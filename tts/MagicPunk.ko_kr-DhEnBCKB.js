@@ -1,0 +1,1 @@
+var k={MagicPunk:{bad_beat:`실패(BB)`,jackpot:`성공(JP)`,success:`성공(%<value>d)`}};var e={ko_kr:k};export{e as default,k as ko_kr};

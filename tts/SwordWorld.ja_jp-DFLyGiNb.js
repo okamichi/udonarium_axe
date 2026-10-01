@@ -1,0 +1,1 @@
+var r={SwordWorld:{critical:`自動的成功`,fumble:`自動的失敗`,keynumber_exceeds:`キーナンバーは%{keyMax}までです`,infinite_critical:`C値を%{min_critical}以上にしてください`,round_text:`%{reroll_count}回転`}};var c={ja_jp:r};export{c as default,r as ja_jp};

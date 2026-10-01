@@ -1,0 +1,22 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function(n){var j=n.module,m=n.klass,b=n.const_set,q=n.send2,M=n.find_super,C=n.def,$=n.truthy,D=n.rb_lt,G=n.rb_le,v=n.send,U=n.rb_times,E=n.hash2,p=n.rb_gt,H=n.thrower,g=n.rb_plus,P=n.rb_minus,w=[],r=n.nil,S=n.$$$;return(function(Y,F){var d=[j(Y,`BCDice`)].concat(F);return(function(Q,V){var x=[j(Q,`GameSystem`)].concat(V),X=n.$r(x);return(function(Z,O,rr){var A=m(Z,O,`Irisbane`),s=[A].concat(rr),i=n.$r(s),tr=A.$$prototype;return tr.randomizer=r,b(s[0],`ID`,`Irisbane`),b(s[0],`NAME`,`瞳逸らさぬイリスベイン`),b(s[0],`SORT_KEY`,`ひとみそらさぬいりすへいん`),b(s[0],`HELP_MESSAGE`,`\u25A0\u653B\u6483\u5224\u5B9A\uFF08 ATTACKx@y<=z \uFF09
+x: \u653B\u6483\u529B
+y: \u5224\u5B9A\u6570
+z: \u76EE\u6A19\u5024
+\uFF08\u203B ATTACK \u306F ATK \u307E\u305F\u306F AT \u3068\u7C21\u7565\u5316\u53EF\u80FD\uFF09
+\u4F8B\uFF09 ATTACK2@3<=5
+\u4F8B\uFF09 ATK10@2<=4
+\u4F8B\uFF09 AT8@3<=2
+
+\u4E0A\u8A18 x y z \u306B\u306F\u305D\u308C\u305E\u308C\u56DB\u5247\u6F14\u7B97\u3092\u6307\u5B9A\u53EF\u80FD\u3002
+\u4F8B\uFF09 ATTACK2+7@3*2<=5-1
+
+\u25A1\u653B\u6483\u5224\u5B9A\u306E\u30C0\u30E1\u30FC\u30B8\u5897\u6E1B\uFF08 ATTACKx@y<=z[+a]  ATTACKx@y<=z[-a]\uFF09
+\u672B\u5C3E\u306B [+a] \u307E\u305F\u306F [-a] \u3068\u6307\u5B9A\u3059\u308B\u3068\u3001\u6700\u7D42\u7684\u306A\u30C0\u30E1\u30FC\u30B8\u3092\u5897\u6E1B\u3067\u304D\u308B\u3002
+a: \u5897\u6E1B\u91CF
+\u4F8B\uFF09 ATTACK2@3<=5[+10]
+\u4F8B\uFF09 ATK10@2<=4[-8]
+\u4F8B\uFF09 AT8@3<=2[-8+5]
+
+\u25A0\u30B7\u30C1\u30E5\u30A8\u30FC\u30B7\u30E7\u30F3\uFF08p115\uFF09
+SceneSituation, SSi
+`),b(s[0],`ATTACK_ROLL_REG`,/^AT(TACK|K)?([+\-*\/()\d]+)@([+\-*\/()\d]+)<=([+\-*\/()\d]+)(\[([+-])([+\-*\/()\d]+)\])?/i.$freeze()),A.$register_prefix(`AT(TACK|K)?`),C(A,`$initialize`,function T(e){T.$$p;var a=this;return T.$$p=null,q(a,M(a,`initialize`,T,!1,!0),`initialize`,[e],null),a.sort_barabara_dice=!0,a.round_type=S(i(`RoundType`),`CEIL`)}),C(A,`$eval_game_system_specific_command`,function(e){var l=this,a=r,t=r;return e=$(a=i(`ALIAS`)[`$[]`](e))?a:e,$(t=i(`ATTACK_ROLL_REG`).$match(e))?l.$roll_attack(t[`$[]`](2),t[`$[]`](3),t[`$[]`](4),t[`$[]`](6),t[`$[]`](7)):l.$roll_tables(e,S(l.$class(),`TABLES`))}),A.$private(),C(A,`$roll_attack`,function(e,l,a,t,u){try{H(`eval_return`);var f=this,h=r,z=r,y=r,K=r,B=r,N=r,L=r,o=r,_=r;return h=i(`Arithmetic`).$eval(e,S(i(`RoundType`),`CEIL`)),z=i(`Arithmetic`).$eval(l,S(i(`RoundType`),`CEIL`)),y=i(`Arithmetic`).$eval(a,S(i(`RoundType`),`CEIL`)),K=$(u[`$nil?`]())?r:i(`Arithmetic`).$eval(u,S(i(`RoundType`),`CEIL`)),$(h[`$nil?`]())||$(z[`$nil?`]())||$(y[`$nil?`]())||$(t)&&$(K[`$nil?`]())?r:($(D(h,0))&&(h=0),y=y.$clamp(1,6),B=f.$make_command_text(h,z,y,t,K),$(G(z,0))?``+B+` ＞ `+f.$translate(`Irisbane.zero_dice_count`):(N=f.randomizer.$roll_barabara(z,6).$sort(),L=v(N,`count`,[],function(I){return I??=r,G(I,y)}),o=U(L,h),_=[],_[`$<<`](B),_[`$<<`](N.$join(`,`)),_[`$<<`](f.$translate(`Irisbane.success_dice_count`,E([`count`],{count:L}))),$(p(L,0))&&_[`$<<`](f.$translate(`Irisbane.attack_power`,E([`power`],{power:h}))),$(p(L,0))&&($(t)&&$(K)?(_[`$<<`](f.$translate(`Irisbane.damage_with_mod`,E([`damage`,`operator`,`mod_value`],{damage:o,operator:t,mod_value:K}))),o=f.$parse_operator(t).$call(o,K),$(D(o,0))&&(o=0),_[`$<<`](o.$to_s())):_[`$<<`](f.$translate(`Irisbane.damage`,E([`damage`],{damage:o})))),v(i(`Result`).$new(_.$join(` ＞ `)),`tap`,[],function(I){var R;return I??=r,R=[p(L,0)],v(I,`condition=`,R),R[R.length-1]})))}catch(k){if(k===n.t_eval_return)return k.$v;throw k}}),C(A,`$make_command_text`,function(e,l,a,t,u){var c=r;return c=`(ATTACK`+e+`@`+l+`<=`+a,$(t)&&(c=g(c,`[`+t+u+`]`)),c=g(c,`)`),c}),C(A,`$parse_operator`,function(e){var l=this;switch(e.valueOf()){case`+`:return v(l,`lambda`,[],function(t,u){return t??=r,u??=r,g(t,u)});case`-`:return v(l,`lambda`,[],function(t,u){return t??=r,u??=r,P(t,u)});default:return r}}),(function(T,e){var l=[T].concat(e),a=n.$r(l);return T.$private(),C(T,`$translate_tables`,function(u){return E([`SCENESITUATION`],{SCENESITUATION:S(a(`DiceTable`),`D66LeftRangeTable`).$from_i18n(`Irisbane.SceneSituation`,u)})})})(n.get_singleton_class(A),s),b(s[0],`TABLES`,A.$translate_tables(`ja_jp`).$freeze()),b(s[0],`ALIAS`,v(v(E([`SSi`],{SSi:`SceneSituation`}),`transform_keys`,[],`upcase`.$to_proc()),`transform_values`,[],`upcase`.$to_proc()).$freeze()),A.$register_prefix(i(`TABLES`).$keys(),i(`ALIAS`).$keys())})(x[0],X(`Base`),x)})(d[0],d)})(w[0],w)});

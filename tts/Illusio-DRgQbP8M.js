@@ -1,0 +1,12 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function(r){var y=r.module,B=r.klass,a=r.const_set,p=r.send2,x=r.find_super,v=r.def,i=r.truthy,g=r.send,E=r.rb_gt,N=r.rb_plus,S=r.rb_lt,I=[],e=r.nil;return(function(j,q){var k=[y(j,`BCDice`)].concat(q);return(function(A,G){var b=[y(A,`GameSystem`)].concat(G),C=r.$r(b);return(function(H,K,R){var o=B(H,K,`Illusio`),f=[o].concat(R),T=o.$$prototype;return T.randomizer=e,a(f[0],`ID`,`Illusio`),a(f[0],`NAME`,`晃天のイルージオ`),a(f[0],`SORT_KEY`,`こうてんのいるうしお`),a(f[0],`HELP_MESSAGE`,`\u5224\u5B9A\uFF1A[n]IL(BNo)[P]
+
+[]\u5185\u306E\u30B3\u30DE\u30F3\u30C9\u306F\u7701\u7565\u53EF\u80FD\u3002
+\u300Cn\u300D\u3067\u30C0\u30A4\u30B9\u6570\u3092\u6307\u5B9A\u3002\u7701\u7565\u6642\u306F\u300C1\u300D\u3002
+(BNo)\u3067\u30D6\u30ED\u30C3\u30AF\u30CA\u30F3\u30D0\u30FC\u3092\u6307\u5B9A\u3002\u300C236\u300D\u306E\u3088\u3046\u306B\u8A18\u8FF0\u3002\u9806\u4E0D\u540C\u53EF\u3002
+\u30B3\u30DE\u30F3\u30C9\u672B\u306B\u300CP\u300D\u3092\u6307\u5B9A\u3067\u3001(BNo)\u306E\u30D1\u30EA\u30A3\u5224\u5B9A\u3002\uFF08\u4E00\u5FDC\u3001\u8907\u6570\u6307\u5B9A\u53EF\uFF09
+
+\u3010\u66F8\u5F0F\u4F8B\u3011
+\u30FB6IL236 \u2192 6d\u3067\u30D6\u30ED\u30C3\u30AF\u30CA\u30F3\u30D0\u30FC\u300C2,3,6\u300D\u306E\u5224\u5B9A\u3002
+\u30FBIL4512 \u2192 1d\u3067\u30D6\u30ED\u30C3\u30AF\u30CA\u30F3\u30D0\u30FC\u300C1,2,4,5\u300D\u306E\u5224\u5B9A\u3002
+\u30FB2IL1P \u2192 2d\u3067\u30D1\u30EA\u30A3\u30CA\u30F3\u30D0\u30FC\u300C1\u300D\u306E\u5224\u5B9A\u3002
+`),v(o,`$initialize`,function c($){c.$$p;var n=this;return c.$$p=null,p(n,x(n,`initialize`,c,!1,!0),`initialize`,[$],null),n.sort_add_dice=!0}),o.$register_prefix(`(\\d+)?IL([1-6]{0,6})(P)?`),v(o,`$eval_game_system_specific_command`,function($){var l=this,n=e,d=e,t=e,_=e,s=e;return n=$.$match(/(\d+)?IL([1-6]{0,6})(P)?$/i),i(n)?(d=(i(t=n[`$[]`](1))?t:1).$to_i(),_=g((i(t=n[`$[]`](2))?t:``).$each_char(),`map`,[],`to_i`.$to_proc()).$uniq().$sort(),s=n[`$[]`](3)[`$nil?`]()[`$!`](),l.$check_roll(d,_,s)):e}),v(o,`$check_roll`,function($,l,n){var d=this,t=e,_=e,s=e,u=e,L=e,P=e,z=e,m=e;return t=d.randomizer.$roll_barabara($,6).$sort(),_=t.$join(`,`),s=[],u=0,g(t,`each`,[],function(h){return h??=e,i(E(l.$count(h),0))?s.$push(`×`):(s.$push(h),u=N(u,1))}),L=l.$join(`,`),P=i(n)?`Parry`:`Block`,z=s.$join(`,`),m=``+$+`D6(`+P+`:`+L+`) ＞ `+_+` ＞ `+z+` ＞ `,i(n)?i(S(u,$))?``+m+`パリィ成立！　次の非ダメージ2倍。`:``+m+`成功数：`+u+`　パリィ失敗`:``+m+`成功数：`+u})})(b[0],C(`Base`),b)})(k[0],k)})(I[0],I)});

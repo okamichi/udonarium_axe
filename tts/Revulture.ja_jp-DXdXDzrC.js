@@ -1,0 +1,1 @@
+var r={Revulture:{error:{no_dice:`ダイス数が 0 です`,no_border:`目標値が指定されていないため、追加ダメージを算出できません`},critical:`クリティカル %<count>d`,hit_count:`ヒット数 %<count>d`,damage:`ダメージ %<count>d`}};var t={ja_jp:r};export{t as default,r as ja_jp};

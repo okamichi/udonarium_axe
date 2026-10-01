@@ -1,0 +1,1 @@
+var e={Emoklore:{success_count:`성공 수 %{count},`,double:`더블`,triple:`트리플`,miracle:`미라클`,catastrophe:`카타스트로프`,dice_count_zero:`주사위 개수가 0 이하 ＞ 확정 실패`}};var r={ko_kr:e};export{r as default,e as ko_kr};

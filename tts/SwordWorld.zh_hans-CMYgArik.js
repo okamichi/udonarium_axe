@@ -1,0 +1,1 @@
+var r={SwordWorld:{critical:`自动成功`,fumble:`自动失败`,keynumber_exceeds:`威力最大为%{keyMax}`,infinite_critical:`请输入%{min_critical}以上的C值`,round_text:`%{reroll_count}暴击`}};var c={zh_hans:r};export{c as default,r as zh_hans};

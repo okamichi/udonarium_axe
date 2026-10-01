@@ -1,0 +1,1 @@
+var s={Alsetto:{damage:`%{total_damage} 대미지`,success_count:`성공 수 : %{success_count}`,triumph:` / %{critical_count} 트라이엄프`}};var a={ko_kr:s};export{a as default,s as ko_kr};

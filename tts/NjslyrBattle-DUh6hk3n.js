@@ -1,0 +1,5 @@
+import{t as Ee}from"./chunk-B_Ac0l0D.js";Ee();Opal.queue(function(e){var l=e.module,g=e.klass,u=e.const_set,_=e.eqeq,j=e.neqeq,q=e.truthy,E=e.rb_le,c=e.rb_plus,v=e.def,y=e.rb_gt,a=[],f=e.nil;return(function(B,R){var b=[l(B,`BCDice`)].concat(R);return(function(h,m){var i=[l(h,`GameSystem`)].concat(m),A=e.$r(i);return(function(D,L,T){var $=g(D,L,`NjslyrBattle`),r=[$].concat(T),o=e.$r(r);return u(r[0],`ID`,`NjslyrBattle`),u(r[0],`NAME`,`NJSLYRBATTLE`),u(r[0],`SORT_KEY`,`にんしやすれいやあはとる`),u(r[0],`HELP_MESSAGE`,`\u30FB\u30AB\u30E9\u30C6\u30ED\u30FC\u30EB
+2d6<=(\u30AB\u30E9\u30C6\u70B9)
+\u4F8B\uFF092d6<=5
+(2D6<=5) \uFF1E 2[1,1] \uFF1E 2 \uFF1E \u6210\u529F \u91CD\u70B9 3 \u6E9C\u307E\u308B
+`),v($,`$result_2d6`,function(t,n,x,G,d){var M=this,s=f;return _(d,`?`)?o(`Result`).$nothing():j(G,`<=`)?f:(s=q(E(t,d))?o(`Result`).$success(`成功`):o(`Result`).$failure(`失敗`),s[`$text=`](c(s.$text(),M.$juuten(x))),s)}),$.$private(),v($,`$juuten`,function(t){var n=f;return n=c(t.$count(1),t.$count(6)),_(t[`$[]`](0),t[`$[]`](1))&&(n=c(n,1)),q(y(n,0))?` 重点 `+n+` 溜まる`:``})})(i[0],A(`Base`),i)})(b[0],b)})(a[0],a)});

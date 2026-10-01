@@ -1,0 +1,1 @@
+var o={SRS:{auto_success:`자동 성공`,auto_failure:`자동 실패`}};var s={ko_kr:o};export{s as default,o as ko_kr};

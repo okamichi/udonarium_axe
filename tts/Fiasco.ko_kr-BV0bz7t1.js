@@ -1,0 +1,1 @@
+var t={Fiasco:{white:`흰색`,black:`검은색`,fs:{count:`%{count}개`},wb:{duplicate_error:{white:`흰색 지정(W)은 중복될 수 없습니다.`,black:`검은색 지정(B)은 중복될 수 없습니다.`}}}};var a={ko_kr:t};export{a as default,t as ko_kr};

@@ -1,0 +1,1 @@
+var l={NegikureNegimaki:{result_level:`成功レベル%{success_level}/要求%{required_level}`,success_level:`成功レベル%{success_level}`,damage:`通常ダメージ%{normal_damage}/直撃ダメージ%{direct_damage}`,guts_loss:`ガッツ減少%{guts_loss}`}};var _={ja_jp:l};export{_ as default,l as ja_jp};
